@@ -1625,6 +1625,131 @@
       .evo-arrow { transform: rotate(90deg); padding: 4px 0; }
       .future-compare { grid-template-columns: 1fr; }
       .agent-arch { grid-template-columns: 1fr 1fr; }
+      .closure-diagram { padding: 20px 12px; }
+      .closure-main { flex-direction: column; }
+      .closure-branch { min-width: 100%; }
+    }
+
+    /* ── Product → TRD → Test closure diagram ── */
+    .closure-wrap {
+      margin: 36px 0;
+      padding: 28px 24px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(52,211,153,.28);
+      background: linear-gradient(160deg, rgba(52,211,153,.07), rgba(99,102,241,.06));
+    }
+    .closure-wrap h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+    .closure-wrap .closure-lead {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.75;
+    }
+    .closure-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .closure-main {
+      display: flex;
+      align-items: stretch;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .closure-node {
+      padding: 16px 18px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      min-width: 130px;
+      flex-shrink: 0;
+    }
+    .closure-node strong {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .closure-node code {
+      font-size: 0.68rem;
+      color: var(--accent-2);
+      background: rgba(0,0,0,.25);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .closure-node.product {
+      background: rgba(244,114,182,.12);
+      border: 1px solid rgba(244,114,182,.35);
+      align-self: center;
+    }
+    .closure-node.trd {
+      background: rgba(99,102,241,.12);
+      border: 1px solid rgba(99,102,241,.35);
+    }
+    .closure-node.dev {
+      background: rgba(34,211,238,.1);
+      border: 1px solid rgba(34,211,238,.3);
+    }
+    .closure-node.qa {
+      background: rgba(251,191,36,.1);
+      border: 1px solid rgba(251,191,36,.3);
+    }
+    .closure-node.verify {
+      background: rgba(52,211,153,.12);
+      border: 1px solid rgba(52,211,153,.4);
+      flex: 1;
+      min-width: 200px;
+    }
+    .closure-arrow-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .closure-branch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .closure-arrow {
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .closure-arrow.big {
+      font-size: 1.1rem;
+      color: var(--text-dim);
+    }
+    .closure-verify-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 16px;
+      border-top: 1px dashed rgba(148,163,184,.2);
+    }
+    .closure-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .closure-legend span {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
     }
 
     /* ── PDCA cycle ── */
@@ -1844,6 +1969,9 @@
     <a class="nav-link sub" href="#future-plan-hook">Plan + Hook 编排</a>
     <a class="nav-link sub" href="#future-spec-hook">Spec 自动读取</a>
     <a class="nav-link sub" href="#future-custom-agent">专属 Agent</a>
+    <a class="nav-link sub" href="#future-product-closure">产品→测试闭环</a>
+    <a class="nav-link sub" href="#future-product-trd">产品→TRD</a>
+    <a class="nav-link sub" href="#future-product-test">产品→测试用例</a>
     <a class="nav-link" href="#appendix">六、文档索引</a>
   </nav>
 
@@ -4038,7 +4166,8 @@ private TaskRuleDTO taskRule;</pre>
 
       <div class="evolution-intro">
         当前项目的 AI 协作已跑通「<strong>Rules + test_spec 联动</strong>」基础链路，但执行层仍以<strong>对话驱动</strong>为主——谁表达更清楚、谁更懂业务，产出质量就更高。
-        下一阶段的核心演进是：<strong>把 Plan 结构化、把 spec 读取自动化、把任务推进 Hook 化</strong>，最终收敛为<strong>项目级专属 Agent</strong>，让 AI 协作从「个人技巧」升级为「可复制的工程流水线」。
+        下一阶段的核心演进是：<strong>把 Plan 结构化、把 spec 读取自动化、把任务推进 Hook 化</strong>，最终收敛为<strong>项目级专属 Agent</strong>；
+        再向上延伸，让<strong>产品文档</strong>友好驱动 TRD 与测试用例生成，形成「<strong>产品 → TRD → 项目 → 测试</strong>」全链路 md 闭环。
       </div>
 
       <div class="evolution-track">
@@ -4280,6 +4409,206 @@ tasks:
         </div>
       </div>
 
+      <!-- 产品 → TRD → 测试 全链路闭环 -->
+      <div class="closure-wrap" id="future-product-closure">
+        <h3>全链路闭环：产品 → TRD → 项目 → 测试</h3>
+        <p class="closure-lead">
+          各阶段交付物统一为 <strong style="color:var(--text)">Markdown 文件</strong>，AI 可跨文档交叉校验：
+          产品 PRD 的功能点是否在 TRD 中有技术方案、是否在 test_spec 中有研发用例、是否在 QA 用例中有测试覆盖——
+          自动 mapping 出<strong style="color:#fde68a">高优先级但覆盖不足</strong>的功能，形成完美闭环。
+        </p>
+
+        <div class="closure-diagram">
+          <div class="closure-main">
+            <div class="closure-node product">
+              <strong>产品 PRD</strong>
+              功能清单 · 业务规则<br/>
+              验收口径 · 优先级<br/>
+              <code>product/feature_*.md</code>
+            </div>
+            <span class="closure-arrow big">⇢</span>
+            <div class="closure-arrow-col">
+              <div class="closure-branch">
+                <span class="closure-arrow">分支 A · 技术方案</span>
+                <div class="closure-node trd">
+                  <strong>TRD</strong>
+                  接口 · 数据模型<br/>
+                  Job 时序 · 依赖<br/>
+                  <code>doc/trd/{feature}_trd.md</code>
+                </div>
+                <span class="closure-arrow">→</span>
+                <div class="closure-node dev">
+                  <strong>项目交付 md</strong>
+                  研发 test_spec<br/>
+                  api_spec · plan<br/>
+                  <code>*_test_spec.md</code>
+                </div>
+              </div>
+              <div class="closure-branch">
+                <span class="closure-arrow">分支 B · 质量保障</span>
+                <div class="closure-node qa">
+                  <strong>测试用例 md</strong>
+                  场景 · 步骤 · 预期<br/>
+                  优先级 · 回归标记<br/>
+                  <code>doc/qa/{module}_cases.md</code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="closure-verify-row">
+            <span class="closure-arrow">⇣ md 交叉校验</span>
+            <div class="closure-node verify">
+              <strong>Traceability 矩阵 + 优先级热力图</strong>
+              PRD.feature_id ↔ TRD 章节 ↔ test_spec 用例号 ↔ QA 用例号<br/>
+              检出：P0 功能 QA 未覆盖 · TRD 有方案但 test_spec 无对应用例 · 研发用例与 QA 预期不一致
+            </div>
+          </div>
+
+          <div class="closure-legend">
+            <span>🩷 产品 PRD — 需求源头</span>
+            <span>🟣 TRD — 技术翻译层</span>
+            <span>🩵 test_spec — 研发契约 + 联调</span>
+            <span>🟡 QA cases — 测试执行层</span>
+            <span>🟢 交叉校验 — 闭环信号</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 方向四 -->
+      <div class="future-detail-card" id="future-product-trd">
+        <h4>方向四：产品文档友好支持 TRD 生成</h4>
+        <p class="future-sub">让 PRD 结构化到「AI 可直接生成 TRD 骨架」，减少需求到技术的口头翻译损耗</p>
+
+        <div class="future-compare">
+          <div class="future-compare-box now">
+            <strong>❌ 现状</strong>
+            <ul>
+              <li>产品文档多为 Word / 飞书自由排版，功能边界、异常场景散落各处</li>
+              <li>研发写 TRD 需反复找产品确认，TRD 与 PRD 功能点难以一一对账</li>
+              <li>AI 生成 TRD 时缺少稳定输入结构，产出章节层次不一致</li>
+            </ul>
+          </div>
+          <div class="future-compare-box future">
+            <strong>✓ 目标 · PRD → TRD 友好</strong>
+            <ul>
+              <li>PRD 采用<strong>固定 md 模板</strong>：功能清单表格 + 每条带 <code>feature_id</code>、优先级 P0/P1/P2</li>
+              <li>每条功能含：用户故事、业务规则、边界/异常、<strong>验收口径</strong>（可测描述）</li>
+              <li>AI 读取 PRD 按 feature_id 批量生成 TRD 骨架，章节与 PRD 一一映射</li>
+              <li>TRD 产出 <code>doc/trd/{feature_id}_trd.md</code>，含接口概览、表结构、Job、依赖模块</li>
+            </ul>
+          </div>
+        </div>
+
+        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:12px"><strong style="color:var(--text)">PRD 模板关键字段</strong>（便于 AI 生成 TRD）：</p>
+        <div class="code-block">
+          <div class="code-header"><span>product/feature_TDD-001.md 片段</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+          <pre>## 功能：明细列表 end_time 闭区间筛选
+- feature_id: TDD-001
+- priority: P0                    # P0 核心路径 / P1 重要 / P2 一般
+- module: task_distribution_detail
+
+### 用户故事
+作为销售主管，我希望按截止时间范围筛选明细，以便跟进即将到期任务。
+
+### 业务规则
+1. end_time 筛选为闭区间 [start, end]
+2. 与 list / export 使用同一套 buildListQueryWrapper 条件
+
+### 验收口径（产品语言，可测）
+- 给定 start=2026-01-01、end=2026-01-31，仅返回该区间内明细
+- export 结果与 list 同条件时条数一致
+
+### 非功能 / 边界
+- 单次 list 最多返回 1 万条（已有规则，TRD 需引用）</pre>
+        </div>
+
+        <p style="font-size:0.84rem;color:var(--text-muted);margin:16px 0 10px"><strong style="color:var(--text)">PRD → TRD 生成规则</strong>：</p>
+        <ol class="future-steps">
+          <li><span class="step-num">1</span><span><strong>章节映射</strong>：PRD「业务规则」→ TRD「核心逻辑」；「验收口径」→ TRD「接口契约 + 边界」；「非功能」→ TRD「性能/限制」</span></li>
+          <li><span class="step-num">2</span><span><strong>feature_id 透传</strong>：TRD 每个章节标题携带 <code>[TDD-001]</code>，后续 test_spec 用例号与之对齐</span></li>
+          <li><span class="step-num">3</span><span><strong>缺口标注</strong>：AI 生成 TRD 时对 PRD 未明确的点打 <code>[待产品确认]</code>，避免 silent assumption</span></li>
+          <li><span class="step-num">4</span><span><strong>Hook 触发</strong>：产品更新 PRD md → Hook 检测 diff → 提示「是否重新生成/增量更新 TRD」</span></li>
+        </ol>
+
+        <div class="tags" style="margin-top:16px">
+          <span class="tag tag-indigo">feature_id 全链路透传</span>
+          <span class="tag tag-cyan">PRD 模板标准化</span>
+          <span class="tag tag-amber">TRD 自动生成骨架</span>
+        </div>
+      </div>
+
+      <!-- 方向五 -->
+      <div class="future-detail-card" id="future-product-test">
+        <h4>方向五：产品文档友好支持测试用例生成</h4>
+        <p class="future-sub">从 PRD 验收口径直接派生 QA 用例，并与 test_spec 交叉校验，高效识别高优先级测试缺口</p>
+
+        <div class="future-compare">
+          <div class="future-compare-box now">
+            <strong>❌ 现状</strong>
+            <ul>
+              <li>测试用例在 Excel / 测试平台手工维护，与 PRD、test_spec 三套文档各写各的</li>
+              <li>产品改需求后，测试不知道哪些用例需更新；P0 功能可能缺少回归用例</li>
+              <li>研发 test_spec 偏接口/Job 联调，QA 用例偏 UI/业务流程，两者难以对账</li>
+            </ul>
+          </div>
+          <div class="future-compare-box future">
+            <strong>✓ 目标 · PRD → QA + 交叉校验</strong>
+            <ul>
+              <li>PRD「验收口径」按 Given-When-Then 或步骤表结构化，AI 直接生成 QA md</li>
+              <li>QA 用例携带 <code>feature_id</code> + <code>ref_test_spec</code>（关联研发用例号）</li>
+              <li>自动对比 PRD 优先级 vs QA 覆盖 vs test_spec 覆盖，输出<strong>优先级热力图</strong></li>
+              <li>P0 功能若 QA / test_spec 任一缺失，闭环校验失败并告警</li>
+            </ul>
+          </div>
+        </div>
+
+        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:12px"><strong style="color:var(--text)">QA 用例 md 结构示例</strong>：</p>
+        <div class="code-block">
+          <div class="code-header"><span>doc/qa/task_distribution_detail_cases.md</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+          <pre>## QA-012e end_time 闭区间筛选 [P0]
+- feature_id: TDD-001
+- ref_test_spec: 用例12e          # 关联研发 test_spec 编号
+- ref_trd: doc/trd/TDD-001_trd.md
+
+| 步骤 | 操作 | 预期 |
+|------|------|------|
+| 1 | list 传入 start/end | 仅返回闭区间内明细 |
+| 2 | 同条件 export | 条数与 list 一致 |
+| 3 | start &gt; end | 参数校验失败 |
+
+- type: 功能 + 回归
+- priority: P0</pre>
+        </div>
+
+        <p style="font-size:0.84rem;color:var(--text-muted);margin:16px 0 10px"><strong style="color:var(--text)">md 交叉校验 · 优先级 Mapping 逻辑</strong>：</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>校验项</th><th>输入 md</th><th>检出问题时</th><th>优先级</th></tr></thead>
+            <tbody>
+              <tr><td>PRD → TRD 覆盖</td><td>product/*.md vs doc/trd/*.md</td><td>P0 feature_id 无 TRD 章节</td><td><span class="tag tag-amber">高</span></td></tr>
+              <tr><td>TRD → test_spec 覆盖</td><td>trd vs *_test_spec.md</td><td>TRD 接口在 spec 无用例 / 无 JSON 示例</td><td><span class="tag tag-amber">高</span></td></tr>
+              <tr><td>PRD → QA 覆盖</td><td>product vs doc/qa/*.md</td><td>P0 验收口径无 QA 用例</td><td><span class="tag tag-amber">高</span></td></tr>
+              <tr><td>test_spec ↔ QA 一致</td><td>test_spec vs qa cases</td><td>同 feature_id 预期结果不一致</td><td><span class="tag tag-indigo">中</span></td></tr>
+              <tr><td>研发 fix 回归</td><td>test_spec 变更说明</td><td>fix 未补 QA 回归用例</td><td><span class="tag tag-indigo">中</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ol class="future-steps" style="margin-top:16px">
+          <li><span class="step-num">1</span><span><strong>生成</strong>：AI 读 PRD 验收口径 → 生成 QA md 初稿；读 test_spec → 补充接口级步骤与 JSON 断言</span></li>
+          <li><span class="step-num">2</span><span><strong>对账</strong>：构建 Traceability 矩阵（feature_id × TRD × test_spec × QA），可视化覆盖缺口</span></li>
+          <li><span class="step-num">3</span><span><strong>优先级排序</strong>：P0 且未覆盖 &gt; P0 覆盖不全 &gt; P1 缺口；输出「本周必测清单」</span></li>
+          <li><span class="step-num">4</span><span><strong>闭环信号</strong>：PRD / TRD / test_spec / QA 四份 md 全部对齐后，feature 才标记 <code>release_ready</code></span></li>
+        </ol>
+
+        <div class="tags" style="margin-top:16px">
+          <span class="tag tag-cyan">PRD 验收口径 → QA</span>
+          <span class="tag tag-amber">P0 覆盖强制校验</span>
+          <span class="tag tag-green">四文档闭环</span>
+        </div>
+      </div>
+
       <!-- 近期可落地 -->
       <h3 style="margin-top:8px">近期可落地优化（补充）</h3>
       <div class="card">
@@ -4290,6 +4619,9 @@ tasks:
           <li><strong>CI 校验</strong>：增加 spec 变更说明是否与 java diff 同 PR 的检查脚本</li>
           <li><strong>Plan 模板试点</strong>：下一个需求先用 <code>doc/plans/</code> YAML 拆解，手动验证「md 验收」可行性后再 Hook 化</li>
           <li><strong>spec-index 初版</strong>：为已有 3～5 个前端 page 建立映射表，验证 Hook 自动 attach 效果</li>
+          <li><strong>PRD md 模板试点</strong>：选 1 个需求用 <code>product/feature_*.md</code> 结构化编写，验证 AI 生成 TRD 骨架效果</li>
+          <li><strong>Traceability 矩阵脚本</strong>：扫描 PRD feature_id 与 test_spec 用例号，输出覆盖缺口 CSV</li>
+          <li><strong>QA md 与 test_spec 对账</strong>：同一 module 下 QA 用例 <code>ref_test_spec</code> 字段与研发用例号自动比对</li>
         </ul>
       </div>
     </section>
