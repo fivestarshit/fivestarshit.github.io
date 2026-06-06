@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markdown 预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --border: rgba(148,163,184,.15);
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-2: #3fb950;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 24px;
+      background: rgba(13,17,23,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    header a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    header a:hover { text-decoration: underline; }
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 28px 80px;
+    }
+    .md-body h1, .md-body h2, .md-body h3, .md-body h4 {
+      margin: 1.4em 0 0.6em;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    .md-body h1 { font-size: 1.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+    .md-body h2 { font-size: 1.35rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25em; }
+    .md-body h3 { font-size: 1.1rem; color: #79c0ff; }
+    .md-body p, .md-body li { font-size: 0.92rem; color: #c9d1d9; margin: 0.6em 0; }
+    .md-body ul, .md-body ol { padding-left: 1.5em; margin: 0.6em 0; }
+    .md-body li { margin: 0.25em 0; }
+    .md-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82em;
+      background: rgba(110,118,129,.2);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      color: #ff7b72;
+    }
+    .md-body pre {
+      margin: 1em 0;
+      padding: 16px 18px;
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .md-body pre code {
+      background: none;
+      padding: 0;
+      color: #c9d1d9;
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+    .md-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+      font-size: 0.85rem;
+    }
+    .md-body th, .md-body td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .md-body th { background: rgba(110,118,129,.12); color: var(--text); }
+    .md-body blockquote {
+      margin: 1em 0;
+      padding: 8px 16px;
+      border-left: 3px solid var(--accent);
+      background: rgba(88,166,255,.08);
+      color: var(--text-muted);
+    }
+    .md-body hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+    .md-body a { color: var(--accent); }
+    .loading, .error-box {
+      padding: 24px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .error-box strong { color: #f85149; display: block; margin-bottom: 8px; }
+    .error-box code {
+      display: block;
+      margin: 12px 0;
+      padding: 12px;
+      background: #010409;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--accent-2);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="./ai_rd_efficiency_summary.html#appendix">← 返回文档索引</a>
+    <span class="file-name" id="file-label">加载中…</span>
+  </header>
+  <main>
+    <div id="content" class="loading">正在加载 Markdown…</div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    marked.setOptions({ gfm: true, breaks: false });
+
+    function getFileParam() {
+      const p = new URLSearchParams(location.search).get('file');
+      if (!p || p.includes('..') || p.startsWith('/')) return null;
+      return decodeURIComponent(p);
+    }
+
+    function resolveMdUrl(file) {
+      return new URL(file, location.href).href;
+    }
+
+    async function loadMarkdown(file) {
+      const url = resolveMdUrl(file);
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const buf = await res.arrayBuffer();
+      return new TextDecoder('utf-8').decode(buf);
+    }
+
+    function renderError(file, err) {
+      const isFileProtocol = location.protocol === 'file:';
+      const absPath = resolveMdUrl(file);
+      document.getElementById('content').className = 'error-box';
+      document.getElementById('content').innerHTML =
+        '<strong>无法加载文档</strong>' +
+        '<p>' + (err && err.message ? err.message : '未知错误') + '</p>' +
+        (isFileProtocol
+          ? '<p>当前为本地文件协议（<code>file://</code>），浏览器禁止读取相邻 md 文件。请在 <code>doc/</code> 目录启动本地 HTTP 服务后访问：</p>' +
+            '<code>cd doc && python3 -m http.server 8765</code>' +
+            '<p style="margin-top:12px">然后打开：<br/><code>http://localhost:8765/ai_rd_efficiency_summary.html</code></p>'
+          : '<p>请确认 md 文件存在于 <code>doc/</code> 目录。</p>') +
+        '<p style="margin-top:12px">或在 IDE 中直接打开：<br/><code>' + absPath + '</code></p>';
+    }
+
+    function renderMarkdown(text) {
+      const el = document.getElementById('content');
+      el.className = 'md-body';
+      el.innerHTML = marked.parse(text);
+    }
+
+    (async function init() {
+      const file = getFileParam();
+      const label = document.getElementById('file-label');
+      const content = document.getElementById('content');
+
+      if (!file) {
+        label.textContent = '未指定文件';
+        content.className = 'error-box';
+        content.innerHTML = '<strong>缺少参数</strong><p>请使用 <code>md-viewer.html?file=README.md</code> 形式访问。</p>';
+        return;
+      }
+
+      label.textContent = file;
+      document.title = file + ' · Markdown 预览';
+
+      try {
+        const text = await loadMarkdown(file);
+        renderMarkdown(text);
+      } catch (e) {
+        renderError(file, e);
+      }
+    })();
+  </script>
+</body>
+</html>
