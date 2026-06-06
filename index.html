@@ -1956,7 +1956,7 @@
     <a class="nav-link" href="#rules-importance">★ Rules 先行</a>
     <a class="nav-link sub" href="#rules-benefits">联动改 MD 的好处</a>
     <a class="nav-link sub" href="#spec-case-study">典型 spec 范例</a>
-    <a class="nav-link sub" href="#spec-full-doc">完整 test_spec 文档</a>
+    <a class="nav-link sub" href="#appendix">文档索引</a>
     <a class="nav-link sub" href="#rules-scoped">前后端 Rules 分域</a>
     <a class="nav-link sub" href="#rules-cross-project">前端读后端 spec</a>
     <a class="nav-link sub" href="#rules-catalog">Rules 完整清单</a>
@@ -1972,7 +1972,6 @@
     <a class="nav-link sub" href="#future-product-closure">产品→测试闭环</a>
     <a class="nav-link sub" href="#future-product-trd">产品→TRD</a>
     <a class="nav-link sub" href="#future-product-test">产品→测试用例</a>
-    <a class="nav-link" href="#appendix">六、文档索引</a>
   </nav>
 
   <main>
@@ -2151,7 +2150,7 @@
                 <thead><tr><th>实践</th><th>产出物</th><th>效果</th></tr></thead>
                 <tbody>
                   <tr><td>接口说明与源码一致</td><td><code>biz_template_config_controller_api_spec.md</code></td><td>字段级 API 文档，联调少猜字段</td></tr>
-                  <tr><td>表结构变更累计</td><td><code>dpc/sql/update_tables.sql</code></td><td>避免遗漏审计字段等横切变更</td></tr>
+                  <tr><td>表结构变更累计</td><td><code>doc/sql/update_tables.sql</code></td><td>避免遗漏审计字段等横切变更</td></tr>
                   <tr><td>列表性能优化</td><td>批量 SQL 聚合</td><td>AI 识别 N+1，给出 GROUP BY 方案</td></tr>
                   <tr><td>复杂时间规则抽取</td><td>TaskRuleTimeResolver 等 Support 类</td><td>财季/月末逻辑集中，便于单测与修复</td></tr>
                 </tbody>
@@ -2165,7 +2164,7 @@
 1. 新增/修改的 API（含分页默认值 page=1, pageSize=20）
 2. Service 接口 + 实现职责划分（Job 层不写业务细节）
 3. 需更新的 doc/{模块}_test_spec.md 章节
-4. dpc/sql/update_tables.sql 追加语句
+4. doc/sql/update_tables.sql 追加语句
 约束：判空用 Objects.nonNull / CollectionUtils / StringUtils；DTO 字段加注释。</pre>
             </div>
           </div></div>
@@ -2297,7 +2296,7 @@
         <p class="lead">
           AI 生成代码的能力很强，但<strong>默认不会主动维护文档</strong>——除非你提前用 Rules 把它写进「必须遵守的契约」。
           本项目在启动之初即在 Cursor User Rules 中固化约束，其中最关键的一条是：
-          <strong>代码逻辑变更时，必须同步更新 doc/ 下对应的 *_test_spec.md</strong>（功能变更改对应用例，Bug 修复补回归用例，表结构变更同步 dpc/sql）。
+          <strong>代码逻辑变更时，必须同步更新 doc/ 下对应的 *_test_spec.md</strong>（功能变更改对应用例，Bug 修复补回归用例，表结构变更同步 doc/sql）。
           这不是形式主义，而是让 AI 协作从「一次性对话」变成「可沉淀、可复用、可交接」的工程过程。
         </p>
 
@@ -3313,7 +3312,7 @@
 <ul class="spec-ul">
 <ul class="spec-ul">
 <li><strong>预期结果</strong>：能解析账户与部门时，对应明细三字段被更新；账户或部门缺失、<code>data_own_department</code> 不可解析时跳过该编码并打 debug/warn 日志；返回值为本次调度累计成功 <strong><code>UPDATE</code></strong> 明细行数</li>
-<li><strong>回归</strong>：接口 <strong><code>TaskDistributionDetailDTO</code></strong> 中 <strong><code>departmentPath</code></strong> 由 <strong><code>department_path_json</code></strong> 反序列化为 <code>List&lt;String&gt;</code>；库表 DDL 见 <strong><code>dpc/sql/update_tables.sql</code></strong> / <strong><code>doc/sql/update_tables.sql</code></strong> 中 <strong><code>task_distribution_detail</code></strong> 三列追加语句</li>
+<li><strong>回归</strong>：接口 <strong><code>TaskDistributionDetailDTO</code></strong> 中 <strong><code>departmentPath</code></strong> 由 <strong><code>department_path_json</code></strong> 反序列化为 <code>List&lt;String&gt;</code>；库表 DDL 见 <strong><code>doc/sql/update_tables.sql</code></strong> 中 <strong><code>task_distribution_detail</code></strong> 三列追加语句</li>
 </ul>
 </ul>
 <ul class="spec-ul">
@@ -3383,7 +3382,7 @@
             <div class="rules-scope-body">
               <ul>
                 <li><strong>#2</strong> 判空：Objects / CollectionUtils / StringUtils</li>
-                <li><strong>#3</strong> 改表 → 追加 dpc/sql/update_tables.sql</li>
+                <li><strong>#3</strong> 改表 → 追加 doc/sql/update_tables.sql</li>
                 <li><strong>#4</strong> DTO 字段必须加注释</li>
                 <li><strong>#5</strong> 新增/改动文件自动 git add</li>
                 <li><strong>#6</strong> 列表 POST 默认 page=1, pageSize=20 + PageResult 返回</li>
@@ -3543,7 +3542,7 @@
             <tbody>
               <tr><td>1</td><td>前端 · 目录规范</td><td><span class="scope-tag fe">前端</span></td><td>url / route / pages / model 四件套</td><td><code>frontend.md</code></td></tr>
               <tr><td>2</td><td>后端 · 判空规范</td><td><span class="scope-tag be">后端</span></td><td>Objects / CollectionUtils / StringUtils</td><td><code>backend.md</code></td></tr>
-              <tr><td>3</td><td>后端 · 数据库变更</td><td><span class="scope-tag be">后端</span></td><td>改表追加 dpc/sql/update_tables.sql</td><td><code>backend.md</code></td></tr>
+              <tr><td>3</td><td>后端 · 数据库变更</td><td><span class="scope-tag be">后端</span></td><td>改表追加 doc/sql/update_tables.sql</td><td><code>backend.md</code></td></tr>
               <tr><td>4</td><td>后端 · DTO 规范</td><td><span class="scope-tag be">后端</span></td><td>DTO 每个字段加注释</td><td><code>backend.md</code></td></tr>
               <tr><td>5</td><td>后端 · Git 工作流</td><td><span class="scope-tag be">后端</span></td><td>新增/改动文件自动 git add</td><td><code>backend.md</code></td></tr>
               <tr><td>6</td><td>后端 · 分页接口</td><td><span class="scope-tag be">后端</span></td><td>POST 默认 page/pageSize + PageResult</td><td><code>backend.md</code></td></tr>
@@ -3588,7 +3587,7 @@
               <span class="scope-tag be">后端</span>
             </div>
             <div class="rule-item-body">
-              <div class="desc">数据库字段修改时，自动在 <code>dpc/sql/update_tables.sql</code> 追加 ALTER 语句，所有历史变更累计在同一文件。</div>
+              <div class="desc">数据库字段修改时，自动在 <code>doc/sql/update_tables.sql</code> 追加 ALTER 语句，所有历史变更累计在同一文件。</div>
               <div class="proj-example"><strong>本项目举例</strong>全库统一追加 created_by / updated_by 审计字段、task_rule 新增 is_repeat / auto_close_on_deadline 等，均按时间顺序追加在同一文件，便于 DBA 一次性审阅。</div>
             </div>
           </div>
@@ -3773,9 +3772,9 @@ if (Objects.isNull(ruleId)) { ... }</pre>
               <div class="rule-full-block-head"><div class="rule-num be">3</div><h5>数据库变更 — DDL 累计文件</h5></div>
               <div class="rule-official">
                 <div class="rule-official-label">规则原文</div>
-                <p>数据库字段的修改，自动在 <code>dpc/sql/</code> 下面生成一个 <code>update_tables.sql</code> 文件，累计的修改都在这个文件里体现。</p>
+                <p>数据库字段的修改，自动在 <code>doc/sql/</code> 下追加 <code>update_tables.sql</code> 文件，累计的修改都在这个文件里体现。</p>
               </div>
-              <div class="rule-explain"><strong>详细说明：</strong>每次 ALTER TABLE 按时间顺序<strong>追加</strong>到 <code>dpc/sql/update_tables.sql</code> 末尾，不覆盖历史、不新建散落 SQL 文件。每条变更上方建议加注释说明日期与用途，便于 DBA 审阅和执行。</div>
+              <div class="rule-explain"><strong>详细说明：</strong>每次 ALTER TABLE 按时间顺序<strong>追加</strong>到 <code>doc/sql/update_tables.sql</code> 末尾，不覆盖历史、不新建散落 SQL 文件。每条变更上方建议加注释说明日期与用途，便于 DBA 审阅和执行。</div>
               <div class="code-mini" style="margin-top:12px">
                 <div class="code-mini-label good">✓ 追加示例</div>
                 <pre>-- 2026-04-07：task_rule 新增 is_repeat 字段
@@ -3967,7 +3966,7 @@ private TaskRuleDTO taskRule;</pre>
 - 字符串：StringUtils / StringUtil 相关方法
 
 #3 数据库变更
-- 数据库字段修改，自动在 dpc/sql/ 下追加 update_tables.sql
+- 数据库字段修改，自动在 doc/sql/ 下追加 update_tables.sql
 - 累计的修改都在同一文件里体现，按时间顺序追加
 
 #4 DTO 规范
@@ -4049,7 +4048,7 @@ private TaskRuleDTO taskRule;</pre>
             <tr><td>业务流程串列</td><td><code>doc/README.md</code></td><td>产品→研发对齐主链路</td></tr>
             <tr><td>功能测试规格</td><td><code>doc/*_test_spec.md</code></td><td>测试、联调、回归唯一事实来源</td></tr>
             <tr><td>接口字段说明</td><td><code>doc/*_api_spec.md</code></td><td>与 Controller 同步的 API 字典</td></tr>
-            <tr><td>SQL 变更累计</td><td><code>dpc/sql/update_tables.sql</code></td><td>库表演进审计</td></tr>
+            <tr><td>SQL 变更累计</td><td><code>doc/sql/update_tables.sql</code></td><td>库表演进审计</td></tr>
             <tr><td>Groovy 片段库</td><td><code>doc/groovy_snippets/</code></td><td>条件/完成脚本可复制模板</td></tr>
           </tbody>
         </table>
@@ -4122,7 +4121,7 @@ private TaskRuleDTO taskRule;</pre>
       <h3 id="checklist">3.6 质量保障检查清单</h3>
       <ul class="checklist" id="checklist-items">
         <li onclick="toggleCheck(this)"><div class="check-box"></div><code>doc/*_test_spec.md</code> 已更新变更说明与用例</li>
-        <li onclick="toggleCheck(this)"><div class="check-box"></div>涉及表结构时 <code>dpc/sql/update_tables.sql</code> 已追加</li>
+        <li onclick="toggleCheck(this)"><div class="check-box"></div>涉及表结构时 <code>doc/sql/update_tables.sql</code> 已追加</li>
         <li onclick="toggleCheck(this)"><div class="check-box"></div>新 DTO 字段有注释</li>
         <li onclick="toggleCheck(this)"><div class="check-box"></div>列表接口含默认分页与 PageResult</li>
         <li onclick="toggleCheck(this)"><div class="check-box"></div>Service 有接口层；Job 无大段业务逻辑</li>
@@ -4632,16 +4631,92 @@ tasks:
         <div class="section-num">06</div>
         <h2>附录：文档索引</h2>
       </div>
+      <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:24px;line-height:1.75">
+        以下为 <code>doc/</code> 目录下已有 Markdown 文档，<strong style="color:var(--text)">点击文件名在预览页中查看</strong>（UTF-8 渲染，避免浏览器直接打开 md 乱码）。
+        若本地双击 HTML 无法加载，请在 <code>doc/</code> 目录执行 <code>python3 -m http.server 8765</code> 后访问 <code>http://localhost:8765/ai_rd_efficiency_summary.html</code>。
+        内嵌全文见上方 <a href="#spec-full-doc" style="color:var(--accent-2)">任务下发明细 test_spec</a>。
+      </p>
+
+      <h3 style="font-size:0.95rem;color:var(--accent);margin:28px 0 12px">流程与总览</h3>
       <div class="table-wrap card">
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td><a href="./README.md" style="color:var(--accent-2)">doc/README.md</a></td><td>业务流程串列</td></tr>
-            <tr><td><a href="./task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td>任务定义（核心）</td></tr>
-            <tr><td><a href="#spec-full-doc" style="color:var(--accent-2)">任务下发明细 test_spec（内嵌全文）</a></td><td>下发明细与 Job · 685 行完整文档</td></tr>
-            <tr><td><a href="./biz_template_config_controller_api_spec.md" style="color:var(--accent-2)">biz_template_config_controller_api_spec.md</a></td><td>模板接口说明</td></tr>
-            <tr><td><a href="./groovy_snippets/README.md" style="color:var(--accent-2)">groovy_snippets/README.md</a></td><td>Groovy 片段库</td></tr>
-            <tr><td><a href="../dpc/sql/update_tables.sql" style="color:var(--accent-2)">dpc/sql/update_tables.sql</a></td><td>表结构累计变更</td></tr>
+            <tr><td><a href="./md-viewer.html?file=README.md" style="color:var(--accent-2)">README.md</a></td><td>业务流程串列：数据模板 → 字段映射 → 任务定义 → 下发明细，四步创建闭环说明</td></tr>
+            <tr><td><a href="./sql/update_tables.sql" style="color:var(--accent-2)">sql/update_tables.sql</a></td><td>表结构<strong>累计变更</strong>脚本：日常 ALTER/索引/字段追加均在此文件按时间顺序追加</td></tr>
+            <tr><td><a href="./sql/datasource_and_biz_template_ddl.sql" style="color:var(--accent-2)">sql/datasource_and_biz_template_ddl.sql</a></td><td>数据源连接 <code>datasource_connection</code>、业务模板 <code>biz_template_config</code>、字段映射 <code>biz_template_field_map</code> 等建表 DDL</td></tr>
+            <tr><td><a href="./sql/condition_action_task_rule_ddl.sql" style="color:var(--accent-2)">sql/condition_action_task_rule_ddl.sql</a></td><td>TRD 4.2 核心表：<code>condition_repo</code>、动作库、<code>task_rule</code>、<code>task_instance</code>、执行日志等建表 DDL</td></tr>
+            <tr><td><a href="./sql/task_object_option_ddl.sql" style="color:var(--accent-2)">sql/task_object_option_ddl.sql</a></td><td>任务对象选项表 <code>task_object_option</code>（<code>/objectOptions</code> 下拉数据来源）</td></tr>
+            <tr><td><a href="./sql/task_system_option_ddl.sql" style="color:var(--accent-2)">sql/task_system_option_ddl.sql</a></td><td>任务关联系统选项表 <code>task_system_option</code>（<code>/systemOptions</code> 下拉数据来源）</td></tr>
+            <tr><td><a href="./sql/task_execution_type_option_ddl.sql" style="color:var(--accent-2)">sql/task_execution_type_option_ddl.sql</a></td><td>任务执行类型选项表 <code>task_execution_type_option</code>（<code>/executionTypeOptions</code> 下拉数据来源）</td></tr>
+            <tr><td><a href="./md-viewer.html?file=sql/task_template_definition_change.md" style="color:var(--accent-2)">sql/task_template_definition_change.md</a></td><td><code>task_template_definition</code> 表字段变更记录与原因说明</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:0.95rem;color:var(--accent);margin:28px 0 12px">核心业务 · 任务定义与下发</h3>
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>文档</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><a href="./md-viewer.html?file=task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td><strong>核心</strong> · 任务包/任务/动作创建与 list/listStats · createPackage 校验链 · TEMPLATE 拆分 · 约 717 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=task_distribution_detail_test_spec.md" style="color:var(--accent-2)">task_distribution_detail_test_spec.md</a></td><td>下发明细触发、API、Action 同步 · 条件匹配与 XXL-JOB · 两篇合并 · 约 688 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=task_template_test_spec.md" style="color:var(--accent-2)">task_template_test_spec.md</a></td><td>任务模板（<code>task_template_definition</code>）CRUD、分页、与任务定义 TEMPLATE 分支联调 · 约 463 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=condition_action_task_rule_test_spec.md" style="color:var(--accent-2)">condition_action_task_rule_test_spec.md</a></td><td>条件库、动作库、任务规则（task_rule）、任务实例 · CRON/周期配置 · 约 298 行</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:0.95rem;color:var(--accent);margin:28px 0 12px">数据模板与数据源</h3>
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>文档</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><a href="./md-viewer.html?file=biz_template_config_controller_api_spec.md" style="color:var(--accent-2)">biz_template_config_controller_api_spec.md</a></td><td><strong>接口字典</strong> · BizTemplateConfigController 全字段 DTO、PageResult 结构 · 前端类型生成首选 · 约 593 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=biz_template_config_test_spec.md" style="color:var(--accent-2)">biz_template_config_test_spec.md</a></td><td>业务模板 config 更新、fieldDetails 批量 upsert、主键/映射校验 · 约 248 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=datasource_template_test_spec.md" style="color:var(--accent-2)">datasource_template_test_spec.md</a></td><td>数据源连接与业务模板配置联调、模板字段映射规则 · 约 339 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=trial_data_config_test_spec.md" style="color:var(--accent-2)">trial_data_config_test_spec.md</a></td><td>试用数据配置（trial_data_config）增删改查与联调要点 · 约 177 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=data_crowd_test_spec.md" style="color:var(--accent-2)">data_crowd_test_spec.md</a></td><td>数仓分群 Feign 分页查询、圈选条件与任务下发 crowd 联调 · 约 371 行</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:0.95rem;color:var(--accent);margin:28px 0 12px">动态 HTTP · Groovy · 字段筛选</h3>
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>文档</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><a href="./md-viewer.html?file=dynamic_http_endpoint_test_spec.md" style="color:var(--accent-2)">dynamic_http_endpoint_test_spec.md</a></td><td>动态 HTTP 外部接口配置 CRUD、invoke 调用、密钥脱敏 · 约 305 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=dynamic_http_group_test_spec.md" style="color:var(--accent-2)">dynamic_http_group_test_spec.md</a></td><td>动态 HTTP 聚合分组配置与 endpoint 归属关系 · 约 84 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=groovy_script_instance_test_spec.md" style="color:var(--accent-2)">groovy_script_instance_test_spec.md</a></td><td>Groovy 脚本实例管理、启用/禁用、分页与版本 · 约 179 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=groovy_shell_test_spec.md" style="color:var(--accent-2)">groovy_shell_test_spec.md</a></td><td>GroovyShell execute / executeMap / assembleMap 测试接口与入参结构 · 约 161 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=field_filter_operator_test_spec.md" style="color:var(--accent-2)">field_filter_operator_test_spec.md</a></td><td>字段筛选操作符（field_filter_operator）枚举、匹配规则与条件组装 · 约 100+ 行</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:0.95rem;color:var(--accent);margin:28px 0 12px">Groovy 片段库（联调脚本参考）</h3>
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>文档</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><a href="./md-viewer.html?file=groovy_snippets/README.md" style="color:var(--accent-2)">groovy_snippets/README.md</a></td><td>片段库索引：completion_script、DynamicHttp 后处理、条件脚本等场景说明</td></tr>
+            <tr><td><a href="./md-viewer.html?file=groovy_snippets/group_data_list_values_threshold.md" style="color:var(--accent-2)">groovy_snippets/group_data_list_values_threshold.md</a></td><td>从 <code>groupDataList</code> 取 values 二维表，按第二列数值阈值判定完成条件</td></tr>
+            <tr><td><a href="./md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match.md</a></td><td><code>conditionDetailList</code> 与 <code>mappedResults</code> 字段级匹配（含 index 分组、多运算符）· 约 287 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match_operator_code.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match_operator_code.md</a></td><td>同上匹配逻辑，操作符使用 <code>field_filter_operator</code> 标准码 · 约 227 行</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:0.95rem;color:var(--accent);margin:28px 0 12px">集成 · 认证 · 消息</h3>
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>文档</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><a href="./md-viewer.html?file=ehr_department_test_spec.md" style="color:var(--accent-2)">ehr_department_test_spec.md</a></td><td>EHR 部门树查询、dept_code / path 与明细归属部门字段联调</td></tr>
+            <tr><td><a href="./md-viewer.html?file=auth_interceptor_test_spec.md" style="color:var(--accent-2)">auth_interceptor_test_spec.md</a></td><td>JwtAuthFilter + OpAuthInterceptor 双链路认证、白名单与 403 场景 · 约 101 行</td></tr>
+            <tr><td><a href="./md-viewer.html?file=kafka_test_push_spec.md" style="color:var(--accent-2)">kafka_test_push_spec.md</a></td><td>Kafka 测试推送接口，消息体结构与发送验证</td></tr>
+            <tr><td><a href="./md-viewer.html?file=sfa_tour_device_photos_kafka_test_spec.md" style="color:var(--accent-2)">sfa_tour_device_photos_kafka_test_spec.md</a></td><td>巡店照片结果 Kafka 消费、与任务/明细状态联动测试</td></tr>
           </tbody>
         </table>
       </div>
