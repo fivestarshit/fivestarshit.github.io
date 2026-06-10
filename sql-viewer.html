@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL 预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --border: rgba(148,163,184,.15);
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-2: #3fb950;
+      --sql-comment: #8b949e;
+      --sql-keyword: #ff7b72;
+      --sql-string: #a5d6ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 24px;
+      background: rgba(13,17,23,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    header a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    header a:hover { text-decoration: underline; }
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .copy-btn {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 0.78rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .copy-btn.copied { color: var(--accent-2); border-color: var(--accent-2); }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+    .meta {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .sql-wrap {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #010409;
+    }
+    .sql-scroll {
+      overflow-x: auto;
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+    }
+    pre {
+      margin: 0;
+      padding: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.65;
+      tab-size: 2;
+    }
+    code { display: block; padding: 18px 20px; white-space: pre; color: #c9d1d9; }
+    .loading, .error-box {
+      padding: 24px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .error-box strong { color: #f85149; display: block; margin-bottom: 8px; }
+    .error-box code {
+      display: block;
+      margin: 12px 0;
+      padding: 12px;
+      background: #010409;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--accent-2);
+    }
+    .kw { color: var(--sql-keyword); }
+    .cm { color: var(--sql-comment); font-style: italic; }
+    .str { color: var(--sql-string); }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="./ai_rd_efficiency_summary.html#appendix">← 返回文档索引</a>
+    <span class="file-name" id="file-label">加载中…</span>
+    <button type="button" class="copy-btn" id="copy-btn" style="display:none">复制 SQL</button>
+  </header>
+  <main>
+    <div id="meta" class="meta" hidden></div>
+    <div id="content" class="loading">正在加载 SQL…</div>
+  </main>
+
+  <script>
+    let rawSql = '';
+
+    function getFileParam() {
+      const p = new URLSearchParams(location.search).get('file');
+      if (!p || p.includes('..') || p.startsWith('/')) return null;
+      if (!/\.sql$/i.test(p)) return null;
+      return decodeURIComponent(p);
+    }
+
+    function resolveSqlUrl(file) {
+      return new URL(file, location.href).href;
+    }
+
+    async function loadSql(file) {
+      const url = resolveSqlUrl(file);
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const buf = await res.arrayBuffer();
+      return new TextDecoder('utf-8').decode(buf);
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /** 轻量 SQL 高亮：关键字 / 单行注释 / 字符串 */
+    function highlightSql(text) {
+      const escaped = escapeHtml(text);
+      return escaped
+        .replace(/(--[^\n]*)/g, '<span class="cm">$1</span>')
+        .replace(/('(?:''|[^'])*')/g, '<span class="str">$1</span>')
+        .replace(/\b(SELECT|FROM|WHERE|INSERT|INTO|UPDATE|SET|DELETE|CREATE|TABLE|ALTER|DROP|INDEX|UNIQUE|PRIMARY|KEY|NOT|NULL|DEFAULT|COMMENT|ENGINE|CHARSET|COLLATE|AUTO_INCREMENT|IF|EXISTS|ADD|MODIFY|COLUMN|CONSTRAINT|REFERENCES|ON|AND|OR|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|VALUES|INNER|LEFT|JOIN|AS|INT|BIGINT|VARCHAR|TINYINT|DATETIME|TIMESTAMP|TEXT|JSON|DECIMAL)\b/gi,
+          '<span class="kw">$1</span>');
+    }
+
+    function renderError(file, err) {
+      const isFileProtocol = location.protocol === 'file:';
+      const absPath = resolveSqlUrl(file);
+      document.getElementById('content').className = 'error-box';
+      document.getElementById('content').innerHTML =
+        '<strong>无法加载 SQL 文件</strong>' +
+        '<p>' + (err && err.message ? err.message : '未知错误') + '</p>' +
+        (isFileProtocol
+          ? '<p>当前为本地文件协议（<code>file://</code>），浏览器禁止读取相邻 sql 文件。请在 <code>doc/</code> 目录启动本地 HTTP 服务后访问：</p>' +
+            '<code>cd doc && python3 -m http.server 8765</code>' +
+            '<p style="margin-top:12px">然后打开：<br/><code>http://localhost:8765/ai_rd_efficiency_summary.html</code></p>'
+          : '<p>请确认 SQL 文件存在于 <code>doc/sql/</code> 目录。</p>') +
+        '<p style="margin-top:12px">或在 IDE 中直接打开：<br/><code>' + absPath + '</code></p>';
+    }
+
+    function renderSql(text, file) {
+      rawSql = text;
+      const lines = text.split('\n').length;
+      const meta = document.getElementById('meta');
+      meta.hidden = false;
+      meta.textContent = '共 ' + lines + ' 行 · UTF-8 · 只读预览';
+
+      const el = document.getElementById('content');
+      el.className = 'sql-wrap';
+      el.innerHTML =
+        '<div class="sql-scroll"><pre><code>' + highlightSql(text) + '</code></pre></div>';
+
+      const copyBtn = document.getElementById('copy-btn');
+      copyBtn.style.display = '';
+      copyBtn.onclick = async function () {
+        try {
+          await navigator.clipboard.writeText(rawSql);
+          copyBtn.textContent = '已复制';
+          copyBtn.classList.add('copied');
+          setTimeout(function () {
+            copyBtn.textContent = '复制 SQL';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        } catch (e) {
+          copyBtn.textContent = '复制失败';
+        }
+      };
+    }
+
+    (async function init() {
+      const file = getFileParam();
+      const label = document.getElementById('file-label');
+      const content = document.getElementById('content');
+
+      if (!file) {
+        label.textContent = '未指定文件';
+        content.className = 'error-box';
+        content.innerHTML =
+          '<strong>缺少参数</strong>' +
+          '<p>请使用 <code>sql-viewer.html?file=sql/update_tables.sql</code> 形式访问。</p>';
+        return;
+      }
+
+      label.textContent = file;
+      document.title = file + ' · SQL 预览';
+
+      try {
+        const text = await loadSql(file);
+        renderSql(text, file);
+      } catch (e) {
+        renderError(file, e);
+      }
+    })();
+  </script>
+</body>
+</html>
