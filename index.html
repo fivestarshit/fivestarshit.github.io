@@ -2136,7 +2136,7 @@
             <tr><td>业务愿景</td><td>让销售巡店有重点，让管理有抓手；形成 P → D → C → A 完整的销售动作管理闭环</td></tr>
             <tr><td>技术栈</td><td>Java 8、Spring Boot、MyBatis-Plus、Nacos、XXL-JOB、Redisson、Kafka、OpenFeign、Groovy</td></tr>
             <tr><td>代码规模</td><td>约 388 个 Java 源文件、84 个 Service、24 个 Controller、<strong>15 个 Job 实现</strong>（XXL-JOB Handler，分布在 6 个 Job 类）</td></tr>
-            <tr><td>文档规模</td><td><code>doc/</code> 目录全部 Markdown（16 份 test_spec 等）+ SQL + <code>dpc/sql</code> 累计变更，合计约 <strong>7300+</strong> 行；含 test_spec、api_spec、groovy 片段库、DDL 与 update_tables</td></tr>
+            <tr><td>文档规模</td><td><code>doc/</code> 目录全部 Markdown（16 份 test_spec 等）+ SQL + <code>dpc/sql</code> 累计变更，合计约 <strong>9000+</strong> 行；含 test_spec、api_spec、groovy 片段库、DDL 与 update_tables</td></tr>
             <tr><td>提交历史</td><td><strong>508</strong> Git commits（截至 2026-06），以 feat / fix / refactor / docs 小步迭代；近期含 list 性能、DELAY 扫描、CRON 窗口、Groovy @ 解析等</td></tr>
             <tr><td>AI 投入</td><td>2026 年 3–5 月 Cursor Agent Token 累计约 <strong>2.1B</strong>（约 <strong>21 亿</strong> token，<a href="#hero" style="color:var(--accent-2)">Dashboard 截图</a>）</td></tr>
           </tbody>
@@ -3489,7 +3489,7 @@
             <ul>
               <li>每次改动 Java + md + SQL 同 PR 完成，文档即代码</li>
               <li>spec 变更说明 = 可检索的决策日志</li>
-              <li>7300+ 行 doc 文档（全部 md + sql）与 388 个 Java 文件保持同频</li>
+              <li>9000+ 行 doc 文档（全部 md + sql）与 388 个 Java 文件保持同频</li>
               <li>fix 必补回归用例，问题有闭环</li>
               <li>新人读 spec 即可联调，上手以「天」计</li>
             </ul>
@@ -3783,7 +3783,7 @@
             </div>
             <div class="rule-item-body">
               <div class="desc">测试用例用 Markdown 存 <code>doc/[功能模块]_test_spec.md</code>；请求/响应必须有 JSON 示例，每个字段加 // 注释。</div>
-              <div class="proj-example"><strong>本项目举例</strong>task_definition_test_spec.md 中 createPackage 请求 JSON 80+ 行，每个字段如 taskName、taskRule.distributionType 均有 // 注释；<code>doc/</code> 下全部 md + sql 合计 7300+ 行。</div>
+              <div class="proj-example"><strong>本项目举例</strong>task_definition_test_spec.md 中 createPackage 请求 JSON 80+ 行，每个字段如 taskName、taskRule.distributionType 均有 // 注释；<code>doc/</code> 下全部 md + sql 合计 9000+ 行。</div>
             </div>
           </div>
 
@@ -4037,7 +4037,7 @@ private TaskRuleDTO taskRule;</pre>
               </div>
               <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
                 <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                <code>doc/</code> 目录全部 md + sql 合计 7300+ 行（16 份 test_spec 约 4300 行，另含 api_spec、groovy 片段、DDL 与 update_tables）。task_definition_test_spec.md 单文件 700+ 行，createPackage 请求 JSON 80+ 字段均有 // 注释。
+                <code>doc/</code> 目录全部 md + sql 合计 9000+ 行（16 份 test_spec 约 4300 行，另含 api_spec、groovy 片段、DDL 与 update_tables）。task_definition_test_spec.md 单文件 700+ 行，createPackage 请求 JSON 80+ 字段均有 // 注释。
               </div>
             </div>
 
@@ -4274,7 +4274,7 @@ private TaskRuleDTO taskRule;</pre>
       <div class="card-grid">
         <div class="card">
           <h4 style="margin-top:0;color:var(--accent)">文档 / 代码比</h4>
-          <p style="color:var(--text-muted);font-size:0.88rem"><code>doc/</code> 全部 md + sql 约 7300 行，对 388 个 Java 文件，文档密度高，联调与交接成本低</p>
+          <p style="color:var(--text-muted);font-size:0.88rem"><code>doc/</code> 全部 md + sql 约 9000 行，对 388 个 Java 文件，文档密度高，联调与交接成本低</p>
         </div>
         <div class="card">
           <h4 style="margin-top:0;color:var(--accent-2)">迭代速度</h4>
