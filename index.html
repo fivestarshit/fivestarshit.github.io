@@ -2068,12 +2068,12 @@
     <a class="nav-link" href="#practices">二、AI 提效实践</a>
     <a class="nav-link" href="#rules-importance">★ Rules 先行</a>
     <a class="nav-link sub" href="#rules-benefits">联动改 MD 的好处</a>
+    <a class="nav-link sub" href="#rules-catalog">Rules 完整清单</a>
+    <a class="nav-link sub" href="#rules-fulltext">Rules 全文手册</a>
     <a class="nav-link sub" href="#spec-case-study">典型 spec 范例</a>
     <a class="nav-link sub" href="#appendix">文档索引</a>
     <a class="nav-link sub" href="#rules-scoped">前后端 Rules 分域</a>
     <a class="nav-link sub" href="#rules-cross-project">前端读后端 spec</a>
-    <a class="nav-link sub" href="#rules-catalog">Rules 完整清单</a>
-    <a class="nav-link sub" href="#rules-fulltext">Rules 全文手册</a>
     <a class="nav-link" href="#assets">三、可复用资产</a>
     <a class="nav-link sub" href="#workflow">Workflow</a>
     <a class="nav-link sub" href="#checklist">检查清单</a>
@@ -2474,6 +2474,510 @@
             <p>Reviewer 先看 spec 变更说明 + diff 中的 md 部分，即可判断影响范围是否完整（接口、Job、SQL 是否遗漏），不必从 Java diff 反推业务含义。</p>
             <div class="example">例：列表性能优化时，spec 明确 childTaskCount 改为批量聚合，Review 一眼确认无遗漏</div>
           </div>
+        </div>
+
+
+        <!-- 完整 Rules 清单 -->
+        <h3 id="rules-catalog" style="margin-top:40px">团队 Rules 速览表</h3>
+        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:16px">
+          以下为 <strong style="color:var(--text)">10 条 Rules</strong> 索引表。每条规则的<strong style="color:#fde68a">完整原文、详细说明、代码示例</strong>见下方
+          <a href="#rules-fulltext" style="color:var(--accent-2)">Rules 全文手册</a>，无需打开其他文件即可阅读全部内容。
+        </p>
+
+        <div class="table-wrap" style="margin-bottom:24px">
+          <table class="rules-overview-table">
+            <thead>
+              <tr><th>#</th><th>分类</th><th>适用范围</th><th>规则摘要</th><th>绑定文件</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>前端 · 目录规范</td><td><span class="scope-tag fe">前端</span></td><td>url / route / pages / model 四件套</td><td><code>frontend.md</code></td></tr>
+              <tr><td>2</td><td>后端 · 判空规范</td><td><span class="scope-tag be">后端</span></td><td>Objects / CollectionUtils / StringUtils</td><td><code>backend.md</code></td></tr>
+              <tr><td>3</td><td>后端 · 数据库变更</td><td><span class="scope-tag be">后端</span></td><td>改表追加 doc/sql/update_tables.sql</td><td><code>backend.md</code></td></tr>
+              <tr><td>4</td><td>后端 · DTO 规范</td><td><span class="scope-tag be">后端</span></td><td>DTO 每个字段加注释</td><td><code>backend.md</code></td></tr>
+              <tr><td>5</td><td>后端 · Git 工作流</td><td><span class="scope-tag be">后端</span></td><td>新增/改动文件自动 git add</td><td><code>backend.md</code></td></tr>
+              <tr><td>6</td><td>后端 · 分页接口</td><td><span class="scope-tag be">后端</span></td><td>POST 默认 page/pageSize + PageResult</td><td><code>backend.md</code></td></tr>
+              <tr><td>7</td><td>后端 · 分层架构</td><td><span class="scope-tag be">后端</span></td><td>Service 接口+实现；Job → JobService</td><td><code>backend.md</code></td></tr>
+              <tr><td>8</td><td>后端 · 测试文档格式</td><td><span class="scope-tag be">后端</span></td><td>doc/[模块]_test_spec.md + JSON 注释</td><td><code>backend.md</code></td></tr>
+              <tr><td>9</td><td>后端 · 文档联动</td><td><span class="scope-tag be">后端</span></td><td>改代码同步更新 test_spec</td><td><code>backend.md</code></td></tr>
+              <tr><td>10</td><td>通用 · 语言</td><td><span class="scope-tag both">全局</span></td><td>回答内容使用中文</td><td><code>common.md</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="rules-catalog-grid">
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num fe">1</div>
+              <div class="meta"><div class="cat">前端 · 目录规范</div><div class="title">新增功能的文件落位</div></div>
+              <span class="scope-tag fe">前端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">在 <code>src/config.url.*.ts</code> 新增接口地址；在 <code>src/config.route.tsx</code> 新增路由（懒加载）；在 <code>src/pages/</code> 创建页面；全局状态放 <code>src/model/</code>。</div>
+              <div class="proj-example"><strong>本项目举例</strong>对接任务定义列表时：url 写 <code>/sales/task/definition/list</code> → route 懒加载 <code>pages/task-definition/list</code> → model 封装分页请求，字段对齐 spec 中 taskName、packageId、ids 等。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">2</div>
+              <div class="meta"><div class="cat">后端 · 判空规范</div><div class="title">类型分治，禁止裸 null 判断</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">对象用 <code>Objects.nonNull()</code> / <code>Objects.isNull()</code>；集合用 <code>CollectionUtils</code>；字符串用 <code>StringUtils</code> 相关方法。</div>
+              <div class="proj-example"><strong>本项目举例</strong>TaskDefinitionServiceImpl 中：<code>if (CollectionUtils.isEmpty(tasks))</code> 校验子任务；<code>if (StringUtils.hasText(taskName))</code> 做模糊查询；<code>if (Objects.nonNull(ruleId))</code> 判断规则是否存在。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">3</div>
+              <div class="meta"><div class="cat">后端 · 数据库变更</div><div class="title">DDL 累计，禁止散落</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">数据库字段修改时，自动在 <code>doc/sql/update_tables.sql</code> 追加 ALTER 语句，所有历史变更累计在同一文件。</div>
+              <div class="proj-example"><strong>本项目举例</strong>全库统一追加 created_by / updated_by 审计字段、task_rule 新增 is_repeat / auto_close_on_deadline 等，均按时间顺序追加在同一文件，便于 DBA 一次性审阅。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">4</div>
+              <div class="meta"><div class="cat">后端 · DTO 规范</div><div class="title">字段即文档</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">创建的 DTO 文件里，<strong>每个字段都要加注释</strong>，说明业务含义与取值约束。</div>
+              <div class="proj-example"><strong>本项目举例</strong>TaskDefinitionPackageCreateRequestDTO 中 distributionObjectGroupId 注释「下发对象群 ID」、taskRule 注释「任务包对应规则」—— AI 生成前端类型时可直接引用注释作为 label。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">5</div>
+              <div class="meta"><div class="cat">后端 · Git 工作流</div><div class="title">新文件不遗漏</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">新增或改动的文件，AI 完成后自动执行 <code>git add</code> 纳入版本管理，避免 untracked 文件遗漏提交。</div>
+              <div class="proj-example"><strong>本项目举例</strong>新增 TaskRuleTimeResolver、Support 类、test_spec 文档时，同一轮对话内即 git add，提交时 diff 完整可见。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">6</div>
+              <div class="meta"><div class="cat">后端 · 分页接口</div><div class="title">请求默认值 + 统一响应结构</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">列表类 POST 接口请求默认 <code>page=1, pageSize=20</code>；返回包装为 PageResult，含 records / total / page / pageSize / totalPage。</div>
+              <div class="proj-example"><strong>本项目举例</strong>POST /sales/task/definition/list 与 /sales/task/biz/template/config/list 均返回 PageResult；外层 Response 结构为 code + message + data{ records, total, page, pageSize, totalPage }。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">7</div>
+              <div class="meta"><div class="cat">后端 · 分层架构</div><div class="title">Controller 薄 · Service 厚 · Job 委托</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">业务逻辑写在 Service 层；Service 必须先有接口再写实现，实现类加详细注释。Job 层不写逻辑细节，提取到对应 JobService。</div>
+              <div class="proj-example"><strong>本项目举例</strong>TaskDefinitionController 仅调 Service；TaskDefinitionServiceImpl 承载 createPackage 校验链；TaskDistributionDetailJob 的 @XxlJob 方法委托 TaskPackageStatusTransitionJobServiceImpl 执行。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">8</div>
+              <div class="meta"><div class="cat">后端 · 测试文档格式</div><div class="title">Markdown Spec 即测试契约</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">测试用例用 Markdown 存 <code>doc/[功能模块]_test_spec.md</code>；请求/响应必须有 JSON 示例，每个字段加 // 注释。</div>
+              <div class="proj-example"><strong>本项目举例</strong>task_definition_test_spec.md 中 createPackage 请求 JSON 80+ 行，每个字段如 taskName、taskRule.distributionType 均有 // 注释；<code>doc/</code> 下全部 md + sql 合计 9000+ 行。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num be">9</div>
+              <div class="meta"><div class="cat">后端 · 文档联动</div><div class="title">改代码必改 Spec</div></div>
+              <span class="scope-tag be">后端</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">代码逻辑变更时同步更新 test_spec：功能变更 → 更新用例；新增场景 → 补充用例；问题修复 → 增加回归测试。</div>
+              <div class="proj-example"><strong>本项目举例</strong>fix 截止时间秒位归一化为 59 时，同步更新 task_definition_test_spec.md 变更说明 + 回归用例；listStats 接口剥离时，spec 顶部记录 breaking change。</div>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-item-head">
+              <div class="rule-num com">10</div>
+              <div class="meta"><div class="cat">通用 · 语言</div><div class="title">中文优先</div></div>
+              <span class="scope-tag both">全局</span>
+            </div>
+            <div class="rule-item-body">
+              <div class="desc">AI 回答的内容都使用中文——包括解释、注释建议、Review 意见、文档变更说明。</div>
+              <div class="proj-example"><strong>本项目举例</strong>test_spec 变更说明、DTO 字段注释、Service 实现类业务注释均为中文，团队阅读与 AI 上下文理解一致。</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Rules 全文手册：完整可读内容 -->
+        <h3 id="rules-fulltext" style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border)">Rules 全文手册（完整原文 · 详细说明 · 代码示例）</h3>
+        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:24px">
+          以下内容即为团队 Cursor Rules 的<strong style="color:var(--text)">完整详细版本</strong>，可直接转发给同事阅读，或复制到 Cursor User Rules / <code>.cursor/rules/</code> 中使用。
+        </p>
+
+        <!-- 前端 Rules 全文 -->
+        <div class="rule-doc-panel">
+          <div class="rule-doc-panel-header frontend-h">
+            <h4>⚛ 前端项目 Rules（sales-task-web）</h4>
+            <span class="scope-tag fe">Rule #1</span>
+          </div>
+          <div class="rule-doc-panel-body">
+
+            <div class="rule-full-block">
+              <div class="rule-full-block-head">
+                <div class="rule-num fe">1</div>
+                <h5>前端项目目录规范 — 新增功能四件套</h5>
+              </div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <ul>
+                  <li>在 <code>src/config.url.*.ts</code> 中新增接口地址常量</li>
+                  <li>在 <code>src/config.route.tsx</code> 中新增路由配置（懒加载）</li>
+                  <li>在 <code>src/pages/</code> 中创建页面文件</li>
+                  <li>如需全局状态，在 <code>src/model/</code> 中新增 model 文件</li>
+                </ul>
+              </div>
+              <div class="rule-explain">
+                <strong>详细说明：</strong>前端每新增一个功能模块，必须按以上四个位置依次落文件，保持项目结构统一。接口 URL 不硬编码在页面里；路由统一懒加载以控制包体积；页面与 model 分离，列表/表单状态优先放 model。
+              </div>
+              <div class="rule-explain"><strong>新增功能标准步骤：</strong></div>
+              <ul class="bullet">
+                <li><strong>Step 1</strong> — 在 <code>src/config.url.dev.ts</code>（或 test/prod 对应文件）添加接口常量，如 <code>TASK_DEFINITION_LIST: '/sales/task/definition/list'</code></li>
+                <li><strong>Step 2</strong> — 在 <code>src/config.route.tsx</code> 添加路由项，使用 <code>React.lazy(() =&gt; import('@/pages/...'))</code> 懒加载</li>
+                <li><strong>Step 3</strong> — 在 <code>src/pages/task-definition/list.tsx</code>（示例路径）创建页面组件</li>
+                <li><strong>Step 4</strong> — 若多页面共享状态，在 <code>src/model/taskDefinition.ts</code> 封装请求与类型</li>
+              </ul>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">SLs-SALES-TASK 项目举例</strong>
+                对接「任务定义列表」：url 常量指向 <code>POST /sales/task/definition/list</code>；route 懒加载 <code>pages/task-definition/list</code>；model 封装分页参数 taskName、packageId、ids 及 PageResult 响应类型，字段名与后端 spec 完全一致。
+              </div>
+              <div class="rule-explain" style="margin-top:14px"><strong>推荐追加（前后端协作）：</strong></div>
+              <ul class="bullet">
+                <li>开发对接 sls-sales-task 的功能前，先读取 <code>../sls-sales-task/doc/{模块}_test_spec.md</code></li>
+                <li>以 spec 中 JSON 示例为接口契约，字段名与分页结构与后端保持一致</li>
+                <li>列表请求默认 <code>page=1, pageSize=20</code>，响应对齐 PageResult</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 后端 Rules 全文 -->
+        <div class="rule-doc-panel">
+          <div class="rule-doc-panel-header backend-h">
+            <h4>☕ 后端项目 Rules（sls-sales-task）</h4>
+            <span class="scope-tag be">Rule #2 ～ #9</span>
+          </div>
+          <div class="rule-doc-panel-body">
+
+            <!-- Rule 2 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">2</div><h5>判空规范 — 按类型分治</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <p>所有的判空如果是对象类型，使用 <code>Objects.nonNull()</code> 或者 <code>Objects.isNull()</code>；如果是集合使用 <code>CollectionUtils</code>；如果是字符串使用 <code>StringUtil</code> 相关方法。</p>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>禁止裸写 <code>!= null</code>、<code>.size() == 0</code>、<code>"".equals(x)</code> 等风格混用。统一工具类便于 Code Review 和 AI 生成一致代码。</div>
+              <div class="code-compare">
+                <div class="code-mini">
+                  <div class="code-mini-label bad">❌ 不符合规范</div>
+                  <pre>if (tasks != null &amp;&amp; tasks.size() &gt; 0) { ... }
+if (taskName != null &amp;&amp; !taskName.equals("")) { ... }
+if (ruleId == null) { ... }</pre>
+                </div>
+                <div class="code-mini">
+                  <div class="code-mini-label good">✓ 符合规范</div>
+                  <pre>if (CollectionUtils.isNotEmpty(tasks)) { ... }
+if (StringUtils.hasText(taskName)) { ... }
+if (Objects.isNull(ruleId)) { ... }</pre>
+                </div>
+              </div>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
+                TaskDefinitionServiceImpl 创建任务包时：<code>CollectionUtils.isEmpty(tasks)</code> 校验子任务非空；列表查询 <code>StringUtils.hasText(taskName)</code> 决定是否加模糊条件；<code>Objects.nonNull(parentId)</code> 判断是否关联父任务包。
+              </div>
+            </div>
+
+            <!-- Rule 3 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">3</div><h5>数据库变更 — DDL 累计文件</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <p>数据库字段的修改，自动在 <code>doc/sql/</code> 下追加 <code>update_tables.sql</code> 文件，累计的修改都在这个文件里体现。</p>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>每次 ALTER TABLE 按时间顺序<strong>追加</strong>到 <code>doc/sql/update_tables.sql</code> 末尾，不覆盖历史、不新建散落 SQL 文件。每条变更上方建议加注释说明日期与用途，便于 DBA 审阅和执行。</div>
+              <div class="code-mini" style="margin-top:12px">
+                <div class="code-mini-label good">✓ 追加示例</div>
+                <pre>-- 2026-04-07：task_rule 新增 is_repeat 字段
+ALTER TABLE `task_rule`
+  ADD COLUMN `is_repeat` TINYINT(1) DEFAULT NULL
+  COMMENT '是否需要重复下发 0-否 1-是' AFTER `action_execution_mode`;</pre>
+              </div>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted);margin-top:12px">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
+                全库统一追加 created_by / updated_by 审计字段、task_rule 新增 is_repeat / auto_close_on_deadline / task_judgment_deadline_type 等，均累计在同一 update_tables.sql 中。
+              </div>
+            </div>
+
+            <!-- Rule 4 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">4</div><h5>DTO 规范 — 每个字段加注释</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <p>创建的 DTO 文件里的字段都要加注释。</p>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>DTO 是前后端协作的契约层。每个字段注释应说明<strong>业务含义</strong>、<strong>是否必填</strong>、<strong>取值范围或枚举</strong>（如有）。AI 生成前端 TypeScript 类型和表单 label 时可直接引用。</div>
+              <div class="code-mini" style="margin-top:12px">
+                <div class="code-mini-label good">✓ 符合规范</div>
+                <pre>/** 下发对象群 ID，createPackage 必填 */
+private String distributionObjectGroupId;
+
+/** 任务包对应规则，含下发/完成/截止配置 */
+private TaskRuleDTO taskRule;</pre>
+              </div>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted);margin-top:12px">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
+                TaskDefinitionPackageCreateRequestDTO 中 taskName、objectCode、distributionObjectGroupId、tasks、taskRule 等字段均有中文注释，与 test_spec 中 JSON // 注释相互印证。
+              </div>
+            </div>
+
+            <!-- Rule 5 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">5</div><h5>Git 工作流 — 新文件自动 git add</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <p>新增改动的文件自动使用 git add 到项目里。</p>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>AI 完成编码后，对所有新建或修改的文件执行 <code>git add</code>，确保 git status 中无遗漏的 untracked 文件。避免「代码写了但忘记 add」导致 PR 不完整。</div>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
+                新增 TaskRuleTimeResolver、TaskRuleMonthDeadlineSupport、doc/ai_rd_efficiency_summary.html、.cursor/rules/*.md 时，同一轮 AI 对话内即 git add，提交 diff 完整。
+              </div>
+            </div>
+
+            <!-- Rule 6 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">6</div><h5>分页接口 — 请求默认值 + 统一响应结构</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <p>列表类的接口进行返回的包装，请求参数 post 中需要携带 <code>page=1，pageSize=20</code> 的默认参数，返回到时候，需要携带分页的明细，返回值举例：</p>
+              </div>
+              <div class="json-demo">
+{<br/>
+&nbsp;&nbsp;<span class="jk">"code"</span>: <span class="jn">0</span>,<br/>
+&nbsp;&nbsp;<span class="jk">"message"</span>: <span class="js">"success"</span>,<br/>
+&nbsp;&nbsp;<span class="jk">"data"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"records"</span>: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="jc">// 当前页数据列表</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"total"</span>: <span class="jn">7884</span>, <span class="jc">// 总条数</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"page"</span>: <span class="jn">1</span>, <span class="jc">// 当前页</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"pageSize"</span>: <span class="jn">20</span>, <span class="jc">// 每一页的条数</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"totalPage"</span>: <span class="jn">10</span> <span class="jc">// 总页数</span><br/>
+&nbsp;&nbsp;}<br/>
+}
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>所有列表 POST 接口的请求 DTO 中 page / pageSize 须有默认值（1 和 20）；Service 返回 <code>PageResult&lt;T&gt;</code>，外层由统一 Response 包装。前端列表页可直接复用同一结构，无需每次对齐。</div>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
+                POST /sales/task/definition/list、POST /sales/task/biz/template/config/list 均遵循此结构；PageRequest 默认 page=1, pageSize=20。
+              </div>
+            </div>
+
+            <!-- Rule 7 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">7</div><h5>分层架构 — Controller 薄 · Service 厚 · Job 委托</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <ul>
+                  <li>业务逻辑不要写在路由层，需要写在 service 层</li>
+                  <li>service 必须先有接口层再创建实现层，实现层负责逻辑细节，实现层详细的添加注释</li>
+                  <li>job 层也不要写太多的逻辑细节，需要提取到对应 JobService 里</li>
+                </ul>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong></div>
+              <ul class="bullet">
+                <li><strong>Controller</strong>：只做参数接收、调用 Service、返回 Response，不写 if-else 业务分支</li>
+                <li><strong>Service 接口 + 实现</strong>：接口定义契约，实现类承载全部业务逻辑，复杂校验、事务、外部调用均在此层；实现类方法加注释说明业务规则</li>
+                <li><strong>Job + JobService</strong>：@XxlJob 方法只做调度入口，扫描/批处理/状态流转逻辑放 *JobServiceImpl</li>
+              </ul>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
+                TaskDefinitionController.createPackage → TaskDefinitionServiceImpl（3800+ 行校验与创建逻辑）；TaskDistributionDetailJob 中 @XxlJob("syncInProgressPackagesByCrowd") → TaskDistributionDetailSyncServiceImpl。
+              </div>
+            </div>
+
+            <!-- Rule 8 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">8</div><h5>测试文档格式 — Markdown Spec</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <ul>
+                  <li>所有测试用例必须使用 Markdown 格式编写，并且存储 <code>doc/</code> 目录下</li>
+                  <li>文件命名规范：<code>[功能模块]_test_spec.md</code></li>
+                  <li>接口的请求和响应必须携带请求的 json 结构示例</li>
+                  <li>请求示例的 json 中每个字段都添加解释注释含义</li>
+                </ul>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>test_spec 是测试、联调、前端对接的唯一事实来源。每个接口至少包含：接口路径、请求 JSON 示例（字段 // 注释）、预期结果描述。复杂业务在文档顶部写「变更说明」章节。</div>
+              <div class="json-demo">
+{<br/>
+&nbsp;&nbsp;<span class="jk">"taskName"</span>: <span class="js">"3月门店巡检任务包"</span>, <span class="jc">// 任务包名称（必填）</span><br/>
+&nbsp;&nbsp;<span class="jk">"objectCode"</span>: <span class="js">"STORE"</span>, <span class="jc">// 对象编码（必填，与 task_object_option 对齐）</span><br/>
+&nbsp;&nbsp;<span class="jk">"taskRule"</span>: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"distributionType"</span>: <span class="js">"IMMEDIATE"</span>, <span class="jc">// 下发类型：CRON/FIXED/IMMEDIATE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"completionType"</span>: <span class="js">"ACTION_BASED"</span> <span class="jc">// 完成类型（必填）</span><br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;<span class="jk">"tasks"</span>: [] <span class="jc">// 子 TASK 数组，每条含 taskRule、templateIds、conditionRepos</span><br/>
+}
+              </div>
+              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
+                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
+                <code>doc/</code> 目录全部 md + sql 合计 9000+ 行（16 份 test_spec 约 4300 行，另含 api_spec、groovy 片段、DDL 与 update_tables）。task_definition_test_spec.md 单文件 700+ 行，createPackage 请求 JSON 80+ 字段均有 // 注释。
+              </div>
+            </div>
+
+            <!-- Rule 9 -->
+            <div class="rule-full-block">
+              <div class="rule-full-block-head"><div class="rule-num be">9</div><h5>文档联动 — 改代码必同步 test_spec（最高优先级）</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <p>代码逻辑变更时测试文档同步更新：</p>
+                <ul>
+                  <li>功能变更 → 更新对应测试用例</li>
+                  <li>新增场景 → 补充测试用例</li>
+                  <li>问题修复 → 增加回归测试</li>
+                </ul>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>这是整个 Rules 体系中<strong>优先级最高</strong>的一条。AI 每次修改 Java 代码，必须在同一轮对话内同步修改对应 md 文件。spec 顶部「变更说明」记录本次改了什么、为什么改；fix 必须补回归用例防止复发。</div>
+              <div class="table-wrap" style="margin-top:12px">
+                <table>
+                  <thead><tr><th>变更类型</th><th>spec 需做什么</th><th>示例</th></tr></thead>
+                  <tbody>
+                    <tr><td>功能变更</td><td>更新对应用例 + 顶部变更说明</td><td>新增 ids 精确过滤 → spec 补充请求参数说明</td></tr>
+                    <tr><td>新增场景</td><td>补充新用例</td><td>新增 listStats 接口 → spec 新增整节描述</td></tr>
+                    <tr><td>问题修复</td><td>增加回归测试用例</td><td>截止时间秒位归一化 fix → spec 补边界回归用例</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 通用 Rules 全文 -->
+        <div class="rule-doc-panel">
+          <div class="rule-doc-panel-header common-h">
+            <h4>🔗 通用 Rules（全局生效）</h4>
+            <span class="scope-tag both">Rule #10</span>
+          </div>
+          <div class="rule-doc-panel-body">
+            <div class="rule-full-block" style="margin:0;padding:0;border:none">
+              <div class="rule-full-block-head"><div class="rule-num com">10</div><h5>语言规范 — 中文回答</h5></div>
+              <div class="rule-official">
+                <div class="rule-official-label">规则原文</div>
+                <p>回答的内容都使用中文。</p>
+              </div>
+              <div class="rule-explain"><strong>详细说明：</strong>AI 的所有输出——包括代码解释、Review 意见、文档变更说明、注释建议、排查分析——均使用中文。DTO 字段注释、Service 业务注释、test_spec 变更说明也统一中文，保证团队阅读与 AI 上下文理解一致。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 一键复制区（便于导入 Cursor） -->
+        <h4 style="color:var(--accent-2);margin-top:32px">附录：一键复制到 Cursor（与上文内容一致）</h4>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:12px">以下为可直接粘贴到 Cursor User Rules 或 .cursor/rules/ 的纯文本版本。</p>
+
+        <div class="code-block">
+          <div class="code-header"><span>.cursor/rules/backend.md — 后端 Rules #2～#9</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+          <pre>后端项目遵循：
+
+#2 判空规范
+- 对象类型：Objects.nonNull() 或 Objects.isNull()
+- 集合：CollectionUtils（isEmpty / isNotEmpty 等）
+- 字符串：StringUtils / StringUtil 相关方法
+
+#3 数据库变更
+- 数据库字段修改，自动在 doc/sql/ 下追加 update_tables.sql
+- 累计的修改都在同一文件里体现，按时间顺序追加
+
+#4 DTO 规范
+- 创建的 DTO 文件里的字段都要加注释
+
+#5 Git 工作流
+- 新增改动的文件自动使用 git add 到项目里
+
+#6 分页接口
+- 列表类 POST 请求默认携带 page=1, pageSize=20
+- 返回包装分页明细，结构示例：
+  {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "records": [],
+      "total": 7884,
+      "page": 1,
+      "pageSize": 20,
+      "totalPage": 10
+    }
+  }
+
+#7 分层架构
+- 业务逻辑不要写在路由层（Controller），写在 Service 层
+- Service 必须先有接口层，再创建实现层；实现层负责逻辑细节并添加详细注释
+- Job 层不要写太多逻辑细节，提取到对应 JobService 里
+
+#8 测试文档格式
+- 所有测试用例使用 Markdown，存储 doc/ 目录
+- 命名：[功能模块]_test_spec.md
+- 请求和响应必须携带 JSON 结构示例
+- 请求 JSON 中每个字段都添加 // 注释说明含义
+
+#9 文档联动（最高优先级）
+- 代码逻辑变更时测试文档同步更新：
+  · 功能变更 → 更新对应测试用例
+  · 新增场景 → 补充测试用例
+  · 问题修复 → 增加回归测试</pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span>.cursor/rules/frontend.md — 前端 Rules #1</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+          <pre>前端项目遵循：
+
+#1 目录规范（新增功能四件套）
+- 在 src/config.url.*.ts 中新增接口地址常量
+- 在 src/config.route.tsx 中新增路由配置（懒加载）
+- 在 src/pages/ 中创建页面文件
+- 如需全局状态，在 src/model/ 中新增 model 文件
+
+# 对接后端 spec（推荐追加）
+- 开发对接 sls-sales-task 的功能前，先读 ../sls-sales-task/doc/{模块}_test_spec.md
+- 以 spec 中 JSON 示例为接口契约，字段名与分页结构与后端保持一致
+- 列表请求默认 page=1, pageSize=20，响应对齐 PageResult 结构</pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span>.cursor/rules/common.md — 通用 Rules #10</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+          <pre>#10 语言
+- 回答的内容都使用中文</pre>
         </div>
 
         <!-- 典型 spec 范例 -->
@@ -3662,508 +4166,6 @@
           </table>
         </div>
 
-        <!-- 完整 Rules 清单 -->
-        <h3 id="rules-catalog" style="margin-top:40px">团队 Rules 速览表</h3>
-        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:16px">
-          以下为 <strong style="color:var(--text)">10 条 Rules</strong> 索引表。每条规则的<strong style="color:#fde68a">完整原文、详细说明、代码示例</strong>见下方
-          <a href="#rules-fulltext" style="color:var(--accent-2)">Rules 全文手册</a>，无需打开其他文件即可阅读全部内容。
-        </p>
-
-        <div class="table-wrap" style="margin-bottom:24px">
-          <table class="rules-overview-table">
-            <thead>
-              <tr><th>#</th><th>分类</th><th>适用范围</th><th>规则摘要</th><th>绑定文件</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>1</td><td>前端 · 目录规范</td><td><span class="scope-tag fe">前端</span></td><td>url / route / pages / model 四件套</td><td><code>frontend.md</code></td></tr>
-              <tr><td>2</td><td>后端 · 判空规范</td><td><span class="scope-tag be">后端</span></td><td>Objects / CollectionUtils / StringUtils</td><td><code>backend.md</code></td></tr>
-              <tr><td>3</td><td>后端 · 数据库变更</td><td><span class="scope-tag be">后端</span></td><td>改表追加 doc/sql/update_tables.sql</td><td><code>backend.md</code></td></tr>
-              <tr><td>4</td><td>后端 · DTO 规范</td><td><span class="scope-tag be">后端</span></td><td>DTO 每个字段加注释</td><td><code>backend.md</code></td></tr>
-              <tr><td>5</td><td>后端 · Git 工作流</td><td><span class="scope-tag be">后端</span></td><td>新增/改动文件自动 git add</td><td><code>backend.md</code></td></tr>
-              <tr><td>6</td><td>后端 · 分页接口</td><td><span class="scope-tag be">后端</span></td><td>POST 默认 page/pageSize + PageResult</td><td><code>backend.md</code></td></tr>
-              <tr><td>7</td><td>后端 · 分层架构</td><td><span class="scope-tag be">后端</span></td><td>Service 接口+实现；Job → JobService</td><td><code>backend.md</code></td></tr>
-              <tr><td>8</td><td>后端 · 测试文档格式</td><td><span class="scope-tag be">后端</span></td><td>doc/[模块]_test_spec.md + JSON 注释</td><td><code>backend.md</code></td></tr>
-              <tr><td>9</td><td>后端 · 文档联动</td><td><span class="scope-tag be">后端</span></td><td>改代码同步更新 test_spec</td><td><code>backend.md</code></td></tr>
-              <tr><td>10</td><td>通用 · 语言</td><td><span class="scope-tag both">全局</span></td><td>回答内容使用中文</td><td><code>common.md</code></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="rules-catalog-grid">
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num fe">1</div>
-              <div class="meta"><div class="cat">前端 · 目录规范</div><div class="title">新增功能的文件落位</div></div>
-              <span class="scope-tag fe">前端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">在 <code>src/config.url.*.ts</code> 新增接口地址；在 <code>src/config.route.tsx</code> 新增路由（懒加载）；在 <code>src/pages/</code> 创建页面；全局状态放 <code>src/model/</code>。</div>
-              <div class="proj-example"><strong>本项目举例</strong>对接任务定义列表时：url 写 <code>/sales/task/definition/list</code> → route 懒加载 <code>pages/task-definition/list</code> → model 封装分页请求，字段对齐 spec 中 taskName、packageId、ids 等。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">2</div>
-              <div class="meta"><div class="cat">后端 · 判空规范</div><div class="title">类型分治，禁止裸 null 判断</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">对象用 <code>Objects.nonNull()</code> / <code>Objects.isNull()</code>；集合用 <code>CollectionUtils</code>；字符串用 <code>StringUtils</code> 相关方法。</div>
-              <div class="proj-example"><strong>本项目举例</strong>TaskDefinitionServiceImpl 中：<code>if (CollectionUtils.isEmpty(tasks))</code> 校验子任务；<code>if (StringUtils.hasText(taskName))</code> 做模糊查询；<code>if (Objects.nonNull(ruleId))</code> 判断规则是否存在。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">3</div>
-              <div class="meta"><div class="cat">后端 · 数据库变更</div><div class="title">DDL 累计，禁止散落</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">数据库字段修改时，自动在 <code>doc/sql/update_tables.sql</code> 追加 ALTER 语句，所有历史变更累计在同一文件。</div>
-              <div class="proj-example"><strong>本项目举例</strong>全库统一追加 created_by / updated_by 审计字段、task_rule 新增 is_repeat / auto_close_on_deadline 等，均按时间顺序追加在同一文件，便于 DBA 一次性审阅。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">4</div>
-              <div class="meta"><div class="cat">后端 · DTO 规范</div><div class="title">字段即文档</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">创建的 DTO 文件里，<strong>每个字段都要加注释</strong>，说明业务含义与取值约束。</div>
-              <div class="proj-example"><strong>本项目举例</strong>TaskDefinitionPackageCreateRequestDTO 中 distributionObjectGroupId 注释「下发对象群 ID」、taskRule 注释「任务包对应规则」—— AI 生成前端类型时可直接引用注释作为 label。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">5</div>
-              <div class="meta"><div class="cat">后端 · Git 工作流</div><div class="title">新文件不遗漏</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">新增或改动的文件，AI 完成后自动执行 <code>git add</code> 纳入版本管理，避免 untracked 文件遗漏提交。</div>
-              <div class="proj-example"><strong>本项目举例</strong>新增 TaskRuleTimeResolver、Support 类、test_spec 文档时，同一轮对话内即 git add，提交时 diff 完整可见。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">6</div>
-              <div class="meta"><div class="cat">后端 · 分页接口</div><div class="title">请求默认值 + 统一响应结构</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">列表类 POST 接口请求默认 <code>page=1, pageSize=20</code>；返回包装为 PageResult，含 records / total / page / pageSize / totalPage。</div>
-              <div class="proj-example"><strong>本项目举例</strong>POST /sales/task/definition/list 与 /sales/task/biz/template/config/list 均返回 PageResult；外层 Response 结构为 code + message + data{ records, total, page, pageSize, totalPage }。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">7</div>
-              <div class="meta"><div class="cat">后端 · 分层架构</div><div class="title">Controller 薄 · Service 厚 · Job 委托</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">业务逻辑写在 Service 层；Service 必须先有接口再写实现，实现类加详细注释。Job 层不写逻辑细节，提取到对应 JobService。</div>
-              <div class="proj-example"><strong>本项目举例</strong>TaskDefinitionController 仅调 Service；TaskDefinitionServiceImpl 承载 createPackage 校验链；TaskDistributionDetailJob 的 @XxlJob 方法委托 TaskPackageStatusTransitionJobServiceImpl 执行。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">8</div>
-              <div class="meta"><div class="cat">后端 · 测试文档格式</div><div class="title">Markdown Spec 即测试契约</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">测试用例用 Markdown 存 <code>doc/[功能模块]_test_spec.md</code>；请求/响应必须有 JSON 示例，每个字段加 // 注释。</div>
-              <div class="proj-example"><strong>本项目举例</strong>task_definition_test_spec.md 中 createPackage 请求 JSON 80+ 行，每个字段如 taskName、taskRule.distributionType 均有 // 注释；<code>doc/</code> 下全部 md + sql 合计 9000+ 行。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num be">9</div>
-              <div class="meta"><div class="cat">后端 · 文档联动</div><div class="title">改代码必改 Spec</div></div>
-              <span class="scope-tag be">后端</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">代码逻辑变更时同步更新 test_spec：功能变更 → 更新用例；新增场景 → 补充用例；问题修复 → 增加回归测试。</div>
-              <div class="proj-example"><strong>本项目举例</strong>fix 截止时间秒位归一化为 59 时，同步更新 task_definition_test_spec.md 变更说明 + 回归用例；listStats 接口剥离时，spec 顶部记录 breaking change。</div>
-            </div>
-          </div>
-
-          <div class="rule-item">
-            <div class="rule-item-head">
-              <div class="rule-num com">10</div>
-              <div class="meta"><div class="cat">通用 · 语言</div><div class="title">中文优先</div></div>
-              <span class="scope-tag both">全局</span>
-            </div>
-            <div class="rule-item-body">
-              <div class="desc">AI 回答的内容都使用中文——包括解释、注释建议、Review 意见、文档变更说明。</div>
-              <div class="proj-example"><strong>本项目举例</strong>test_spec 变更说明、DTO 字段注释、Service 实现类业务注释均为中文，团队阅读与 AI 上下文理解一致。</div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Rules 全文手册：完整可读内容 -->
-        <h3 id="rules-fulltext" style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border)">Rules 全文手册（完整原文 · 详细说明 · 代码示例）</h3>
-        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:24px">
-          以下内容即为团队 Cursor Rules 的<strong style="color:var(--text)">完整详细版本</strong>，可直接转发给同事阅读，或复制到 Cursor User Rules / <code>.cursor/rules/</code> 中使用。
-        </p>
-
-        <!-- 前端 Rules 全文 -->
-        <div class="rule-doc-panel">
-          <div class="rule-doc-panel-header frontend-h">
-            <h4>⚛ 前端项目 Rules（sales-task-web）</h4>
-            <span class="scope-tag fe">Rule #1</span>
-          </div>
-          <div class="rule-doc-panel-body">
-
-            <div class="rule-full-block">
-              <div class="rule-full-block-head">
-                <div class="rule-num fe">1</div>
-                <h5>前端项目目录规范 — 新增功能四件套</h5>
-              </div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <ul>
-                  <li>在 <code>src/config.url.*.ts</code> 中新增接口地址常量</li>
-                  <li>在 <code>src/config.route.tsx</code> 中新增路由配置（懒加载）</li>
-                  <li>在 <code>src/pages/</code> 中创建页面文件</li>
-                  <li>如需全局状态，在 <code>src/model/</code> 中新增 model 文件</li>
-                </ul>
-              </div>
-              <div class="rule-explain">
-                <strong>详细说明：</strong>前端每新增一个功能模块，必须按以上四个位置依次落文件，保持项目结构统一。接口 URL 不硬编码在页面里；路由统一懒加载以控制包体积；页面与 model 分离，列表/表单状态优先放 model。
-              </div>
-              <div class="rule-explain"><strong>新增功能标准步骤：</strong></div>
-              <ul class="bullet">
-                <li><strong>Step 1</strong> — 在 <code>src/config.url.dev.ts</code>（或 test/prod 对应文件）添加接口常量，如 <code>TASK_DEFINITION_LIST: '/sales/task/definition/list'</code></li>
-                <li><strong>Step 2</strong> — 在 <code>src/config.route.tsx</code> 添加路由项，使用 <code>React.lazy(() =&gt; import('@/pages/...'))</code> 懒加载</li>
-                <li><strong>Step 3</strong> — 在 <code>src/pages/task-definition/list.tsx</code>（示例路径）创建页面组件</li>
-                <li><strong>Step 4</strong> — 若多页面共享状态，在 <code>src/model/taskDefinition.ts</code> 封装请求与类型</li>
-              </ul>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">SLs-SALES-TASK 项目举例</strong>
-                对接「任务定义列表」：url 常量指向 <code>POST /sales/task/definition/list</code>；route 懒加载 <code>pages/task-definition/list</code>；model 封装分页参数 taskName、packageId、ids 及 PageResult 响应类型，字段名与后端 spec 完全一致。
-              </div>
-              <div class="rule-explain" style="margin-top:14px"><strong>推荐追加（前后端协作）：</strong></div>
-              <ul class="bullet">
-                <li>开发对接 sls-sales-task 的功能前，先读取 <code>../sls-sales-task/doc/{模块}_test_spec.md</code></li>
-                <li>以 spec 中 JSON 示例为接口契约，字段名与分页结构与后端保持一致</li>
-                <li>列表请求默认 <code>page=1, pageSize=20</code>，响应对齐 PageResult</li>
-              </ul>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- 后端 Rules 全文 -->
-        <div class="rule-doc-panel">
-          <div class="rule-doc-panel-header backend-h">
-            <h4>☕ 后端项目 Rules（sls-sales-task）</h4>
-            <span class="scope-tag be">Rule #2 ～ #9</span>
-          </div>
-          <div class="rule-doc-panel-body">
-
-            <!-- Rule 2 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">2</div><h5>判空规范 — 按类型分治</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <p>所有的判空如果是对象类型，使用 <code>Objects.nonNull()</code> 或者 <code>Objects.isNull()</code>；如果是集合使用 <code>CollectionUtils</code>；如果是字符串使用 <code>StringUtil</code> 相关方法。</p>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>禁止裸写 <code>!= null</code>、<code>.size() == 0</code>、<code>"".equals(x)</code> 等风格混用。统一工具类便于 Code Review 和 AI 生成一致代码。</div>
-              <div class="code-compare">
-                <div class="code-mini">
-                  <div class="code-mini-label bad">❌ 不符合规范</div>
-                  <pre>if (tasks != null &amp;&amp; tasks.size() &gt; 0) { ... }
-if (taskName != null &amp;&amp; !taskName.equals("")) { ... }
-if (ruleId == null) { ... }</pre>
-                </div>
-                <div class="code-mini">
-                  <div class="code-mini-label good">✓ 符合规范</div>
-                  <pre>if (CollectionUtils.isNotEmpty(tasks)) { ... }
-if (StringUtils.hasText(taskName)) { ... }
-if (Objects.isNull(ruleId)) { ... }</pre>
-                </div>
-              </div>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                TaskDefinitionServiceImpl 创建任务包时：<code>CollectionUtils.isEmpty(tasks)</code> 校验子任务非空；列表查询 <code>StringUtils.hasText(taskName)</code> 决定是否加模糊条件；<code>Objects.nonNull(parentId)</code> 判断是否关联父任务包。
-              </div>
-            </div>
-
-            <!-- Rule 3 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">3</div><h5>数据库变更 — DDL 累计文件</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <p>数据库字段的修改，自动在 <code>doc/sql/</code> 下追加 <code>update_tables.sql</code> 文件，累计的修改都在这个文件里体现。</p>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>每次 ALTER TABLE 按时间顺序<strong>追加</strong>到 <code>doc/sql/update_tables.sql</code> 末尾，不覆盖历史、不新建散落 SQL 文件。每条变更上方建议加注释说明日期与用途，便于 DBA 审阅和执行。</div>
-              <div class="code-mini" style="margin-top:12px">
-                <div class="code-mini-label good">✓ 追加示例</div>
-                <pre>-- 2026-04-07：task_rule 新增 is_repeat 字段
-ALTER TABLE `task_rule`
-  ADD COLUMN `is_repeat` TINYINT(1) DEFAULT NULL
-  COMMENT '是否需要重复下发 0-否 1-是' AFTER `action_execution_mode`;</pre>
-              </div>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted);margin-top:12px">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                全库统一追加 created_by / updated_by 审计字段、task_rule 新增 is_repeat / auto_close_on_deadline / task_judgment_deadline_type 等，均累计在同一 update_tables.sql 中。
-              </div>
-            </div>
-
-            <!-- Rule 4 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">4</div><h5>DTO 规范 — 每个字段加注释</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <p>创建的 DTO 文件里的字段都要加注释。</p>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>DTO 是前后端协作的契约层。每个字段注释应说明<strong>业务含义</strong>、<strong>是否必填</strong>、<strong>取值范围或枚举</strong>（如有）。AI 生成前端 TypeScript 类型和表单 label 时可直接引用。</div>
-              <div class="code-mini" style="margin-top:12px">
-                <div class="code-mini-label good">✓ 符合规范</div>
-                <pre>/** 下发对象群 ID，createPackage 必填 */
-private String distributionObjectGroupId;
-
-/** 任务包对应规则，含下发/完成/截止配置 */
-private TaskRuleDTO taskRule;</pre>
-              </div>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted);margin-top:12px">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                TaskDefinitionPackageCreateRequestDTO 中 taskName、objectCode、distributionObjectGroupId、tasks、taskRule 等字段均有中文注释，与 test_spec 中 JSON // 注释相互印证。
-              </div>
-            </div>
-
-            <!-- Rule 5 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">5</div><h5>Git 工作流 — 新文件自动 git add</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <p>新增改动的文件自动使用 git add 到项目里。</p>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>AI 完成编码后，对所有新建或修改的文件执行 <code>git add</code>，确保 git status 中无遗漏的 untracked 文件。避免「代码写了但忘记 add」导致 PR 不完整。</div>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                新增 TaskRuleTimeResolver、TaskRuleMonthDeadlineSupport、doc/ai_rd_efficiency_summary.html、.cursor/rules/*.md 时，同一轮 AI 对话内即 git add，提交 diff 完整。
-              </div>
-            </div>
-
-            <!-- Rule 6 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">6</div><h5>分页接口 — 请求默认值 + 统一响应结构</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <p>列表类的接口进行返回的包装，请求参数 post 中需要携带 <code>page=1，pageSize=20</code> 的默认参数，返回到时候，需要携带分页的明细，返回值举例：</p>
-              </div>
-              <div class="json-demo">
-{<br/>
-&nbsp;&nbsp;<span class="jk">"code"</span>: <span class="jn">0</span>,<br/>
-&nbsp;&nbsp;<span class="jk">"message"</span>: <span class="js">"success"</span>,<br/>
-&nbsp;&nbsp;<span class="jk">"data"</span>: {<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"records"</span>: [<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="jc">// 当前页数据列表</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;],<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"total"</span>: <span class="jn">7884</span>, <span class="jc">// 总条数</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"page"</span>: <span class="jn">1</span>, <span class="jc">// 当前页</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"pageSize"</span>: <span class="jn">20</span>, <span class="jc">// 每一页的条数</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"totalPage"</span>: <span class="jn">10</span> <span class="jc">// 总页数</span><br/>
-&nbsp;&nbsp;}<br/>
-}
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>所有列表 POST 接口的请求 DTO 中 page / pageSize 须有默认值（1 和 20）；Service 返回 <code>PageResult&lt;T&gt;</code>，外层由统一 Response 包装。前端列表页可直接复用同一结构，无需每次对齐。</div>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                POST /sales/task/definition/list、POST /sales/task/biz/template/config/list 均遵循此结构；PageRequest 默认 page=1, pageSize=20。
-              </div>
-            </div>
-
-            <!-- Rule 7 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">7</div><h5>分层架构 — Controller 薄 · Service 厚 · Job 委托</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <ul>
-                  <li>业务逻辑不要写在路由层，需要写在 service 层</li>
-                  <li>service 必须先有接口层再创建实现层，实现层负责逻辑细节，实现层详细的添加注释</li>
-                  <li>job 层也不要写太多的逻辑细节，需要提取到对应 JobService 里</li>
-                </ul>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong></div>
-              <ul class="bullet">
-                <li><strong>Controller</strong>：只做参数接收、调用 Service、返回 Response，不写 if-else 业务分支</li>
-                <li><strong>Service 接口 + 实现</strong>：接口定义契约，实现类承载全部业务逻辑，复杂校验、事务、外部调用均在此层；实现类方法加注释说明业务规则</li>
-                <li><strong>Job + JobService</strong>：@XxlJob 方法只做调度入口，扫描/批处理/状态流转逻辑放 *JobServiceImpl</li>
-              </ul>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                TaskDefinitionController.createPackage → TaskDefinitionServiceImpl（3800+ 行校验与创建逻辑）；TaskDistributionDetailJob 中 @XxlJob("syncInProgressPackagesByCrowd") → TaskDistributionDetailSyncServiceImpl。
-              </div>
-            </div>
-
-            <!-- Rule 8 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">8</div><h5>测试文档格式 — Markdown Spec</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <ul>
-                  <li>所有测试用例必须使用 Markdown 格式编写，并且存储 <code>doc/</code> 目录下</li>
-                  <li>文件命名规范：<code>[功能模块]_test_spec.md</code></li>
-                  <li>接口的请求和响应必须携带请求的 json 结构示例</li>
-                  <li>请求示例的 json 中每个字段都添加解释注释含义</li>
-                </ul>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>test_spec 是测试、联调、前端对接的唯一事实来源。每个接口至少包含：接口路径、请求 JSON 示例（字段 // 注释）、预期结果描述。复杂业务在文档顶部写「变更说明」章节。</div>
-              <div class="json-demo">
-{<br/>
-&nbsp;&nbsp;<span class="jk">"taskName"</span>: <span class="js">"3月门店巡检任务包"</span>, <span class="jc">// 任务包名称（必填）</span><br/>
-&nbsp;&nbsp;<span class="jk">"objectCode"</span>: <span class="js">"STORE"</span>, <span class="jc">// 对象编码（必填，与 task_object_option 对齐）</span><br/>
-&nbsp;&nbsp;<span class="jk">"taskRule"</span>: {<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"distributionType"</span>: <span class="js">"IMMEDIATE"</span>, <span class="jc">// 下发类型：CRON/FIXED/IMMEDIATE</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="jk">"completionType"</span>: <span class="js">"ACTION_BASED"</span> <span class="jc">// 完成类型（必填）</span><br/>
-&nbsp;&nbsp;},<br/>
-&nbsp;&nbsp;<span class="jk">"tasks"</span>: [] <span class="jc">// 子 TASK 数组，每条含 taskRule、templateIds、conditionRepos</span><br/>
-}
-              </div>
-              <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
-                <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                <code>doc/</code> 目录全部 md + sql 合计 9000+ 行（16 份 test_spec 约 4300 行，另含 api_spec、groovy 片段、DDL 与 update_tables）。task_definition_test_spec.md 单文件 700+ 行，createPackage 请求 JSON 80+ 字段均有 // 注释。
-              </div>
-            </div>
-
-            <!-- Rule 9 -->
-            <div class="rule-full-block">
-              <div class="rule-full-block-head"><div class="rule-num be">9</div><h5>文档联动 — 改代码必同步 test_spec（最高优先级）</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <p>代码逻辑变更时测试文档同步更新：</p>
-                <ul>
-                  <li>功能变更 → 更新对应测试用例</li>
-                  <li>新增场景 → 补充测试用例</li>
-                  <li>问题修复 → 增加回归测试</li>
-                </ul>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>这是整个 Rules 体系中<strong>优先级最高</strong>的一条。AI 每次修改 Java 代码，必须在同一轮对话内同步修改对应 md 文件。spec 顶部「变更说明」记录本次改了什么、为什么改；fix 必须补回归用例防止复发。</div>
-              <div class="table-wrap" style="margin-top:12px">
-                <table>
-                  <thead><tr><th>变更类型</th><th>spec 需做什么</th><th>示例</th></tr></thead>
-                  <tbody>
-                    <tr><td>功能变更</td><td>更新对应用例 + 顶部变更说明</td><td>新增 ids 精确过滤 → spec 补充请求参数说明</td></tr>
-                    <tr><td>新增场景</td><td>补充新用例</td><td>新增 listStats 接口 → spec 新增整节描述</td></tr>
-                    <tr><td>问题修复</td><td>增加回归测试用例</td><td>截止时间秒位归一化 fix → spec 补边界回归用例</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- 通用 Rules 全文 -->
-        <div class="rule-doc-panel">
-          <div class="rule-doc-panel-header common-h">
-            <h4>🔗 通用 Rules（全局生效）</h4>
-            <span class="scope-tag both">Rule #10</span>
-          </div>
-          <div class="rule-doc-panel-body">
-            <div class="rule-full-block" style="margin:0;padding:0;border:none">
-              <div class="rule-full-block-head"><div class="rule-num com">10</div><h5>语言规范 — 中文回答</h5></div>
-              <div class="rule-official">
-                <div class="rule-official-label">规则原文</div>
-                <p>回答的内容都使用中文。</p>
-              </div>
-              <div class="rule-explain"><strong>详细说明：</strong>AI 的所有输出——包括代码解释、Review 意见、文档变更说明、注释建议、排查分析——均使用中文。DTO 字段注释、Service 业务注释、test_spec 变更说明也统一中文，保证团队阅读与 AI 上下文理解一致。</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 一键复制区（便于导入 Cursor） -->
-        <h4 style="color:var(--accent-2);margin-top:32px">附录：一键复制到 Cursor（与上文内容一致）</h4>
-        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:12px">以下为可直接粘贴到 Cursor User Rules 或 .cursor/rules/ 的纯文本版本。</p>
-
-        <div class="code-block">
-          <div class="code-header"><span>.cursor/rules/backend.md — 后端 Rules #2～#9</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
-          <pre>后端项目遵循：
-
-#2 判空规范
-- 对象类型：Objects.nonNull() 或 Objects.isNull()
-- 集合：CollectionUtils（isEmpty / isNotEmpty 等）
-- 字符串：StringUtils / StringUtil 相关方法
-
-#3 数据库变更
-- 数据库字段修改，自动在 doc/sql/ 下追加 update_tables.sql
-- 累计的修改都在同一文件里体现，按时间顺序追加
-
-#4 DTO 规范
-- 创建的 DTO 文件里的字段都要加注释
-
-#5 Git 工作流
-- 新增改动的文件自动使用 git add 到项目里
-
-#6 分页接口
-- 列表类 POST 请求默认携带 page=1, pageSize=20
-- 返回包装分页明细，结构示例：
-  {
-    "code": 0,
-    "message": "success",
-    "data": {
-      "records": [],
-      "total": 7884,
-      "page": 1,
-      "pageSize": 20,
-      "totalPage": 10
-    }
-  }
-
-#7 分层架构
-- 业务逻辑不要写在路由层（Controller），写在 Service 层
-- Service 必须先有接口层，再创建实现层；实现层负责逻辑细节并添加详细注释
-- Job 层不要写太多逻辑细节，提取到对应 JobService 里
-
-#8 测试文档格式
-- 所有测试用例使用 Markdown，存储 doc/ 目录
-- 命名：[功能模块]_test_spec.md
-- 请求和响应必须携带 JSON 结构示例
-- 请求 JSON 中每个字段都添加 // 注释说明含义
-
-#9 文档联动（最高优先级）
-- 代码逻辑变更时测试文档同步更新：
-  · 功能变更 → 更新对应测试用例
-  · 新增场景 → 补充测试用例
-  · 问题修复 → 增加回归测试</pre>
-        </div>
-
-        <div class="code-block">
-          <div class="code-header"><span>.cursor/rules/frontend.md — 前端 Rules #1</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
-          <pre>前端项目遵循：
-
-#1 目录规范（新增功能四件套）
-- 在 src/config.url.*.ts 中新增接口地址常量
-- 在 src/config.route.tsx 中新增路由配置（懒加载）
-- 在 src/pages/ 中创建页面文件
-- 如需全局状态，在 src/model/ 中新增 model 文件
-
-# 对接后端 spec（推荐追加）
-- 开发对接 sls-sales-task 的功能前，先读 ../sls-sales-task/doc/{模块}_test_spec.md
-- 以 spec 中 JSON 示例为接口契约，字段名与分页结构与后端保持一致
-- 列表请求默认 page=1, pageSize=20，响应对齐 PageResult 结构</pre>
-        </div>
-
-        <div class="code-block">
-          <div class="code-header"><span>.cursor/rules/common.md — 通用 Rules #10</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
-          <pre>#10 语言
-- 回答的内容都使用中文</pre>
-        </div>
 
       </div>
     </section>
@@ -4781,14 +4783,14 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td><a href="./md-viewer.html?file=README.md" style="color:var(--accent-2)">README.md</a></td><td>业务流程串列：数据模板 → 字段映射 → 任务定义 → 下发明细，四步创建闭环说明</td></tr>
-            <tr><td><a href="./sql-viewer.html?file=sql/update_tables.sql" style="color:var(--accent-2)">sql/update_tables.sql</a></td><td>表结构<strong>累计变更</strong>脚本：日常 ALTER/索引/字段追加均在此文件按时间顺序追加</td></tr>
-            <tr><td><a href="./sql-viewer.html?file=sql/datasource_and_biz_template_ddl.sql" style="color:var(--accent-2)">sql/datasource_and_biz_template_ddl.sql</a></td><td>数据源连接 <code>datasource_connection</code>、业务模板 <code>biz_template_config</code>、字段映射 <code>biz_template_field_map</code> 等建表 DDL</td></tr>
-            <tr><td><a href="./sql-viewer.html?file=sql/condition_action_task_rule_ddl.sql" style="color:var(--accent-2)">sql/condition_action_task_rule_ddl.sql</a></td><td>TRD 4.2 核心表：<code>condition_repo</code>、动作库、<code>task_rule</code>、<code>task_instance</code>、执行日志等建表 DDL</td></tr>
-            <tr><td><a href="./sql-viewer.html?file=sql/task_object_option_ddl.sql" style="color:var(--accent-2)">sql/task_object_option_ddl.sql</a></td><td>任务对象选项表 <code>task_object_option</code>（<code>/objectOptions</code> 下拉数据来源）</td></tr>
-            <tr><td><a href="./sql-viewer.html?file=sql/task_system_option_ddl.sql" style="color:var(--accent-2)">sql/task_system_option_ddl.sql</a></td><td>任务关联系统选项表 <code>task_system_option</code>（<code>/systemOptions</code> 下拉数据来源）</td></tr>
-            <tr><td><a href="./sql-viewer.html?file=sql/task_execution_type_option_ddl.sql" style="color:var(--accent-2)">sql/task_execution_type_option_ddl.sql</a></td><td>任务执行类型选项表 <code>task_execution_type_option</code>（<code>/executionTypeOptions</code> 下拉数据来源）</td></tr>
-            <tr><td><a href="./md-viewer.html?file=sql/task_template_definition_change.md" style="color:var(--accent-2)">sql/task_template_definition_change.md</a></td><td><code>task_template_definition</code> 表字段变更记录与原因说明</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=README.md" style="color:var(--accent-2)">README.md</a></td><td>业务流程串列：数据模板 → 字段映射 → 任务定义 → 下发明细，四步创建闭环说明</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/update_tables.sql" style="color:var(--accent-2)">sql/update_tables.sql</a></td><td>表结构<strong>累计变更</strong>脚本：日常 ALTER/索引/字段追加均在此文件按时间顺序追加</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/datasource_and_biz_template_ddl.sql" style="color:var(--accent-2)">sql/datasource_and_biz_template_ddl.sql</a></td><td>数据源连接 <code>datasource_connection</code>、业务模板 <code>biz_template_config</code>、字段映射 <code>biz_template_field_map</code> 等建表 DDL</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/condition_action_task_rule_ddl.sql" style="color:var(--accent-2)">sql/condition_action_task_rule_ddl.sql</a></td><td>TRD 4.2 核心表：<code>condition_repo</code>、动作库、<code>task_rule</code>、<code>task_instance</code>、执行日志等建表 DDL</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/task_object_option_ddl.sql" style="color:var(--accent-2)">sql/task_object_option_ddl.sql</a></td><td>任务对象选项表 <code>task_object_option</code>（<code>/objectOptions</code> 下拉数据来源）</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/task_system_option_ddl.sql" style="color:var(--accent-2)">sql/task_system_option_ddl.sql</a></td><td>任务关联系统选项表 <code>task_system_option</code>（<code>/systemOptions</code> 下拉数据来源）</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/task_execution_type_option_ddl.sql" style="color:var(--accent-2)">sql/task_execution_type_option_ddl.sql</a></td><td>任务执行类型选项表 <code>task_execution_type_option</code>（<code>/executionTypeOptions</code> 下拉数据来源）</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=sql/task_template_definition_change.md" style="color:var(--accent-2)">sql/task_template_definition_change.md</a></td><td><code>task_template_definition</code> 表字段变更记录与原因说明</td></tr>
           </tbody>
         </table>
       </div>
@@ -4798,10 +4800,10 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td><a href="./md-viewer.html?file=task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td><strong>核心</strong> · 任务包/任务/动作创建与 list/listStats · createPackage 校验链 · TEMPLATE 拆分 · 约 717 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=task_distribution_detail_test_spec.md" style="color:var(--accent-2)">task_distribution_detail_test_spec.md</a></td><td>下发明细触发、API、Action 同步 · 条件匹配与 XXL-JOB · 两篇合并 · 约 694 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=task_template_test_spec.md" style="color:var(--accent-2)">task_template_test_spec.md</a></td><td>任务模板（<code>task_template_definition</code>）CRUD、分页、与任务定义 TEMPLATE 分支联调 · 约 463 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=condition_action_task_rule_test_spec.md" style="color:var(--accent-2)">condition_action_task_rule_test_spec.md</a></td><td>条件库、动作库、任务规则（task_rule）、任务实例 · CRON/周期配置 · 约 298 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td><strong>核心</strong> · 任务包/任务/动作创建与 list/listStats · createPackage 校验链 · TEMPLATE 拆分 · 约 717 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=task_distribution_detail_test_spec.md" style="color:var(--accent-2)">task_distribution_detail_test_spec.md</a></td><td>下发明细触发、API、Action 同步 · 条件匹配与 XXL-JOB · 两篇合并 · 约 694 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=task_template_test_spec.md" style="color:var(--accent-2)">task_template_test_spec.md</a></td><td>任务模板（<code>task_template_definition</code>）CRUD、分页、与任务定义 TEMPLATE 分支联调 · 约 463 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=condition_action_task_rule_test_spec.md" style="color:var(--accent-2)">condition_action_task_rule_test_spec.md</a></td><td>条件库、动作库、任务规则（task_rule）、任务实例 · CRON/周期配置 · 约 298 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -4811,11 +4813,11 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td><a href="./md-viewer.html?file=biz_template_config_controller_api_spec.md" style="color:var(--accent-2)">biz_template_config_controller_api_spec.md</a></td><td><strong>接口字典</strong> · BizTemplateConfigController 全字段 DTO、PageResult 结构 · 前端类型生成首选 · 约 593 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=biz_template_config_test_spec.md" style="color:var(--accent-2)">biz_template_config_test_spec.md</a></td><td>业务模板 config 更新、fieldDetails 批量 upsert、主键/映射校验 · 约 248 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=datasource_template_test_spec.md" style="color:var(--accent-2)">datasource_template_test_spec.md</a></td><td>数据源连接与业务模板配置联调、模板字段映射规则 · 约 339 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=trial_data_config_test_spec.md" style="color:var(--accent-2)">trial_data_config_test_spec.md</a></td><td>试用数据配置（trial_data_config）增删改查与联调要点 · 约 177 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=data_crowd_test_spec.md" style="color:var(--accent-2)">data_crowd_test_spec.md</a></td><td>数仓分群 Feign 分页查询、圈选条件与任务下发 crowd 联调 · 约 371 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=biz_template_config_controller_api_spec.md" style="color:var(--accent-2)">biz_template_config_controller_api_spec.md</a></td><td><strong>接口字典</strong> · BizTemplateConfigController 全字段 DTO、PageResult 结构 · 前端类型生成首选 · 约 593 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=biz_template_config_test_spec.md" style="color:var(--accent-2)">biz_template_config_test_spec.md</a></td><td>业务模板 config 更新、fieldDetails 批量 upsert、主键/映射校验 · 约 248 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=datasource_template_test_spec.md" style="color:var(--accent-2)">datasource_template_test_spec.md</a></td><td>数据源连接与业务模板配置联调、模板字段映射规则 · 约 339 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=trial_data_config_test_spec.md" style="color:var(--accent-2)">trial_data_config_test_spec.md</a></td><td>试用数据配置（trial_data_config）增删改查与联调要点 · 约 177 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=data_crowd_test_spec.md" style="color:var(--accent-2)">data_crowd_test_spec.md</a></td><td>数仓分群 Feign 分页查询、圈选条件与任务下发 crowd 联调 · 约 371 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -4825,11 +4827,11 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td><a href="./md-viewer.html?file=dynamic_http_endpoint_test_spec.md" style="color:var(--accent-2)">dynamic_http_endpoint_test_spec.md</a></td><td>动态 HTTP 外部接口配置 CRUD、invoke 调用、密钥脱敏 · 约 305 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=dynamic_http_group_test_spec.md" style="color:var(--accent-2)">dynamic_http_group_test_spec.md</a></td><td>动态 HTTP 聚合分组配置与 endpoint 归属关系 · 约 84 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=groovy_script_instance_test_spec.md" style="color:var(--accent-2)">groovy_script_instance_test_spec.md</a></td><td>Groovy 脚本实例管理、启用/禁用、分页与版本 · 约 179 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=groovy_shell_test_spec.md" style="color:var(--accent-2)">groovy_shell_test_spec.md</a></td><td>GroovyShell execute / executeMap / assembleMap 测试接口与入参结构 · 约 161 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=field_filter_operator_test_spec.md" style="color:var(--accent-2)">field_filter_operator_test_spec.md</a></td><td>字段筛选操作符（field_filter_operator）枚举、匹配规则与条件组装 · 约 100+ 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=dynamic_http_endpoint_test_spec.md" style="color:var(--accent-2)">dynamic_http_endpoint_test_spec.md</a></td><td>动态 HTTP 外部接口配置 CRUD、invoke 调用、密钥脱敏 · 约 305 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=dynamic_http_group_test_spec.md" style="color:var(--accent-2)">dynamic_http_group_test_spec.md</a></td><td>动态 HTTP 聚合分组配置与 endpoint 归属关系 · 约 84 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_script_instance_test_spec.md" style="color:var(--accent-2)">groovy_script_instance_test_spec.md</a></td><td>Groovy 脚本实例管理、启用/禁用、分页与版本 · 约 179 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_shell_test_spec.md" style="color:var(--accent-2)">groovy_shell_test_spec.md</a></td><td>GroovyShell execute / executeMap / assembleMap 测试接口与入参结构 · 约 161 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=field_filter_operator_test_spec.md" style="color:var(--accent-2)">field_filter_operator_test_spec.md</a></td><td>字段筛选操作符（field_filter_operator）枚举、匹配规则与条件组装 · 约 100+ 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -4839,10 +4841,10 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td><a href="./md-viewer.html?file=groovy_snippets/README.md" style="color:var(--accent-2)">groovy_snippets/README.md</a></td><td>片段库索引：completion_script、DynamicHttp 后处理、条件脚本等场景说明</td></tr>
-            <tr><td><a href="./md-viewer.html?file=groovy_snippets/group_data_list_values_threshold.md" style="color:var(--accent-2)">groovy_snippets/group_data_list_values_threshold.md</a></td><td>从 <code>groupDataList</code> 取 values 二维表，按第二列数值阈值判定完成条件</td></tr>
-            <tr><td><a href="./md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match.md</a></td><td><code>conditionDetailList</code> 与 <code>mappedResults</code> 字段级匹配（含 index 分组、多运算符）· 约 287 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match_operator_code.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match_operator_code.md</a></td><td>同上匹配逻辑，操作符使用 <code>field_filter_operator</code> 标准码 · 约 227 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/README.md" style="color:var(--accent-2)">groovy_snippets/README.md</a></td><td>片段库索引：completion_script、DynamicHttp 后处理、条件脚本等场景说明</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/group_data_list_values_threshold.md" style="color:var(--accent-2)">groovy_snippets/group_data_list_values_threshold.md</a></td><td>从 <code>groupDataList</code> 取 values 二维表，按第二列数值阈值判定完成条件</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match.md</a></td><td><code>conditionDetailList</code> 与 <code>mappedResults</code> 字段级匹配（含 index 分组、多运算符）· 约 287 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match_operator_code.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match_operator_code.md</a></td><td>同上匹配逻辑，操作符使用 <code>field_filter_operator</code> 标准码 · 约 227 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -4852,10 +4854,10 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td><a href="./md-viewer.html?file=ehr_department_test_spec.md" style="color:var(--accent-2)">ehr_department_test_spec.md</a></td><td>EHR 部门树查询、dept_code / path 与明细归属部门字段联调</td></tr>
-            <tr><td><a href="./md-viewer.html?file=auth_interceptor_test_spec.md" style="color:var(--accent-2)">auth_interceptor_test_spec.md</a></td><td>JwtAuthFilter + OpAuthInterceptor 双链路认证、白名单与 403 场景 · 约 101 行</td></tr>
-            <tr><td><a href="./md-viewer.html?file=kafka_test_push_spec.md" style="color:var(--accent-2)">kafka_test_push_spec.md</a></td><td>Kafka 测试推送接口，消息体结构与发送验证</td></tr>
-            <tr><td><a href="./md-viewer.html?file=sfa_tour_device_photos_kafka_test_spec.md" style="color:var(--accent-2)">sfa_tour_device_photos_kafka_test_spec.md</a></td><td>巡店照片结果 Kafka 消费、与任务/明细状态联动测试</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=ehr_department_test_spec.md" style="color:var(--accent-2)">ehr_department_test_spec.md</a></td><td>EHR 部门树查询、dept_code / path 与明细归属部门字段联调</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=auth_interceptor_test_spec.md" style="color:var(--accent-2)">auth_interceptor_test_spec.md</a></td><td>JwtAuthFilter + OpAuthInterceptor 双链路认证、白名单与 403 场景 · 约 101 行</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=kafka_test_push_spec.md" style="color:var(--accent-2)">kafka_test_push_spec.md</a></td><td>Kafka 测试推送接口，消息体结构与发送验证</td></tr>
+            <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=sfa_tour_device_photos_kafka_test_spec.md" style="color:var(--accent-2)">sfa_tour_device_photos_kafka_test_spec.md</a></td><td>巡店照片结果 Kafka 消费、与任务/明细状态联动测试</td></tr>
           </tbody>
         </table>
       </div>
