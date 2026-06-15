@@ -4497,7 +4497,7 @@ private TaskRuleDTO taskRule;</pre>
               <li><strong>全部功能均为对话式生成</strong>：任务定义、下发明细、9 个 XXL-JOB、模板配置、分群匹配等模块，均是「开一个新对话 → 描述需求 → 生成代码」逐块堆叠，没有前置 Plan 把全局一次画清</li>
               <li><strong>后续对话会改前面已完成功能</strong>：例如先对话完成 <code>list</code> 接口，几轮后在优化 <code>listByPackage</code> 或 DELAY Job 时又回头改 <code>buildListQueryWrapper</code>、状态统计口径——当时对话的上下文里<b>❌没有完整模块地图</b>，容易漏改关联点或引入回归</li>
               <li><strong>缺少全局思考，只有局部最优</strong>：每轮对话 Agent 只看见当前 Prompt + 有限上下文，不会主动问「这个改动是否影响 task_definition 的 createPackage？」；人工若未主动 @ 相关 spec，AI 不会全局检索依赖</li>
-              <li><strong>只有对话式生成，没有宏观把控</strong>：508 次 commit、21 亿 token 背后是数百轮对话，但<strong>没有任务队列</strong>记录「TDD-001 已完成 / TDD-002 待验收」；完成与否全靠开发者记忆 + 人工 Review，无法批量推进或并行分工</li>
+              <li><strong>只有对话式生成，没有宏观把控</strong>：508 次 commit、21 亿 token 背后是数百轮对话，但<b>没有任务队列</b>记录「TDD-001 已完成 / TDD-002 待验收」；完成与否全靠开发者记忆 + 人工 Review，无法批量推进或并行分工</li>
               <li><strong>典型踩坑场景</strong>：新增 <code>end_time</code> 闭区间筛选时，若未同步想到 export / statusStats 共用同一套 wrapper，联调阶段才发现口径不一致；fix 类改动若未强制补回归用例，同类边界 bug 会在后续对话中再次出现</li>
               <li>同一功能不同开发者描述方式不同，AI 产出稳定性差异大；多模块并行时难以追踪「哪些已完成、哪些未验收、哪些被后续对话改坏」</li>
             </ul>
