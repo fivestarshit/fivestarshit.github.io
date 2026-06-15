@@ -2226,7 +2226,7 @@
     <a class="nav-link sub" href="#rules-catalog">Rules 完整清单</a>
     <a class="nav-link sub" href="#rules-fulltext">Rules 全文手册</a>
     <a class="nav-link sub" href="#spec-case-study">典型 spec 范例</a>
-    <a class="nav-link sub" href="#appendix">md文档索引</a>
+    <a class="nav-link sub" href="#appendix">本项目md文档索引</a>
     <a class="nav-link sub" href="#rules-scoped">前后端 Rules 分域</a>
     <a class="nav-link sub" href="#rules-cross-project">前端读后端 spec</a>
     <a class="nav-link" href="#assets">三、可复用资产</a>
@@ -5013,7 +5013,8 @@ tasks:
       </div>
       <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:24px;line-height:1.75">
         以下为 <code>doc/</code> 目录下已有 Markdown / SQL 文档，<strong style="color:var(--text)">点击文件名在预览页中查看</strong>（UTF-8 渲染，避免浏览器直接打开 md/sql 乱码或触发下载）。
-        若本地双击 HTML 无法加载，请在 <code>doc/</code> 目录执行 <code>python3 -m http.server 8765</code> 后访问 <code>https://fivestarshit.github.io</code>。
+        若本地预览本页，请在 <code>doc/</code> 目录执行 <code>python3 -m http.server 8765</code> 后访问 <code>http://localhost:8765/index.html</code>；
+        点击下方文件名将在 <a href="https://fivestarshit.github.io/md-viewer.html" style="color:var(--accent-2)" target="_blank" rel="noopener">GitHub Pages 预览站</a> 打开对应文档。
         内嵌全文见上方 <a href="#spec-full-doc" style="color:var(--accent-2)">任务下发明细 test_spec</a>。
       </p>
 
@@ -5022,14 +5023,14 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=README.md" style="color:var(--accent-2)">README.md</a></td><td>业务流程串列：数据模板 → 字段映射 → 任务定义 → 下发明细，四步创建闭环说明</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/update_tables.sql" style="color:var(--accent-2)">sql/update_tables.sql</a></td><td>表结构<strong>累计变更</strong>脚本：日常 ALTER/索引/字段追加均在此文件按时间顺序追加</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/datasource_and_biz_template_ddl.sql" style="color:var(--accent-2)">sql/datasource_and_biz_template_ddl.sql</a></td><td>数据源连接 <code>datasource_connection</code>、业务模板 <code>biz_template_config</code>、字段映射 <code>biz_template_field_map</code> 等建表 DDL</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/condition_action_task_rule_ddl.sql" style="color:var(--accent-2)">sql/condition_action_task_rule_ddl.sql</a></td><td>TRD 4.2 核心表：<code>condition_repo</code>、动作库、<code>task_rule</code>、<code>task_instance</code>、执行日志等建表 DDL</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/task_object_option_ddl.sql" style="color:var(--accent-2)">sql/task_object_option_ddl.sql</a></td><td>任务对象选项表 <code>task_object_option</code>（<code>/objectOptions</code> 下拉数据来源）</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/task_system_option_ddl.sql" style="color:var(--accent-2)">sql/task_system_option_ddl.sql</a></td><td>任务关联系统选项表 <code>task_system_option</code>（<code>/systemOptions</code> 下拉数据来源）</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/sql-viewer.html?file=sql/task_execution_type_option_ddl.sql" style="color:var(--accent-2)">sql/task_execution_type_option_ddl.sql</a></td><td>任务执行类型选项表 <code>task_execution_type_option</code>（<code>/executionTypeOptions</code> 下拉数据来源）</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=sql/task_template_definition_change.md" style="color:var(--accent-2)">sql/task_template_definition_change.md</a></td><td><code>task_template_definition</code> 表字段变更记录与原因说明</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=README.md" style="color:var(--accent-2)">README.md</a></td><td>业务流程串列：数据模板 → 字段映射 → 任务定义 → 下发明细，四步创建闭环说明</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/sql-viewer.html?file=sql/update_tables.sql" style="color:var(--accent-2)">sql/update_tables.sql</a></td><td>表结构<strong>累计变更</strong>脚本：日常 ALTER/索引/字段追加均在此文件按时间顺序追加</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/sql-viewer.html?file=sql/datasource_and_biz_template_ddl.sql" style="color:var(--accent-2)">sql/datasource_and_biz_template_ddl.sql</a></td><td>数据源连接 <code>datasource_connection</code>、业务模板 <code>biz_template_config</code>、字段映射 <code>biz_template_field_map</code> 等建表 DDL</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/sql-viewer.html?file=sql/condition_action_task_rule_ddl.sql" style="color:var(--accent-2)">sql/condition_action_task_rule_ddl.sql</a></td><td>TRD 4.2 核心表：<code>condition_repo</code>、动作库、<code>task_rule</code>、<code>task_instance</code>、执行日志等建表 DDL</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/sql-viewer.html?file=sql/task_object_option_ddl.sql" style="color:var(--accent-2)">sql/task_object_option_ddl.sql</a></td><td>任务对象选项表 <code>task_object_option</code>（<code>/objectOptions</code> 下拉数据来源）</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/sql-viewer.html?file=sql/task_system_option_ddl.sql" style="color:var(--accent-2)">sql/task_system_option_ddl.sql</a></td><td>任务关联系统选项表 <code>task_system_option</code>（<code>/systemOptions</code> 下拉数据来源）</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/sql-viewer.html?file=sql/task_execution_type_option_ddl.sql" style="color:var(--accent-2)">sql/task_execution_type_option_ddl.sql</a></td><td>任务执行类型选项表 <code>task_execution_type_option</code>（<code>/executionTypeOptions</code> 下拉数据来源）</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=sql/task_template_definition_change.md" style="color:var(--accent-2)">sql/task_template_definition_change.md</a></td><td><code>task_template_definition</code> 表字段变更记录与原因说明</td></tr>
           </tbody>
         </table>
       </div>
@@ -5039,10 +5040,10 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td><strong>核心</strong> · 任务包/任务/动作创建与 list/listStats · createPackage 校验链 · TEMPLATE 拆分 · 约 717 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=task_distribution_detail_test_spec.md" style="color:var(--accent-2)">task_distribution_detail_test_spec.md</a></td><td>下发明细触发、API、Action 同步 · 条件匹配与 XXL-JOB · 两篇合并 · 约 694 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=task_template_test_spec.md" style="color:var(--accent-2)">task_template_test_spec.md</a></td><td>任务模板（<code>task_template_definition</code>）CRUD、分页、与任务定义 TEMPLATE 分支联调 · 约 463 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=condition_action_task_rule_test_spec.md" style="color:var(--accent-2)">condition_action_task_rule_test_spec.md</a></td><td>条件库、动作库、任务规则（task_rule）、任务实例 · CRON/周期配置 · 约 298 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td><strong>核心</strong> · 任务包/任务/动作创建与 list/listStats · createPackage 校验链 · TEMPLATE 拆分 · 约 717 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_distribution_detail_test_spec.md" style="color:var(--accent-2)">task_distribution_detail_test_spec.md</a></td><td>下发明细触发、API、Action 同步 · 条件匹配与 XXL-JOB · 两篇合并 · 约 694 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_template_test_spec.md" style="color:var(--accent-2)">task_template_test_spec.md</a></td><td>任务模板（<code>task_template_definition</code>）CRUD、分页、与任务定义 TEMPLATE 分支联调 · 约 463 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=condition_action_task_rule_test_spec.md" style="color:var(--accent-2)">condition_action_task_rule_test_spec.md</a></td><td>条件库、动作库、任务规则（task_rule）、任务实例 · CRON/周期配置 · 约 298 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -5052,11 +5053,11 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=biz_template_config_controller_api_spec.md" style="color:var(--accent-2)">biz_template_config_controller_api_spec.md</a></td><td><strong>接口字典</strong> · BizTemplateConfigController 全字段 DTO、PageResult 结构 · 前端类型生成首选 · 约 593 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=biz_template_config_test_spec.md" style="color:var(--accent-2)">biz_template_config_test_spec.md</a></td><td>业务模板 config 更新、fieldDetails 批量 upsert、主键/映射校验 · 约 248 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=datasource_template_test_spec.md" style="color:var(--accent-2)">datasource_template_test_spec.md</a></td><td>数据源连接与业务模板配置联调、模板字段映射规则 · 约 339 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=trial_data_config_test_spec.md" style="color:var(--accent-2)">trial_data_config_test_spec.md</a></td><td>试用数据配置（trial_data_config）增删改查与联调要点 · 约 177 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=data_crowd_test_spec.md" style="color:var(--accent-2)">data_crowd_test_spec.md</a></td><td>数仓分群 Feign 分页查询、圈选条件与任务下发 crowd 联调 · 约 371 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=biz_template_config_controller_api_spec.md" style="color:var(--accent-2)">biz_template_config_controller_api_spec.md</a></td><td><strong>接口字典</strong> · BizTemplateConfigController 全字段 DTO、PageResult 结构 · 前端类型生成首选 · 约 593 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=biz_template_config_test_spec.md" style="color:var(--accent-2)">biz_template_config_test_spec.md</a></td><td>业务模板 config 更新、fieldDetails 批量 upsert、主键/映射校验 · 约 248 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=datasource_template_test_spec.md" style="color:var(--accent-2)">datasource_template_test_spec.md</a></td><td>数据源连接与业务模板配置联调、模板字段映射规则 · 约 339 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=trial_data_config_test_spec.md" style="color:var(--accent-2)">trial_data_config_test_spec.md</a></td><td>试用数据配置（trial_data_config）增删改查与联调要点 · 约 177 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=data_crowd_test_spec.md" style="color:var(--accent-2)">data_crowd_test_spec.md</a></td><td>数仓分群 Feign 分页查询、圈选条件与任务下发 crowd 联调 · 约 371 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -5066,11 +5067,11 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=dynamic_http_endpoint_test_spec.md" style="color:var(--accent-2)">dynamic_http_endpoint_test_spec.md</a></td><td>动态 HTTP 外部接口配置 CRUD、invoke 调用、密钥脱敏 · 约 305 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=dynamic_http_group_test_spec.md" style="color:var(--accent-2)">dynamic_http_group_test_spec.md</a></td><td>动态 HTTP 聚合分组配置与 endpoint 归属关系 · 约 84 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_script_instance_test_spec.md" style="color:var(--accent-2)">groovy_script_instance_test_spec.md</a></td><td>Groovy 脚本实例管理、启用/禁用、分页与版本 · 约 179 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_shell_test_spec.md" style="color:var(--accent-2)">groovy_shell_test_spec.md</a></td><td>GroovyShell execute / executeMap / assembleMap 测试接口与入参结构 · 约 161 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=field_filter_operator_test_spec.md" style="color:var(--accent-2)">field_filter_operator_test_spec.md</a></td><td>字段筛选操作符（field_filter_operator）枚举、匹配规则与条件组装 · 约 100+ 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=dynamic_http_endpoint_test_spec.md" style="color:var(--accent-2)">dynamic_http_endpoint_test_spec.md</a></td><td>动态 HTTP 外部接口配置 CRUD、invoke 调用、密钥脱敏 · 约 305 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=dynamic_http_group_test_spec.md" style="color:var(--accent-2)">dynamic_http_group_test_spec.md</a></td><td>动态 HTTP 聚合分组配置与 endpoint 归属关系 · 约 84 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_script_instance_test_spec.md" style="color:var(--accent-2)">groovy_script_instance_test_spec.md</a></td><td>Groovy 脚本实例管理、启用/禁用、分页与版本 · 约 179 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_shell_test_spec.md" style="color:var(--accent-2)">groovy_shell_test_spec.md</a></td><td>GroovyShell execute / executeMap / assembleMap 测试接口与入参结构 · 约 161 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=field_filter_operator_test_spec.md" style="color:var(--accent-2)">field_filter_operator_test_spec.md</a></td><td>字段筛选操作符（field_filter_operator）枚举、匹配规则与条件组装 · 约 100+ 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -5080,10 +5081,10 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/README.md" style="color:var(--accent-2)">groovy_snippets/README.md</a></td><td>片段库索引：completion_script、DynamicHttp 后处理、条件脚本等场景说明</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/group_data_list_values_threshold.md" style="color:var(--accent-2)">groovy_snippets/group_data_list_values_threshold.md</a></td><td>从 <code>groupDataList</code> 取 values 二维表，按第二列数值阈值判定完成条件</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match.md</a></td><td><code>conditionDetailList</code> 与 <code>mappedResults</code> 字段级匹配（含 index 分组、多运算符）· 约 287 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match_operator_code.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match_operator_code.md</a></td><td>同上匹配逻辑，操作符使用 <code>field_filter_operator</code> 标准码 · 约 227 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_snippets/README.md" style="color:var(--accent-2)">groovy_snippets/README.md</a></td><td>片段库索引：completion_script、DynamicHttp 后处理、条件脚本等场景说明</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_snippets/group_data_list_values_threshold.md" style="color:var(--accent-2)">groovy_snippets/group_data_list_values_threshold.md</a></td><td>从 <code>groupDataList</code> 取 values 二维表，按第二列数值阈值判定完成条件</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match.md</a></td><td><code>conditionDetailList</code> 与 <code>mappedResults</code> 字段级匹配（含 index 分组、多运算符）· 约 287 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_snippets/condition_detail_mapped_results_match_operator_code.md" style="color:var(--accent-2)">groovy_snippets/condition_detail_mapped_results_match_operator_code.md</a></td><td>同上匹配逻辑，操作符使用 <code>field_filter_operator</code> 标准码 · 约 227 行</td></tr>
           </tbody>
         </table>
       </div>
@@ -5093,10 +5094,10 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=ehr_department_test_spec.md" style="color:var(--accent-2)">ehr_department_test_spec.md</a></td><td>EHR 部门树查询、dept_code / path 与明细归属部门字段联调</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=auth_interceptor_test_spec.md" style="color:var(--accent-2)">auth_interceptor_test_spec.md</a></td><td>JwtAuthFilter + OpAuthInterceptor 双链路认证、白名单与 403 场景 · 约 101 行</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=kafka_test_push_spec.md" style="color:var(--accent-2)">kafka_test_push_spec.md</a></td><td>Kafka 测试推送接口，消息体结构与发送验证</td></tr>
-          <tr><td><a href="../../fivestarshit.github.io/md-viewer.html?file=sfa_tour_device_photos_kafka_test_spec.md" style="color:var(--accent-2)">sfa_tour_device_photos_kafka_test_spec.md</a></td><td>巡店照片结果 Kafka 消费、与任务/明细状态联动测试</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=ehr_department_test_spec.md" style="color:var(--accent-2)">ehr_department_test_spec.md</a></td><td>EHR 部门树查询、dept_code / path 与明细归属部门字段联调</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=auth_interceptor_test_spec.md" style="color:var(--accent-2)">auth_interceptor_test_spec.md</a></td><td>JwtAuthFilter + OpAuthInterceptor 双链路认证、白名单与 403 场景 · 约 101 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=kafka_test_push_spec.md" style="color:var(--accent-2)">kafka_test_push_spec.md</a></td><td>Kafka 测试推送接口，消息体结构与发送验证</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=sfa_tour_device_photos_kafka_test_spec.md" style="color:var(--accent-2)">sfa_tour_device_photos_kafka_test_spec.md</a></td><td>巡店照片结果 Kafka 消费、与任务/明细状态联动测试</td></tr>
           </tbody>
         </table>
       </div>
@@ -5204,27 +5205,49 @@ tasks:
   }, { threshold: 0.08 });
   revealEls.forEach(el => revealObs.observe(el));
 
-  // 导航 / 锚点跳转：立即显示目标及其父级 section（修复点击后空白）
-  function revealTarget(id) {
+  // 导航 / 锚点跳转：展开父级 details、立即显示 reveal 区块并滚动到位
+  function revealTarget(id, options) {
+    const scroll = !options || options.scroll !== false;
     const target = document.getElementById(id);
-    if (!target) return;
+    if (!target) return false;
     expandSpecFullDocIfNeeded(id);
     let el = target;
     while (el) {
       if (el.classList?.contains('reveal')) el.classList.add('visible');
       el = el.parentElement;
     }
+    if (scroll) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return true;
   }
 
   document.querySelectorAll('.nav-link[href^="#"]').forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', e => {
       const id = link.getAttribute('href').slice(1);
-      requestAnimationFrame(() => revealTarget(id));
+      if (!id) return;
+      e.preventDefault();
+      if (location.hash !== `#${id}`) {
+        history.pushState(null, '', `#${id}`);
+      }
+      revealTarget(id);
+    });
+  });
+
+  document.querySelectorAll('#spec-doc-toc a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      const id = link.getAttribute('href').slice(1);
+      if (!id) return;
+      e.preventDefault();
+      if (location.hash !== `#${id}`) {
+        history.pushState(null, '', `#${id}`);
+      }
+      revealTarget(id);
     });
   });
 
   if (location.hash) {
-    revealTarget(location.hash.slice(1));
+    revealTarget(location.hash.slice(1), { scroll: false });
   } else {
     const specDetails = document.getElementById('spec-full-doc');
     if (specDetails?.tagName === 'DETAILS') specDetails.open = false;
