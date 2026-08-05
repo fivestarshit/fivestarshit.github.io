@@ -2128,17 +2128,71 @@
       font-size: 0.84rem; color: var(--text-muted); margin: 0 0 18px; padding-left: 1.2em;
     }
     .monitor-panel .monitor-points li { margin: 0.35em 0; }
-    .monitor-shots { display: flex; flex-direction: column; gap: 18px; }
     .monitor-shot {
-      margin: 0; border-radius: var(--radius-sm); overflow: hidden;
-      border: 1px solid var(--border); background: rgba(255,255,255,.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: rgba(255,255,255,.02);
     }
-    .monitor-shot img {
-      display: block; width: 100%; height: auto;
-      border-bottom: 1px solid var(--border);
+    .monitor-shot + .monitor-shot { margin-top: 12px; }
+    .monitor-shot-summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      user-select: none;
+      transition: background .2s;
     }
-    .monitor-shot figcaption {
-      padding: 10px 14px; font-size: 0.78rem; color: var(--text-dim); line-height: 1.55;
+    .monitor-shot-summary:hover { background: rgba(99,102,241,.06); }
+    .monitor-shot-summary::-webkit-details-marker { display: none; }
+    .monitor-shot-title { font-size: 0.86rem; color: var(--text); font-weight: 500; }
+    .monitor-shot-meta { font-size: 0.76rem; color: var(--text-dim); line-height: 1.45; }
+    .monitor-shot-summary::after {
+      content: '▸ 点击展开预览';
+      font-size: 0.72rem;
+      color: var(--accent-2);
+      margin-top: 4px;
+    }
+    .monitor-shot[open] .monitor-shot-summary::after { content: '▾ 点击收起'; }
+    .monitor-shot-body { padding: 0 16px 14px; border-top: 1px solid var(--border); }
+    .monitor-zoom-btn {
+      display: block;
+      width: 100%;
+      max-width: 1024px;
+      margin: 12px auto 0;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: zoom-in;
+      text-align: center;
+    }
+    .monitor-zoom-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+    .monitor-zoom-btn img {
+      display: block;
+      width: 100%;
+      max-width: 1024px;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .monitor-zoom-hint {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+    .monitor-shot-caption {
+      margin: 10px 0 0;
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+      text-align: center;
+      max-width: 1024px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     /* ── List items ── */
@@ -2383,14 +2437,32 @@
           <li><strong>组织 & 任务包下钻</strong>：各战区任务量与完成率对比；任务包维度按完成率排序，定位「7 月利刃」等低完成包并调整配置。</li>
         </ul>
         <div class="monitor-shots">
-          <figure class="monitor-shot">
-            <img src="assets/monitor-task-stats-overview.png" alt="任务统计看板：总任务数、执行趋势、任务状态分布、任务类型占比与各类型执行情况" loading="lazy" />
-            <figcaption>图 1 · 任务统计总览：KPI 卡片、执行趋势（完成率 / 反馈率）、状态分布与任务类型执行对比</figcaption>
-          </figure>
-          <figure class="monitor-shot">
-            <img src="assets/monitor-task-org-package.png" alt="组织执行表现与各任务包完成率排行" loading="lazy" />
-            <figcaption>图 2 · 组织与任务包下钻：各战区任务量 / 完成率 / 反馈率；任务包按完成率排序及主要反馈原因</figcaption>
-          </figure>
+          <details class="monitor-shot">
+            <summary class="monitor-shot-summary">
+              <span class="monitor-shot-title">图 1 · 任务统计总览</span>
+              <span class="monitor-shot-meta">KPI 卡片 · 执行趋势（完成率 / 反馈率）· 状态分布 · 任务类型执行对比</span>
+            </summary>
+            <div class="monitor-shot-body">
+              <button type="button" class="monitor-zoom-btn" onclick="openImgLightbox('monitorLb1')" aria-label="放大查看任务统计总览">
+                <img src="assets/monitor-task-stats-overview.png" width="1024" height="486" alt="任务统计看板：总任务数、执行趋势、任务状态分布、任务类型占比与各类型执行情况" loading="lazy" decoding="async" />
+                <span class="monitor-zoom-hint">🔍 点击放大查看原图（1024px）</span>
+              </button>
+              <p class="monitor-shot-caption">销售任务中心 / 任务统计 · 营销系统 · 2025-07 · 任务对象：门店</p>
+            </div>
+          </details>
+          <details class="monitor-shot">
+            <summary class="monitor-shot-summary">
+              <span class="monitor-shot-title">图 2 · 组织与任务包下钻</span>
+              <span class="monitor-shot-meta">各战区任务量 / 完成率 / 反馈率 · 任务包按完成率排序及反馈原因</span>
+            </summary>
+            <div class="monitor-shot-body">
+              <button type="button" class="monitor-zoom-btn" onclick="openImgLightbox('monitorLb2')" aria-label="放大查看组织与任务包表现">
+                <img src="assets/monitor-task-org-package.png" width="1024" height="336" alt="组织执行表现与各任务包完成率排行" loading="lazy" decoding="async" />
+                <span class="monitor-zoom-hint">🔍 点击放大查看原图（1024px）</span>
+              </button>
+              <p class="monitor-shot-caption">可对比战区差异，定位「7 月利刃」等低完成任务包，指导下一轮 P 阶段配置</p>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -5157,6 +5229,22 @@ tasks:
     </footer>
 
   </main>
+</div>
+
+<!-- 监控任务看板大图预览 -->
+<div id="monitorLb1" class="img-lightbox" role="dialog" aria-modal="true" aria-label="任务统计总览大图" onclick="closeImgLightbox('monitorLb1')">
+  <div class="img-lightbox-inner" onclick="event.stopPropagation()">
+    <button type="button" class="img-lightbox-close" onclick="closeImgLightbox('monitorLb1')" aria-label="关闭">×</button>
+    <img src="assets/monitor-task-stats-overview.png" width="1024" height="486" alt="任务统计总览" />
+    <div class="img-lightbox-title">图 1 · 任务统计总览 · KPI · 执行趋势 · 状态分布 · 任务类型</div>
+  </div>
+</div>
+<div id="monitorLb2" class="img-lightbox" role="dialog" aria-modal="true" aria-label="组织与任务包下钻大图" onclick="closeImgLightbox('monitorLb2')">
+  <div class="img-lightbox-inner" onclick="event.stopPropagation()">
+    <button type="button" class="img-lightbox-close" onclick="closeImgLightbox('monitorLb2')" aria-label="关闭">×</button>
+    <img src="assets/monitor-task-org-package.png" width="1024" height="336" alt="组织与任务包下钻" />
+    <div class="img-lightbox-title">图 2 · 组织执行表现 · 任务包完成率排行</div>
+  </div>
 </div>
 
 <!-- Token 用量 Dashboard 大图预览 -->
