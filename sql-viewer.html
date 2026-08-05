@@ -126,7 +126,7 @@
 </head>
 <body>
   <header>
-    <a href="/#appendix">← 返回文档索引</a>
+    <a id="back-link" href="index.html#appendix">← 返回文档索引</a>
     <span class="file-name" id="file-label">加载中…</span>
     <button type="button" class="copy-btn" id="copy-btn" style="display:none">复制 SQL</button>
   </header>
@@ -137,6 +137,38 @@
 
   <script>
     let rawSql = '';
+
+    function resolveBackHref() {
+      const params = new URLSearchParams(location.search);
+      const from = params.get('from');
+      if (from) {
+        const decoded = decodeURIComponent(from);
+        if (!decoded.includes('..') && !/^https?:/i.test(decoded) && !decoded.startsWith('//')) {
+          return decoded;
+        }
+      }
+      try {
+        if (document.referrer) {
+          const ref = new URL(document.referrer);
+          if (ref.origin === location.origin) {
+            const page = ref.pathname.split('/').pop() || 'index.html';
+            if (page === 'ai_rd_efficiency_summary.html') return 'ai_rd_efficiency_summary.html#appendix';
+            if (page === 'index.html' || page === '') return 'index.html#appendix';
+          }
+        }
+      } catch (e) { /* ignore */ }
+      return 'index.html#appendix';
+    }
+
+    function initBackLink() {
+      const el = document.getElementById('back-link');
+      if (!el) return;
+      const href = resolveBackHref();
+      el.href = href;
+      el.textContent = href.indexOf('ai_rd_efficiency_summary') >= 0
+        ? '← 返回 AI 文档索引'
+        : '← 返回文档索引';
+    }
 
     function getFileParam() {
       const p = new URLSearchParams(location.search).get('file');
@@ -219,6 +251,7 @@
     }
 
     (async function init() {
+      initBackLink();
       const file = getFileParam();
       const label = document.getElementById('file-label');
       const content = document.getElementById('content');
