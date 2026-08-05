@@ -173,6 +173,27 @@
       display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.64rem;
       font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,.06); color: var(--text-dim); margin: 2px;
     }
+    .monitor-panel { margin: 4px 0 28px; }
+    .monitor-panel .monitor-lead {
+      font-size: 0.88rem; color: var(--text-muted); line-height: 1.75; margin-bottom: 16px;
+    }
+    .monitor-panel .monitor-lead strong { color: var(--text); }
+    .monitor-panel .monitor-points {
+      font-size: 0.84rem; color: var(--text-muted); margin: 0 0 18px; padding-left: 1.2em;
+    }
+    .monitor-panel .monitor-points li { margin: 0.35em 0; }
+    .monitor-shots { display: flex; flex-direction: column; gap: 18px; }
+    .monitor-shot {
+      margin: 0; border-radius: var(--radius-sm); overflow: hidden;
+      border: 1px solid var(--border); background: rgba(255,255,255,.02);
+    }
+    .monitor-shot img {
+      display: block; width: 100%; height: auto;
+      border-bottom: 1px solid var(--border);
+    }
+    .monitor-shot figcaption {
+      padding: 10px 14px; font-size: 0.78rem; color: var(--text-dim); line-height: 1.55;
+    }
     .pipeline { display: flex; flex-direction: column; gap: 0; margin: 8px 0; }
     .pipeline-step {
       display: grid; grid-template-columns: 36px 1fr; gap: 14px; align-items: start;
@@ -517,6 +538,7 @@
     <a class="nav-link" href="#background">背景</a>
     <a class="nav-link sub" href="#positioning">项目定位</a>
     <a class="nav-link sub" href="#vision-pdca">业务愿景 · PDCA</a>
+    <a class="nav-link sub" href="#pdca-monitor">监控 · 任务统计</a>
     <a class="nav-link sub" href="#biz-pipeline">业务链路</a>
     <a class="nav-link" href="#modules">功能 / 模块</a>
     <a class="nav-link" href="#team">成员 / 分工</a>
@@ -623,9 +645,10 @@
           <div class="pdca-letter">C</div>
           <h4>监控任务</h4>
           <div class="phase-en">Check · 检查</div>
-          <p>实时查看下发/完成进度，Job 驱动状态流转，统计快照与分群同步保障数据准确</p>
+          <p>每日查看执行趋势与完成/反馈率，下钻战区与任务包表现，为下一轮任务配置提供依据</p>
           <span class="map-tag">listStats</span>
           <span class="map-tag">feedback</span>
+          <span class="map-tag">statistics</span>
         </div>
         <div class="pdca-card a">
           <div class="pdca-letter">A</div>
@@ -634,6 +657,29 @@
           <p>基于执行明细与统计看板复盘，优化下一轮任务规划与下发策略</p>
           <span class="map-tag">statistics</span>
           <span class="map-tag">execution_log</span>
+        </div>
+      </div>
+
+      <h4 id="pdca-monitor" style="font-size:0.95rem;color:var(--text);margin:8px 0 12px;font-weight:600">监控任务 · 任务统计看板（1.3 执行分析）</h4>
+      <div class="card monitor-panel">
+        <p class="monitor-lead">
+          <strong>C 阶段（Check）</strong>的价值在于：运营与管理者可以<strong>每天</strong>打开<strong>销售任务中心 / 任务统计</strong>，按架构、月份、任务对象（如门店）筛选，跟踪<strong>执行趋势</strong>（完成率 / 反馈率折线）与任务状态分布——而不是等到周期结束才看结果。
+          当发现某类场景或任务包完成率持续偏低时，即可在下一轮<strong>制定任务（P）</strong>时做针对性调整：换圈选对象、改完成条件、增删任务项或切换下发策略，形成 <strong>C → P</strong> 的数据驱动闭环。
+        </p>
+        <ul class="monitor-points bullet">
+          <li><strong>执行趋势</strong>：按日观察完成率爬坡与反馈率变化，识别执行拐点（示例：7 月下旬完成率快速上升）。</li>
+          <li><strong>类型与状态</strong>：任务类型占比（综合队列 / 销售订单等）+ 已完成 / 已过期分布，判断哪类场景需加强。</li>
+          <li><strong>组织 & 任务包下钻</strong>：各战区任务量与完成率对比；任务包维度按完成率排序，定位「7 月利刃」等低完成包并调整配置。</li>
+        </ul>
+        <div class="monitor-shots">
+          <figure class="monitor-shot">
+            <img src="assets/monitor-task-stats-overview.png" alt="任务统计看板：总任务数、执行趋势、任务状态分布、任务类型占比与各类型执行情况" loading="lazy" />
+            <figcaption>图 1 · 任务统计总览：KPI 卡片、执行趋势（完成率 / 反馈率）、状态分布与任务类型执行对比</figcaption>
+          </figure>
+          <figure class="monitor-shot">
+            <img src="assets/monitor-task-org-package.png" alt="组织执行表现与各任务包完成率排行" loading="lazy" />
+            <figcaption>图 2 · 组织与任务包下钻：各战区任务量 / 完成率 / 反馈率；任务包按完成率排序及主要反馈原因</figcaption>
+          </figure>
         </div>
       </div>
 
