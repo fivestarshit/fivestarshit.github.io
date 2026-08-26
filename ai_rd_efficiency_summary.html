@@ -614,6 +614,130 @@
     .version-block li { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 4px; }
     .prd-link { font-size: 0.78rem; color: var(--accent-2); text-decoration: none; }
     .prd-link:hover { text-decoration: underline; }
+    .cover-lead {
+      font-size: 0.88rem; color: var(--text-muted); line-height: 1.75; margin-bottom: 16px;
+    }
+    .cover-lead strong { color: var(--text); }
+    .cover-figure { margin: 0 0 20px; }
+    .cover-formula {
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 16px;
+      margin-bottom: 16px; padding: 12px 16px; border-radius: var(--radius-sm);
+      background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.25);
+      font-size: 0.92rem; font-weight: 700; letter-spacing: 0.04em; color: var(--text);
+    }
+    .cover-formula .cf-op { color: var(--accent-2); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+    .cover-formula .cf-hint { font-size: 0.72rem; font-weight: 400; letter-spacing: 0; color: var(--text-dim); }
+    .cover-nest {
+      padding: 8px 4px 4px; overflow: hidden;
+    }
+    .cover-layer {
+      position: relative; border-radius: 14px; padding: 14px 16px 16px;
+      border: 1px solid var(--border);
+    }
+    .cover-layer.qa {
+      background: linear-gradient(180deg, rgba(52,211,153,.10), rgba(52,211,153,.03));
+      border-color: rgba(52,211,153,.38);
+      box-shadow: inset 0 0 0 1px rgba(52,211,153,.08);
+    }
+    .cover-layer.rd {
+      margin-top: 10px;
+      background: linear-gradient(180deg, rgba(34,211,238,.10), rgba(34,211,238,.03));
+      border-color: rgba(34,211,238,.38);
+    }
+    .cover-layer.pm {
+      margin-top: 10px;
+      background: linear-gradient(180deg, rgba(99,102,241,.16), rgba(99,102,241,.06));
+      border-color: rgba(99,102,241,.45);
+    }
+    .cover-layer-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .cover-role {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .cover-badge {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: grid; place-items: center; font-weight: 800; font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .cover-layer.qa .cover-badge { background: rgba(52,211,153,.2); color: var(--accent-4); }
+    .cover-layer.rd .cover-badge { background: rgba(34,211,238,.2); color: var(--accent-2); }
+    .cover-layer.pm .cover-badge { background: rgba(99,102,241,.25); color: var(--accent); }
+    .cover-role h4 {
+      margin: 0; font-size: 0.92rem; letter-spacing: 0; text-transform: none; color: var(--text);
+    }
+    .cover-role .cover-en { display: block; font-size: 0.68rem; color: var(--text-dim); font-weight: 400; margin-top: 1px; }
+    .cover-must-tag {
+      font-size: 0.68rem; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+      white-space: nowrap;
+    }
+    .cover-layer.qa .cover-must-tag {
+      background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.3); color: var(--accent-4);
+    }
+    .cover-layer.rd .cover-must-tag {
+      background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.3); color: var(--accent-2);
+    }
+    .cover-layer.pm .cover-must-tag {
+      background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.3); color: var(--accent);
+    }
+    .cover-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .cover-chip {
+      font-size: 0.7rem; padding: 3px 8px; border-radius: 6px;
+      background: rgba(255,255,255,.04); border: 1px solid var(--border); color: var(--text-muted);
+    }
+    .cover-layer.pm .cover-chip { border-color: rgba(99,102,241,.25); }
+    .cover-must-bar {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin: 8px 0 2px; font-size: 0.72rem; color: var(--text-dim);
+    }
+    .cover-must-bar span {
+      padding: 3px 10px; border-radius: 999px; border: 1px dashed currentColor;
+    }
+    .cover-layer.qa > .cover-must-bar { color: var(--accent-4); }
+    .cover-layer.rd > .cover-must-bar { color: var(--accent-2); }
+    .cover-caption {
+      margin: 12px 0 0; text-align: center; font-size: 0.76rem; color: var(--text-dim); line-height: 1.55;
+    }
+    .cover-collapse {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0 0 24px;
+    }
+    @media (max-width: 800px) {
+      .cover-collapse { grid-template-columns: 1fr; }
+      .cover-must-tag { white-space: normal; }
+      .cover-layer { padding: 12px; }
+      .cover-formula { font-size: 0.82rem; }
+    }
+    .cover-gap-card {
+      padding: 16px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: rgba(248,113,113,.05); border-color: rgba(248,113,113,.22);
+    }
+    .cover-gap-card strong {
+      display: block; font-size: 0.84rem; color: #fca5a5; margin-bottom: 8px;
+    }
+    .cover-gap-card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.65; margin: 0; }
+    .cover-flat-stack {
+      display: flex; flex-direction: column; gap: 0; margin: 10px 0 12px;
+      border-radius: 10px; overflow: hidden; border: 1px solid rgba(248,113,113,.25);
+      position: relative;
+    }
+    .cover-flat-stack::after {
+      content: '视角塌缩 · 三层叠成同一双眼';
+      position: absolute; inset: 0; display: grid; place-items: center;
+      background: rgba(7,11,20,.55); font-size: 0.72rem; color: #fca5a5; font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .flat-bar { height: 22px; }
+    .flat-bar.pm { background: rgba(99,102,241,.45); }
+    .flat-bar.rd { background: rgba(34,211,238,.35); }
+    .flat-bar.qa { background: rgba(52,211,153,.35); }
+    .cover-blind {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+    }
+    .cover-blind span {
+      font-size: 0.68rem; padding: 3px 8px; border-radius: 999px;
+      background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.28); color: #fca5a5;
+    }
   </style>
 </head>
 <body>
@@ -662,6 +786,7 @@
     <a class="nav-link" href="#metrics">量化成效</a>
     <a class="nav-link sub" href="#token-usage">Token 明细</a>
     <a class="nav-link" href="#evolution">演进方向</a>
+    <a class="nav-link sub" href="#perspective-cover">视角覆盖模型</a>
     <a class="nav-link" href="#appendix">附录 · 文档索引</a>
   </nav>
 
@@ -1760,6 +1885,103 @@
         <div class="section-num">09</div>
         <h2>演进方向与风险</h2>
       </div>
+
+      <h3 id="perspective-cover">视角覆盖模型 · 产品 ⊂ 研发 ⊂ 测试</h3>
+      <p class="cover-lead">
+        三个环节不是接力替换，而是<strong>包含关系</strong>：研发必须把产品口径装进去，测试必须把研发实现（以及其中的产品口径）装进去。
+        后一环节若只站在自己的位置上看，覆盖必然缺一层——<strong>一个人从头做到尾会有视角缺失，即便是 AI，目前也无法覆盖到这么细致。</strong>
+      </p>
+      <div class="card cover-figure">
+        <div class="cover-formula">
+          <span>产品</span><span class="cf-op">⊂</span>
+          <span>研发</span><span class="cf-op">⊂</span>
+          <span>测试</span>
+          <span class="cf-hint">后一环节 ⊃ 前一环节 · 必须覆盖，不能替换</span>
+        </div>
+        <div class="cover-nest">
+          <div class="cover-layer qa">
+            <div class="cover-layer-head">
+              <div class="cover-role">
+                <div class="cover-badge">测</div>
+                <div>
+                  <h4>测试</h4>
+                  <span class="cover-en">独立视角：怎么验、是否做对 / 做完</span>
+                </div>
+              </div>
+              <span class="cover-must-tag">必须覆盖研发（⊃ 产品）</span>
+            </div>
+            <div class="cover-chips">
+              <span class="cover-chip">异常路径</span>
+              <span class="cover-chip">回归口径</span>
+              <span class="cover-chip">验收门禁</span>
+              <span class="cover-chip">「做完」可判定</span>
+            </div>
+            <div class="cover-must-bar"><span>⊃ 包裹研发 · 测的是实现，不是自己以为的功能</span></div>
+            <div class="cover-layer rd">
+              <div class="cover-layer-head">
+                <div class="cover-role">
+                  <div class="cover-badge">研</div>
+                  <div>
+                    <h4>研发</h4>
+                    <span class="cover-en">独立视角：怎么做、边界与一致性</span>
+                  </div>
+                </div>
+                <span class="cover-must-tag">必须覆盖产品</span>
+              </div>
+              <div class="cover-chips">
+                <span class="cover-chip">方案边界</span>
+                <span class="cover-chip">接口 / 数据一致性</span>
+                <span class="cover-chip">实现约束</span>
+              </div>
+              <div class="cover-must-bar"><span>⊃ 包裹产品 · 能跑 ≠ 口径对</span></div>
+              <div class="cover-layer pm">
+                <div class="cover-layer-head">
+                  <div class="cover-role">
+                    <div class="cover-badge">产</div>
+                    <div>
+                      <h4>产品</h4>
+                      <span class="cover-en">独立视角：做什么、为什么、给谁用</span>
+                    </div>
+                  </div>
+                  <span class="cover-must-tag">被后两层覆盖的内核</span>
+                </div>
+                <div class="cover-chips">
+                  <span class="cover-chip">业务目标</span>
+                  <span class="cover-chip">用户价值</span>
+                  <span class="cover-chip">规则 / 验收口径</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="cover-caption">图 · 视角包含关系：每一环的「独立视角」长在外圈，内圈是必须吃透的前一环节——缺环则覆盖失败。</p>
+      </div>
+      <div class="cover-collapse">
+        <div class="cover-gap-card">
+          <strong>一人全做 → 视角塌缩</strong>
+          <div class="cover-flat-stack" aria-hidden="true">
+            <div class="flat-bar pm"></div>
+            <div class="flat-bar rd"></div>
+            <div class="flat-bar qa"></div>
+          </div>
+          <p>后一环节用的是自己刚写完的那双眼，无法真正「覆盖」前一环节。产品想清楚了 ≠ 研发边界清了 ≠ 测试能验收。</p>
+          <div class="cover-blind">
+            <span>盲区 · 口径漂移</span>
+            <span>盲区 · 实现边界</span>
+            <span>盲区 · 异常路径</span>
+          </div>
+        </div>
+        <div class="cover-gap-card">
+          <strong>仅靠 AI → 同样盖不住三层细致度</strong>
+          <p style="margin-top:10px">AI 能加速草稿与编码，但一次会话很难同时维持产品口径、实现约束、验收门禁三套独立视角。复杂规则仍需分角色 Review——这也是演进上要走 <strong style="color:var(--text)">PRD → TRD → test_spec</strong> 闭环、而不是「一个人 + 一个 Agent 包办」的原因。</p>
+          <div class="cover-blind">
+            <span>盲区 · 验收口径</span>
+            <span>盲区 · 回归遗漏</span>
+            <span>盲区 · 角色自检失效</span>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <h4 style="margin-top:0;color:var(--accent)">下一步</h4>
         <ul class="bullet">
@@ -1772,6 +1994,7 @@
         <h4>风险</h4>
         <ul class="bullet">
           <li>纯对话式缺少全局编排，后续改动可能破坏已完成模块——需任务清单与 acceptance 约束</li>
+          <li>一人包办产品 / 研发 / 测试，或仅靠 AI 会话闭环：后一环节无法真正覆盖前一环节视角，口径漂移与验收盲区不可避免——即便是 AI，目前也无法覆盖到三层独立视角的细致度</li>
           <li>Token 成本需与人力节省平衡；复杂方案仍依赖人工 Review，不可全自动上线</li>
           <li>多仓库协作（后端 sls-sales-task + 前端 Comm-Divisor-Service）需统一 spec 命名与版本口径</li>
         </ul>
