@@ -968,67 +968,67 @@
             <tr>
               <td><code>condition_repo + task_template</code></td>
               <td>MVP</td>
-              <td>条件库、任务模版、Groovy 完成脚本</td>
+              <td>条件库沉淀可复用的完成条件片段，和模板字段、Groovy 脚本组合后挂到任务上。任务模版独立成表，把常用的对象、执行类型和完成脚本存成模板，新建任务时直接复用，避免每次从空白配置。应用端 H5 按任务详情读取这套条件结果。</td>
               <td><span class="tag tag-done">已完成</span></td>
             </tr>
             <tr>
               <td><code>task_definition + task_rule</code></td>
               <td>MVP → 1.2</td>
-              <td>任务包/任务/动作、规则配置与 CRON/截止完善</td>
+              <td>任务定义分三层：任务包 PACKAGE、子任务 TASK、动作 ACTION。<code>createPackage</code> 一次创建包和子任务，并绑定数据模板与规则。规则覆盖手动 / CRON / 固定时间下发、完成判定、截止时间（按月、相对天数、财季末月），秒位归 59。1.2 补齐编码规则、复制、立即下发、已下发后部分字段可改，以及门店 / 人员 / 经销商对象。</td>
               <td><span class="tag tag-done">已完成</span></td>
             </tr>
             <tr>
               <td><code>task_distribution_detail</code></td>
               <td>MVP → 1.2</td>
-              <td>下发明细、分群 Job、人员/门店明细</td>
+              <td>到达 <code>distributed_at</code> 后，按「任务包 + 子任务 + 目标实体」生成一线可见的任务清单，对象覆盖门店和人员。列表、导出、状态统计共用同一套筛选；XXL-JOB 负责就绪转进行中、到期完成、超 <code>end_time</code> 过期、分群同步和归属部门补全。状态为进行中、已完成、已关闭、已过期。截止 2026-11 已下发 700 万+。</td>
               <td><span class="tag tag-done">已完成</span></td>
             </tr>
             <tr>
               <td><code>biz_template + datasource</code></td>
               <td>1.1</td>
-              <td>数据模板、字段映射、Kafka 事件数据集</td>
+              <td>数据模板定义指标和外部事件怎么进任务体系，字段映射用 <code>is_search_primary_key</code> 标出列表和导出的搜索主键。类型支持 NUMBER / STRING / BOOLEAN / DATE，202608 起增加 EX 表达式。同时管理数据源连接、Kafka 事件数据集和试用数据，供完成条件与下发筛选取数。</td>
               <td><span class="tag tag-done">已完成</span></td>
             </tr>
             <tr>
               <td><code>groovy + dynamic_http</code></td>
               <td>1.1 → 1.2</td>
-              <td>脚本调试、DELAY 同步、@ 指令校验</td>
+              <td>完成条件可以用 Groovy 脚本写，脚本实例支持启用、禁用和版本管理；调试接口提供 execute、executeMap、assembleMap。动态 HTTP 端点按分组配置外部指标接口，密钥脱敏，并支撑 DELAY 同步。脚本里的 @ 指令在保存和执行前做校验，避免引用不存在的字段或指令。</td>
               <td><span class="tag tag-done">已完成</span></td>
             </tr>
             <tr>
               <td><code>auth + op_permissions</code></td>
               <td>1.2</td>
-              <td>JWT/OP 认证、角色功能权限</td>
+              <td>页面迁入 OP 后，请求同时走 JWT 与 OP 两套拦截，白名单接口跳过校验。功能权限按管理员、总部、区域、业务等角色控制菜单和按钮，资源由定时任务从 OP 同步。统计部门树只返回账号真正有权限的部门，避免默认选中无权限祖先后接口被拦。</td>
               <td><span class="tag tag-done">已完成</span></td>
             </tr>
             <tr>
               <td><code>feedback + statistics</code></td>
               <td>1.3</td>
-              <td>未完成反馈 API、统计快照看板（TPS）</td>
+              <td>未完成任务可提交原因、修改反馈或直接关闭，明细列表能看到反馈说明。统计按日打快照，看板给出 KPI、完成率 / 反馈率趋势、任务类型占比，并下钻到战区和任务包。部门范围按登录人权限裁剪；末级组织按网点负责人汇总。快照由 TPS Job 刷新。</td>
               <td><span class="tag tag-done">已完成</span></td>
             </tr>
             <tr>
               <td><code>task_group</code></td>
               <td>1.4</td>
-              <td>任务组表、任务层独立下发、完成标准三枚举。<code>TaskGroupController</code> 已落地；TGR 清单 18 项 completed，余 TGR-015 / 023 / 025 / 026 四项 P2</td>
+              <td>新建独立任务组表，编码前缀 RWZ，本身不下发，用来给多个任务包打策略标签。下发对象、节奏、去重从包层下沉到每个子任务：同组可以圈不同门店群，完成标准支持模板、自定义、对象群，对象群可按「在群 / 不在群」反向判定，去重增加「对象 + 下发时间」和月内不重复。清单 18 项已完成，权限资源、排序、spec 回归和快照对账 4 项 P2 未收尾。</td>
               <td><span class="tag tag-done">主干已合入</span></td>
             </tr>
             <tr>
               <td><code>v2_tour_patrol_record</code></td>
               <td>202608</td>
-              <td>巡店 Kafka <code>v2_tour_patrol_record</code>、pure_sku 补写、<code>skuNumer</code> 识别总数、字段映射 EX、任务组联动与进行中统计</td>
+              <td>消费巡店 topic，只处理 key 为 <code>v2_tour_patrol_record</code> 的消息。先把 <code>tourPhotos</code> 展平，再按 SKU code 调商品中心，把 <code>pure_sku</code> 的 epuCode 写回，并在最外层写入识别总数 <code>skuNumer</code>（code 去重）。补齐后走统一下发链路，用来判定巡店相关任务是否完成。同期还有设备 binlog 独立消费、任务组联动和进行中统计。</td>
               <td><span class="tag tag-done">已合入</span></td>
             </tr>
             <tr>
               <td><code>crowd sync + childrenList</code></td>
               <td>202609</td>
-              <td>任务包分群下发与 Redis 占位、<code>childrenList</code> 按任务组聚合、实例 <code>uk_task_code</code> 冲突不再整条跳过</td>
+              <td>分群下发改为按批拉对象并写入明细，Redis 用占位和冷却 key 防止同一包被定时任务打重。任务定义的 <code>childrenList</code> 可以按任务组聚合，方便配置端按组查看子任务。创建实例若撞上 <code>uk_task_code</code>，只跳过冲突行，不再把整条 Kafka 消息丢掉。消费日志不再打印完整报文。</td>
               <td><span class="tag tag-done">已合入</span></td>
             </tr>
             <tr>
               <td><code>dept leader + IMMEDIATE</code></td>
               <td>202610</td>
-              <td>明细列表叠加部门负责人管辖部门；定时 Job 跳过手动下发（<code>distributionType=IMMEDIATE</code>）；日志改为标准输出</td>
+              <td>明细列表的数据范围等于登录人默认部门，再加上其作为部门负责人管辖的部门；负责人通过 EHR 批量接口 <code>fieldType=2</code> 按 userId 查询。手动下发（<code>distributionType=IMMEDIATE</code>）只在点击时触发，定时分群 Job 会跳过，并使用独立 Redis key，避免冷却期内点不了手动下发。运行日志改为标准输出，不再落本地滚动文件。</td>
               <td><span class="tag tag-doing">当前分支</span></td>
             </tr>
           </tbody>
