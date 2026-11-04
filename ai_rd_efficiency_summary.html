@@ -807,12 +807,13 @@
         <div class="stat-card"><div class="stat-num" data-target="9423">0</div><div class="stat-label">规范 doc 行数<span class="stat-sublabel">不含联调原文</span></div></div>
         <div class="stat-card"><div class="stat-num" data-target="726">0</div><div class="stat-label">Git Commits<span class="stat-sublabel">截至 2026-10-15</span></div></div>
         <div class="stat-card"><div class="stat-num stat-num-text">2.1B</div><div class="stat-label">3–5 月 Token<span class="stat-sublabel">约 21 亿</span></div></div>
+        <div class="stat-card"><div class="stat-num stat-num-text">4.0B</div><div class="stat-label">累计 Token<span class="stat-sublabel">约 40 亿 · 至当前版本</span></div></div>
         <div class="stat-card"><div class="stat-num stat-num-text">至 202610</div><div class="stat-label">PRD 1.4 已合入<span class="stat-sublabel">代码 feature/202610_op</span></div></div>
         <div class="stat-card"><div class="stat-num" data-target="18">0</div><div class="stat-label">已上线任务包</div></div>
-        <div class="stat-card"><div class="stat-num stat-num-compact stat-num-text" title="3,282,705">328万+</div><div class="stat-label">已下发任务</div></div>
+        <div class="stat-card"><div class="stat-num stat-num-compact stat-num-text" title="7,000,000+">700万+</div><div class="stat-label">已下发任务<span class="stat-sublabel">截止 2026-11</span></div></div>
       </div>
       <p class="hero-token-note">
-        <strong>AI 投入（2026 年 3–5 月）：</strong>Cursor Agent 累计 Token 约 <strong>2.1B</strong>（约 <strong>21 亿</strong> token，Cursor Dashboard 统计口径）——覆盖从 0 到 1 的全模块研发、列表/DELAY Job 多轮性能优化、Groovy/CRON/分群规则迭代与 spec 联动文档产出。平台同期 Total spend 约 <strong>US$696</strong>（详见 <a href="#token-usage" style="color:var(--accent-2)">§08 Token 用量</a>）。
+        <strong>AI 投入：</strong>2026 年 3–5 月 Cursor Agent Token 约 <strong>2.1B</strong>（约 <strong>21 亿</strong>，Dashboard 口径，同期 Total spend 约 <strong>US$696</strong>），覆盖 0→1 全模块与 spec 联动。跟到当前版本（202610）累计用量约 <strong>40 亿</strong>（4.0B）。详见 <a href="#token-usage" style="color:var(--accent-2)">§08 Token 用量</a>。
         <a class="token-link-card" href="index.html#hero" target="_blank" rel="noopener">📊 查看 Dashboard 用量截图 →</a>
       </p>
     </div>
@@ -836,8 +837,8 @@
             <tr><td>技术栈</td><td>Java 8 · Spring Boot · MyBatis-Plus · Nacos · XXL-JOB · Kafka · Groovy · OpenFeign · Redisson</td></tr>
             <tr><td>代码 / 文档</td><td>521 Java · 26 Controller · 110 Service · 20 个 <code>@XxlJob</code>（9 个 Job 类）· 23 test_spec（约 6847 行）· 规范 doc 9423 行 · <strong>726</strong> commits</td></tr>
             <tr><td>代码版本</td><td>统计分支 <code>feature/202610_op</code> · HEAD <code>2886e7c</code> · 2026-10-15。产品 PRD 止于 1.4 且主干已合入；其后为 202608 巡店、202609 分群、202610 运维迭代</td></tr>
-            <tr><td>生产运营</td><td>已上线 <strong>18</strong> 个任务包 · 下发明细 <strong>328 万+</strong>（运营快照仍截止 2026-08-05，见 §04；本次未重拉生产库）</td></tr>
-            <tr><td>AI 投入</td><td>2026.03–05 Cursor Token 累计 <strong>2.1B</strong>（约 21 亿，<a href="#token-usage" style="color:var(--accent-2)">§08 明细</a>）</td></tr>
+            <tr><td>生产运营</td><td>已上线 <strong>18</strong> 个任务包 · 已下发任务 <strong>700 万+</strong>（截止 2026-11，见 §04）</td></tr>
+            <tr><td>AI 投入</td><td>2026.03–05 为 <strong>2.1B</strong>（约 21 亿）；截止当前版本累计约 <strong>40 亿</strong>（<a href="#token-usage" style="color:var(--accent-2)">§08 明细</a>）</td></tr>
           </tbody>
         </table>
       </div>
@@ -946,7 +947,7 @@
           <li><strong>技术特征</strong>：模块多、Job 多、Groovy/CRON/分群规则复杂，文档与代码需强同步。产品 PRD 共 5 版（MVP→1.4，1.4 主干已合入）；代码继续到 <code>feature/202610_op</code>，累计 726 次 commit。</li>
           <li><strong>AI Native 动因</strong>：短周期交付模板/规则/明细/实例/统计等多模块；传统 TRD→编码→测试文档串行耗时长，边界（财季末月、DELAY、list N+1）易漏。</li>
           <li><strong>核心策略</strong>：写代码前配置 <strong>Cursor Rules</strong>，强制「改代码必须联动 <code>*_test_spec.md</code>」；1.4 起采用<strong>任务清单 + Rules</strong>编排（见 §05）。</li>
-          <li><strong>Token 换吞吐</strong>：3–5 月约 <strong>21 亿</strong> token 支撑 0→1 主体研发与文档同步，人工重心转向需求确认、Review 与联调验收。</li>
+          <li><strong>Token 换吞吐</strong>：3–5 月约 <strong>21 亿</strong> token 支撑 0→1；截止当前版本累计约 <strong>40 亿</strong>。人工重心转向需求确认、Review 与联调验收。</li>
         </ul>
       </div>
     </section>
@@ -1493,19 +1494,19 @@
 
       <h3 id="progress-ops">运营（生产）</h3>
       <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:14px">
-        数据口径：<code>task_distribution_detail</code> 下发明细 · 统计截止 <strong>2026-08-05</strong> · 随 SFA 外勤试点持续爬坡。
-        四状态合计 <strong>3,282,705</strong> 条，与「已下发任务」总量一致。
+        数据口径：<code>task_distribution_detail</code> 下发明细。截止 <strong>2026-11</strong>，已下发任务 <strong>700 万+</strong>。
+        下方四状态仍是 <strong>2026-08-05</strong> 快照（合计 3,282,705），之后只更新了总量，没有按状态重拆。
       </p>
 
       <div class="stats" style="margin-bottom:20px">
         <div class="stat-card"><div class="stat-num" data-target="18">0</div><div class="stat-label">已上线任务包</div></div>
-        <div class="stat-card"><div class="stat-num stat-num-compact stat-num-text" title="3,282,705">328万+</div><div class="stat-label">已下发任务（合计）</div></div>
-        <div class="stat-card"><div class="stat-num stat-num-compact stat-num-text" title="438,851">43.9万+</div><div class="stat-label">已完成</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="15123">0</div><div class="stat-label">进行中</div></div>
+        <div class="stat-card"><div class="stat-num stat-num-compact stat-num-text" title="7,000,000+">700万+</div><div class="stat-label">已下发任务<span class="stat-sublabel">截止 2026-11</span></div></div>
+        <div class="stat-card"><div class="stat-num stat-num-compact stat-num-text" title="438,851">43.9万+</div><div class="stat-label">已完成<span class="stat-sublabel">8月5日快照</span></div></div>
+        <div class="stat-card"><div class="stat-num" data-target="15123">0</div><div class="stat-label">进行中<span class="stat-sublabel">8月5日快照</span></div></div>
       </div>
 
       <div class="card">
-        <h4 style="margin-top:0">下发明细 · 状态分布</h4>
+        <h4 style="margin-top:0">下发明细 · 状态分布（2026-08-05 快照）</h4>
         <div class="ops-legend">
           <span><i class="ops-dot in-progress"></i>进行中 0.46%</span>
           <span><i class="ops-dot completed"></i>已完成 13.36%</span>
@@ -1950,7 +1951,7 @@
           <ul>
             <li><strong>726 commits</strong>（截至 2026-10-15）；模块按对话/任务清单分批交付，1.4 之后改为月度分支</li>
             <li><strong>23 份 test_spec</strong>（约 6847 行）、规范 doc 9423 行，文档/代码比高</li>
-            <li>Cursor 3–5 月 Token 约 <strong>2.1B</strong>（平台 Dashboard）；成本换吞吐与文档质量</li>
+            <li>3–5 月 Token 约 <strong>2.1B</strong>（约 21 亿）；截止当前版本累计约 <strong>40 亿</strong></li>
             <li>人工重心：需求确认、方案 Review、联调验收——编码与文档同步由 Agent 承担主体</li>
           </ul>
         </div>
@@ -1997,10 +1998,11 @@
 
       <h3 id="token-usage">8.1 Cursor Token 用量</h3>
       <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:12px">
-        数据来自 Cursor 平台 Dashboard（统计周期 <strong>2026-03-01 ～ 2026-05-31</strong>），与 Hero 区 2.1B 口径一致。
+        3–5 月数据来自 Cursor Dashboard（<strong>2026-03-01 ～ 2026-05-31</strong>），口径仍是 <strong>2.1B / 约 21 亿</strong>。截止当前版本（202610）累计用量约 <strong>40 亿</strong>（4.0B），6 月之后没有单独的账单截图。
       </p>
       <div class="token-metrics-grid card" style="padding:16px">
-        <div class="token-metric"><div class="tm-val">2.1B</div><div class="tm-label">累计 Token<br/>≈ 21 亿</div></div>
+        <div class="token-metric"><div class="tm-val">2.1B</div><div class="tm-label">3–5 月 Token<br/>≈ 21 亿</div></div>
+        <div class="token-metric"><div class="tm-val">4.0B</div><div class="tm-label">累计至当前版本<br/>≈ 40 亿</div></div>
         <div class="token-metric"><div class="tm-val">Mar–May</div><div class="tm-label">统计周期<br/>2026 年 3–5 月</div></div>
         <div class="token-metric"><div class="tm-val">~$696</div><div class="tm-label">Total spend<br/>平台账单（USD）</div></div>
         <div class="token-metric"><div class="tm-val">726</div><div class="tm-label">累计 commit<br/>截至 2026-10-15</div></div>
@@ -2008,7 +2010,7 @@
       <div class="card" style="margin-top:14px">
         <ul class="bullet">
           <li><strong>覆盖范围</strong>：0→1 全模块（任务定义/规则/明细/实例/数据源/Groovy/统计/任务组等）、list 性能多轮优化、DELAY/CRON 窗口、Groovy @ 解析、1.3 反馈与统计看板等。</li>
-          <li><strong>产出配比</strong>：3–5 月 Token 覆盖 0→1 主体。截至 2026-10-15 仓库为 23 份 test_spec、规范 doc 9423 行 — Token 主要换<strong>编码吞吐 + 文档质量</strong>，而非替代人工联调与生产验收。</li>
+          <li><strong>产出配比</strong>：3–5 月 21 亿覆盖 0→1 主体；截止当前版本累计约 40 亿，继续覆盖 1.4 任务组、巡店与分群迭代。仓库截至 2026-10-15 为 23 份 test_spec、规范 doc 9423 行 — Token 主要换<strong>编码吞吐 + 文档质量</strong>，而非替代人工联调与生产验收。</li>
           <li><strong>Dashboard 截图</strong>：<a href="index.html#hero" style="color:var(--accent-2)">index.html · Cursor Usage 截图</a>（Mar 01 – May 31 · 2.1B）</li>
         </ul>
       </div>
@@ -2021,11 +2023,11 @@
             <tr><td>代码规模</td><td>521 Java · 26 Controller · 110 Service · 20 Handler</td><td>含任务组、统计、巡店 Kafka、部门负责人过滤。<code>src/main/java</code>，分支 <code>feature/202610_op</code></td></tr>
             <tr><td>文档规模</td><td>规范 doc 9423 行</td><td>23 份 test_spec 约 6847 行；<code>task_definition</code> 982 行、<code>task_distribution_detail</code> 936 行。不含 <code>202608-groovy.md</code> / <code>202608-purity.md</code> 联调原文</td></tr>
             <tr><td>提交频率</td><td>726 commits</td><td>截至 2026-10-15。3 月 188、4 月 171、5 月 115、6 月 89、7 月 76、8 月 49、9 月 21、10 月 5</td></tr>
-            <tr><td>AI 投入</td><td>2.1B Token · ~$696 · 2026.3–5</td><td>见 §8.1。Token 窗口停在 5 月；6–10 月代码继续迭代，本页未计入新的 Token</td></tr>
+            <tr><td>AI 投入</td><td>3–5 月 2.1B（约 21 亿，~$696）· 累计约 40 亿</td><td>见 §8.1。40 亿为截止当前版本的用量，不是 3–5 月账单的替换数</td></tr>
             <tr><td>文档/代码比</td><td>规范 doc 行数 ≈ 18× Java 文件数</td><td>9423 / 521。联调原文若计入会把行数抬到约 1.6 万，不反映规格密度</td></tr>
             <tr><td>CR 质量</td><td>1.3 分支 0 Critical；202608_op 高风险 0</td><td><code>code-review-feature-202606_1.3</code> 与 <code>ai-review-feature-202608_op-vs-master-2026-08-06.md</code></td></tr>
             <tr><td>任务清单</td><td>TGR 18 completed / 4 pending · TPS 19 项</td><td>待收尾：TGR-015、TGR-023、TGR-025、TGR-026</td></tr>
-            <tr><td>生产运营</td><td>18 任务包 · 328 万+ 下发明细</td><td>已完成 43.9 万 · 进行中 1.5 万 · 已过期 276 万（截止 2026-08-05）</td></tr>
+            <tr><td>生产运营</td><td>18 任务包 · 已下发 700 万+</td><td>总量截止 2026-11。状态拆分仍为 8 月 5 日快照：已完成 43.9 万 · 进行中 1.5 万 · 已过期 276 万</td></tr>
           </tbody>
         </table>
       </div>
