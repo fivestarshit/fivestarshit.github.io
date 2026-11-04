@@ -12,7 +12,8 @@
   - `POST /delete`：删除动态 HTTP 配置（逻辑删除）
   - `POST /detail`：配置详情（返回完整 `appSecret`）
   - `POST /list`：分页列表（`appSecret` 脱敏）
-  - `POST /invoke`：按配置发起一次 HTTP 调用
+  - `POST /invoke`：按**已保存**配置发起一次 HTTP 调用（回写 link_status）
+  - `POST /invokeDraft`：按**页面当前填写**配置草稿测连（不落库、不回写 link_status；返回 `requestJson`）
   - `POST /ping`：连通性探测（仅使用库中默认 query/body）
 
 ### 二、公共响应结构
@@ -265,6 +266,68 @@
 }
 ```
 
+#### 6.1）草稿测连 `POST /sales/task/dynamic/endpoint/invokeDraft`
+
+说明：管理端「测试并连接」可随时用**当前表单**测连；**不要求先保存**；**不落库**、**不回写** `link_status`。返回 `requestJson`（配置字段 + 脚本合并后的 `mergedQueryParams`/`mergedRequestBody`）供前端弹窗上方调试展示。
+
+请求示例：
+
+```json
+{
+  "configName": "SC设备信息", // 可选：配置名称，仅调试回显
+  "baseUrl": "https://apiavalon.yqslmall.com", // 必填：基础域名
+  "path": "/v2/arthur/merchant/ads_account_checking_device_info_cm_mi_1d", // 必填：路径
+  "httpMethod": "POST", // 可选：默认 POST
+  "queryParamsJson": "{\"pageNum\":1,\"pageSize\":2000}", // 可选：默认 Query JSON 字符串
+  "requestBodyJson": "{\"month_key\":\"202401\"}", // 可选：默认 Body JSON 字符串
+  "executeParamScript": "return [month_key: currentMonth]", // 可选：Groovy 执行参数脚本
+  "headersJson": "{\"X-App-Key\":\"{{appKey}}\"}", // 可选：请求头 JSON
+  "appKey": "yourAppKey", // 可选
+  "appSecret": "yourAppSecret", // 可选
+  "queryParams": {
+    "pageNum": 1 // 可选：运行时 Query 覆盖
+  },
+  "requestBody": {
+    "month_key": "202402" // 可选：运行时 Body 覆盖
+  },
+  "executeVariables": {}, // 可选：脚本变量
+  "runExecuteParamScript": true // 可选：false 跳过脚本
+}
+```
+
+响应示例：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "requestJson": {
+      "configName": "SC设备信息", // 调试：配置名称
+      "baseUrl": "https://apiavalon.yqslmall.com", // 调试：域名
+      "path": "/v2/arthur/...", // 调试：路径
+      "httpMethod": "POST", // 调试：方法
+      "queryParamsJson": "{\"pageNum\":1}", // 调试：表单默认 Query
+      "requestBodyJson": null, // 调试：表单默认 Body
+      "executeParamScript": "return [...]", // 调试：脚本
+      "headersJson": null, // 调试：头
+      "appKey": "yourAppKey", // 调试
+      "appSecret": "yourAppSecret", // 调试
+      "executeVariables": {}, // 调试：脚本变量
+      "runExecuteParamScript": true, // 调试：是否跑脚本
+      "mergedQueryParams": {"pageNum": 1}, // 调试：脚本合并后 Query
+      "mergedRequestBody": {"month_key": "202402"} // 调试：脚本合并后 Body
+    },
+    "success": true, // 是否调用成功
+    "httpStatus": 200, // HTTP状态码
+    "rawResponse": "{\"code\":0}", // 原始响应
+    "responseJson": {"code": 0}, // 解析后 JSON
+    "durationMs": 120, // 耗时
+    "errorMessage": null // 错误信息
+  }
+}
+```
+
 #### 7）连通性探测 `POST /sales/task/dynamic/endpoint/ping`
 
 请求示例：
@@ -297,6 +360,8 @@
 ### 四、回归检查点
 
 - `create` 时 `configCode` 由后端自动生成，前缀为 `http`。
+- `invoke` 须已保存配置（configId/configCode）；`invokeDraft` 可直接传页面当前配置，不写库、不更新链接状态。
+- 管理端「测试并连接」走 `invokeDraft`，弹窗上方展示 `requestJson`、下方展示响应结果。
 - `update` 时即使请求体传入 `configCode`，库中值也保持不变（不可修改）。
 - `list` 必须返回分页结构：`records/total/page/pageSize/totalPage`。
 - `list` 中 `appSecret` 必须脱敏，`detail` 中应返回完整值。

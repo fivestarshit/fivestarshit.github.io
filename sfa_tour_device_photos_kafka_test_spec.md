@@ -1,5 +1,7 @@
 # 巡店照片结果 Kafka 消费测试规格
 
+> **变更说明（2026-09-14）**：调用 `handleTaskDistribution` 前的 info 日志不再打印消息 value / 整理后 JSON；完整报文只在 `TaskDistributionKafkaHandler` 打一次。
+
 ## 功能模块：Kafka 消费 `*-sfa_tour_device_photos`
 
 ### 一、说明
@@ -68,3 +70,4 @@
 ### 四、回归要点
 - `devicePhotoParameters` 缺失或非数组：不改变根 JSON 其它字段。
 - JSON 非法：保持原字符串，不抛异常（由工具类吞掉解析异常并返回原文）。
+- 消费入口与整理完成日志只打 topic/key，不打 value；value 以 `handleTaskDistribution` 的「处理任务下发消息」为准。

@@ -12,7 +12,7 @@
 
 **前置：** 库中已存在 `biz_template_config.id = 10001`，且存在属于该模板的字段映射 id `501`（可选，用于验证「保留并更新」）。
 
-**期望：** HTTP 200，`code` 成功；主表字段按请求更新；`fieldDetails` 非 null 时：`501` 被更新；`id` 为 null 的项插入新行；原属 `10001` 但未出现在本请求 `fieldDetails` 中的其它映射**仍存在**（不被删除）；并满足 `mappedCol`（trim 后）不重复；**仅当 `isSearchPrimaryKey=true` 时**同一模板内 `objectCode`（trim 后）不可重复；`fieldDetails[].dataTypeDefinition` 非空时仅允许 **NUMBER、STRING、BOOLEAN、DATE**（忽略大小写），可传 `null` 或省略表示不限制该字段定义。
+**期望：** HTTP 200，`code` 成功；主表字段按请求更新；`fieldDetails` 非 null 时：`501` 被更新；`id` 为 null 的项插入新行；原属 `10001` 但未出现在本请求 `fieldDetails` 中的其它映射**仍存在**（不被删除）；并满足 `mappedCol`（trim 后）不重复；**仅当 `isSearchPrimaryKey=true` 时**同一模板内 `objectCode`（trim 后）不可重复；`fieldDetails[].dataTypeDefinition` 非空时仅允许 **NUMBER、STRING、BOOLEAN、DATE、EX**（忽略大小写；`EX` 表示表达式），可传 `null` 或省略表示不限制该字段定义；**`fieldDetails[].dataType` 由服务端按 `extractRule` 自动赋值**（请求传入值会被覆盖）：`extractRule` 为空/空白 → 落库 `String`；`extractRule` 有值 → 落库 `JSON`。
 
 **请求示例：**
 
@@ -108,7 +108,8 @@
 | `fieldDetails` | 非 null 时逐项 upsert；`id` 为 null 表示新增映射 |
 | `fieldDetails[].id` | 有则按 id 更新且须属于当前模板；无则 insert |
 | `fieldDetails[].templateId` | 可与模板 id 不一致，服务端强制为当前模板 id |
-| `fieldDetails[].dataTypeDefinition` | 可空；非空时须为 NUMBER / STRING / BOOLEAN / DATE（忽略大小写） |
+| `fieldDetails[].dataTypeDefinition` | 可空；非空时须为 NUMBER / STRING / BOOLEAN / DATE / EX（忽略大小写；EX 表示表达式） |
+| `fieldDetails[].dataType` | 可省略或由请求传入；**落库以服务端为准**：`extractRule` 无值 → `String`；`extractRule` 有值 → `JSON` |
 
 ---
 
@@ -184,17 +185,54 @@
 
 ---
 
-## 10. 负例：fieldDetails 中 dataTypeDefinition 非法
+## 10. fieldDetails 中 dataType 按 extractRule 自动赋值（回归）
 
-**接口：** `POST /sales/task/biz/template/config/update` 或 `create`
+**接口：** `POST /sales/task/biz/template/config/create` 或 `update`
 
-**请求：** `fieldDetails` 中某条 `dataTypeDefinition` 为非空且不为 NUMBER、STRING、BOOLEAN、DATE 之一（如 `TEXT`、`INTEGER`）。
+**请求：** `fieldDetails` 中两条映射：
 
-**期望：** `BizException`，文案包含 `fieldDetails 中 dataTypeDefinition 仅允许 NUMBER、STRING、BOOLEAN、DATE`。
+1. `extractRule` 为 `null`/空字符串/仅空白，`dataType` 请求传 `BIGINT`（或省略）；
+2. `extractRule` 为 `items[*].commodityCode`，`dataType` 请求传 `VARCHAR`（或省略）。
+
+**期望：** 落库后查询 `biz_template_field_map`：第 1 条 **`data_type=String`**；第 2 条 **`data_type=JSON`**（与请求中的 `dataType` 无关）。
 
 ---
 
-## 11. 按模板 ID 从示例 JSON 提取字段映射
+## 11. 负例：fieldDetails 中 dataTypeDefinition 非法
+
+**接口：** `POST /sales/task/biz/template/config/update` 或 `create`
+
+**请求：** `fieldDetails` 中某条 `dataTypeDefinition` 为非空且不为 NUMBER、STRING、BOOLEAN、DATE、EX 之一（如 `TEXT`、`INTEGER`）。
+
+**期望：** `BizException`，文案包含 `fieldDetails 中 dataTypeDefinition 仅允许 NUMBER、STRING、BOOLEAN、DATE、EX`。
+
+---
+
+## 11.1 正例：fieldDetails 中 dataTypeDefinition=EX（表达式）
+
+**接口：** `POST /sales/task/biz/template/config/update` 或 `create`
+
+**请求：** `fieldDetails` 中某条 `dataTypeDefinition` 为 `EX`（或 `ex`，忽略大小写）。
+
+```json
+{
+  "id": 10001,
+  "fieldDetails": [
+    {
+      "physicalCol": "skuExpr",
+      "mappedCol": "skuExpr",
+      "logicalName": "SKU表达式",
+      "dataTypeDefinition": "EX"
+    }
+  ]
+}
+```
+
+**期望：** HTTP 200，`code` 成功；该字段 `biz_template_field_map.data_type_definition` 落库为 `EX`（表达式类型）。
+
+---
+
+## 12. 按模板 ID 从示例 JSON 提取字段映射
 
 **接口（二选一，语义与入参 JSON 一致）：**
 
@@ -222,7 +260,7 @@
 
 ---
 
-## 12. 按自定义 JSON + 字段映射 id 列表提取
+## 13. 按自定义 JSON + 字段映射 id 列表提取
 
 **接口（二选一，语义与入参 JSON 一致）：**
 
@@ -231,11 +269,11 @@
 
 二者 Body 均为 `jsonSource` + `ids`（`biz_template_field_map.id` 列表）。
 
-**期望：** HTTP 200，`data` 为 **`List<IndexAggregatedMappedFieldRow>`**（按 `index` 聚合，结构同 §11）。
+**期望：** HTTP 200，`data` 为 **`List<IndexAggregatedMappedFieldRow>`**（按 `index` 聚合，结构同 §12）。
 
 ---
 
-## 13. DELAY：`datasourceId` 须为 DynamicHttpEndpoint；`fieldDetails` 可为空数组
+## 14. DELAY：`datasourceId` 须为 DynamicHttpEndpoint；`fieldDetails` 可为空数组
 
 **接口：** `POST /sales/task/biz/template/config/create` 或 `update`
 

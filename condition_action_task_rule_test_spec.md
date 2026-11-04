@@ -2,6 +2,24 @@
 
 ## 功能模块：条件库、动作库、任务规则、任务实例（TRD 4.2 新增）
 
+### 变更说明（2026-08-03 · 1.4 任务组 TGR-002）
+
+#### TaskRuleDTO / task_rule 1.4 新增字段（详细）
+
+| 字段 | 类型 | 落库列 | 说明 |
+|------|------|--------|------|
+| **`taskGroupId`** | Long | `task_rule.task_group_id` | 关联 **任务组** `task_group.id`；须与所属 **任务包** `task_definition.task_group_id` 一致。包规则 + 子 TASK 规则均维护。迁移 Job 或 TGR-007 改绑任务组时回写。可 null（尚未关联组）。 |
+| **`completionStandardType`** | String | `task_rule.completion_standard_type` | **完成标准类型**，替代 `hasAction` 主口径。枚举：**`TEMPLATE`**（基于标准模板，原 `hasAction=true`）、**`CUSTOM`**（自定义标准，原 `hasAction=false`）、**`OBJECT_GROUP`**（基于对象群，1.4 新增）。写接口以本字段为准；读侧仍回显 `hasAction` 作只读兼容。 |
+| **`completionObjectGroupId`** | String | `task_rule.completion_object_group_id` | **完成判定**用的对象群 ID，与 **下发**对象群 **`distributionObjectGroupId`** 分离（可配不同群）。仅当 **`completionStandardType=OBJECT_GROUP`** 时**必填**；其他类型须为 null/不传。Job 完成判定（TGR-009）读本字段，不读下发群。 |
+| **`completionObjectGroupName`** | String | `task_rule.completion_object_group_name` | 完成判定对象群名称，与 `completionObjectGroupId` 成对；OBJECT_GROUP 时必填。 |
+| **`membershipOperator`** | String | `task_rule.membership_operator` | 完成对象群**成员关系**。**`IN`**：目标**在**该群内则满足完成判定；**`NOT_IN`**：目标**不在**该群内则满足完成判定（如群从 ABC→BCD 后 A 完成、D 新下发）。仅 OBJECT_GROUP 时必填。 |
+| **`repeatWindowType`** | String | `task_rule.repeat_window_type` | **去重窗口**仅 3 值（默认 **MONTH**）：**MONTH**=单月；**DAYS**=单日；**GLOBAL**=全局（终身 `taskDefId+target`）。历史 **NONE/LEGACY** 读写归一为 **GLOBAL**；空则按 `isRepeat`（1→GLOBAL，否则 MONTH）。 |
+
+- **接口范围**：**`POST /sales/task/rule/create|update|detail|list`** 的 **`TaskRuleDTO`**；任务包详情 **`taskRuleList[]`**、**`createPackage`/`updatePackage`** 内嵌 **`taskRule`** 同结构。
+- **写路径现状（TGR-007 已落地）**：**`createPackage`/`updatePackage`/`createTask`/`updateTask`** 的 **`taskRule`** 写入上述字段；**`taskGroupId`** 由所属包带出（请求可忽略）；也可经迁移 Job 或 **`POST /task/rule/update`** 写入。
+- **`hasAction`**：仍回显；禁止扩展其语义；`completionStandardType` 为空时迁移/读侧可据 `hasAction` 映射 TEMPLATE/CUSTOM。
+- **`taskJudgmentDeadlineType`**：新增 **`AFTER_TASK_DEADLINE`**（任务截止时间后 N 天 HH:mm，TGR-010 解析）。
+
 ### 一、条件库（condition_repo）
 
 - **用例1：新增条件成功**
@@ -129,6 +147,12 @@
       "status": 1,
       "autoCloseOnDeadline": false, // 是否截止自动关闭：false-否，true-是；可空
       "syncCompleteTask": false, // 是否同步完成任务：false-否，true-是；可空
+      "taskGroupId": 1001, // 可选：关联任务组 task_group.id，与所属任务包 task_group_id 一致；可 null
+      "completionStandardType": "TEMPLATE", // 可选：完成标准 TEMPLATE|CUSTOM|OBJECT_GROUP；写路径以本字段为准；不传按 hasAction 推断
+      "completionObjectGroupId": null, // 完成判定对象群 ID；仅 OBJECT_GROUP 时必填；与 distributionObjectGroupId 下发群分离
+      "completionObjectGroupName": null, // 完成判定对象群名称；OBJECT_GROUP 时与上一字段成对必填
+      "membershipOperator": null, // IN=在群内完成，NOT_IN=不在群内完成；仅 OBJECT_GROUP 时必填
+      "repeatWindowType": "NONE", // 去重窗口 NONE|MONTH|DAYS|LEGACY；与 isRepeat 兼容；迁移 isRepeat=1 时为 LEGACY
       "createdBy": "admin",
       "updatedBy": null
     }
@@ -196,6 +220,11 @@
     - `actionExecutionMode`：ALL(全部执行)/ANY(任一执行)，默认 ALL
     - `autoCloseOnDeadline`：是否截止自动关闭（`false`-否，`true`-是；可空；对应库表 `task_rule.auto_close_on_deadline` 存 `0`/`1`）
     - `syncCompleteTask`：是否同步完成任务（`false`-否，`true`-是；可空；对应库表 `task_rule.sync_complete_task` 存 `0`/`1`）
+    - **`taskGroupId`**：关联任务组 id（Long，可 null）；与所属 PACKAGE 的 `task_group_id` 一致；改绑任务组时同步包规则与子 TASK 规则
+    - **`completionStandardType`**：`TEMPLATE` / `CUSTOM` / `OBJECT_GROUP`；完成标准主口径；OBJECT_GROUP 时须配完成对象群三字段
+    - **`completionObjectGroupId` / `completionObjectGroupName`**：完成判定对象群（非下发群）；OBJECT_GROUP 必填
+    - **`membershipOperator`**：`IN` | `NOT_IN`；OBJECT_GROUP 必填
+    - **`repeatWindowType`**：`NONE` | `MONTH` | `DAYS` | `LEGACY`；去重窗口，与 `isRepeat` 并存时以本字段为准（TGR-008）
   - 预期结果：返回 `Response.success`，data 为新建记录的自增 `id`
 
 - **用例12：更新任务规则**
@@ -215,7 +244,75 @@
 - **用例14：查询任务规则详情**
   - 接口：`POST /task/rule/detail`
   - 请求 Body：`{ "id": 1 }`
+  - 响应 **`data`（TaskRuleDTO）示例**（含 1.4 新字段，注释为字段含义）：
+    ```json
+    {
+      "id": 1,
+      "ruleCode": "GZR260803087d8eyxx",
+      "ruleName": "巡店子任务规则",
+      "taskGroupId": 100,
+      "//taskGroupId": "Long，task_rule.task_group_id；与所属任务包 task_definition.task_group_id 一致；未关联组时为 null",
+      "completionStandardType": "TEMPLATE",
+      "//completionStandardType": "TEMPLATE=基于标准模板 | CUSTOM=自定义标准 | OBJECT_GROUP=基于对象群；替代 hasAction 主口径",
+      "completionObjectGroupId": null,
+      "//completionObjectGroupId": "完成判定对象群 ID；与 distributionObjectGroupId（下发群）分离；仅 OBJECT_GROUP 时有值",
+      "completionObjectGroupName": null,
+      "//completionObjectGroupName": "完成判定对象群名称；与 completionObjectGroupId 成对",
+      "membershipOperator": null,
+      "//membershipOperator": "IN=在群内则满足完成判定 | NOT_IN=不在群内则满足；仅 OBJECT_GROUP 时有值",
+      "repeatWindowType": "NONE",
+      "//repeatWindowType": "NONE=不重复 | MONTH=月内不重复 | DAYS=天数窗口 | LEGACY=兼容 isRepeat=1 含 start/end 判重",
+      "hasAction": true,
+      "//hasAction": "只读兼容；true 对应 TEMPLATE，false 对应 CUSTOM；勿再扩展语义",
+      "distributionObjectGroupId": "G1001",
+      "//distributionObjectGroupId": "下发对象群 ID（任务层下发 Job 读取，TGR-011）；与 completionObjectGroupId 可不同",
+      "distributionObjectGroupName": "华东门店群",
+      "isRepeat": 0,
+      "deadlineType": "RELATIVE",
+      "deadlineConfig": {"days": 10, "time": "22:30"},
+      "taskJudgmentDeadlineType": "RELATIVE",
+      "//taskJudgmentDeadlineType": "RELATIVE|ABSOLUTE|MONTH|AFTER_TASK_DEADLINE（任务截止后 N 天，TGR-010）",
+      "status": 1
+    }
+    ```
   - 预期结果：返回 `Response.success`，data 为 `TaskRuleDTO`
+
+- **用例14b：OBJECT_GROUP 完成标准（写路径 TGR-007 回归）**
+  - 接口：`POST /task/rule/update`
+  - 请求 Body 片段：
+    ```json
+    {
+      "id": 2,
+      "completionStandardType": "OBJECT_GROUP",
+      "//completionStandardType": "必填：基于对象群完成",
+      "completionObjectGroupId": "G2001",
+      "//completionObjectGroupId": "必填：完成判定用对象群，可与下发群 G1001 不同",
+      "completionObjectGroupName": "完成判定门店群",
+      "//completionObjectGroupName": "必填：与 completionObjectGroupId 成对",
+      "membershipOperator": "NOT_IN",
+      "//membershipOperator": "必填：NOT_IN 表示目标不在该群内时视为满足完成条件"
+    }
+    ```
+  - 预期：`completionStandardType=OBJECT_GROUP` 时 **`completionObjectGroupId`、`completionObjectGroupName`、`membershipOperator`** 均非空；否则 Service 校验拒绝
+
+- **用例14c：判断截止 AFTER_TASK_DEADLINE（TGR-010）**
+  - 接口：`POST /task/rule/update` 或 `createPackage` 子任务 `taskRule`
+  - 请求 Body 片段：
+    ```json
+    {
+      "id": 2,
+      "deadlineType": "RELATIVE",
+      "//deadlineType": "任务截止：下发后 N 天",
+      "deadlineConfig": { "days": 10, "time": "23:59" },
+      "//deadlineConfig": "任务截止配置",
+      "taskJudgmentDeadlineType": "AFTER_TASK_DEADLINE",
+      "//taskJudgmentDeadlineType": "判断截止：相对任务截止后再延后 N 天（≠ RELATIVE 下发后）",
+      "taskJudgmentDeadlineConfig": { "days": 3, "time": "18:00" },
+      "//taskJudgmentDeadlineConfig": "days+time，结构同 RELATIVE；基准为任务截止时刻"
+    }
+    ```
+  - 解析：`TaskRuleTimeResolver#resolveJudgmentDeadline(rule, distributeAt, taskDeadline)` → `taskDeadline + 3 天 18:00`
+  - 回归：`RELATIVE`/`ABSOLUTE`/`MONTH` 判断截止仍可用；任务截止类型本身不支持 `AFTER_TASK_DEADLINE`
 
 - **用例15：查询任务规则列表**
   - 接口：`POST /task/rule/list`
@@ -247,7 +344,7 @@
 - **用例19：查询任务实例详情**
   - 接口：`POST /task/instance/detail`
   - 请求 Body：`{ "id": 1 }`
-  - 预期结果：返回 `Response.success`，data 为 `TaskInstanceDTO`
+  - 预期结果：返回 `Response.success`，data 为 `TaskInstanceDTO`；**含** `sourceData`、`taskResultData` 大字段（若库中有值）
 
 - **用例20：查询任务实例列表**
   - 接口：`POST /task/instance/list`（JSON Body，分页）
@@ -270,9 +367,11 @@
     }
     ```
   - **口径**：用于 **`task_rule_id IN (...)`** 的规则 id 集合若为空（既未传有效 **`ruleId`**，也未传 **`taskPackageId`**，或二者交集/解析结果为空），则 **不查全表**，直接返回 **`records` 为空列表、`total=0`** 的分页结果
-  - **最近 1 万条**：在规则 IN 条件命中行中，先按 **`task_instance.id` 降序**仅保留 **最多 10000 条** 作为统计与分页全集；**`total` ≤ 10000**（与下发明细 **`/listByPackage`** 先截取再分页的思路一致，避免大表全量扫描）
+  - **最近 1 万条**：对各 `task_rule_id` **分别**按 id 降序取最近 10000 条后合并再截断为全局最近 10000（避免 `IN + ORDER BY id` 大 filesort / Out of sort memory）；依赖索引 `idx_task_instance_rule_id_id(task_rule_id, id)`；**`total` ≤ 10000**
+
   - **`targetEntityId` / `targetEntityName`**：可选；仅传 **ID** 则 **`target_entity_id = trim(id)`**；仅传 **名称** 则 **`target_entity_name = trim(name)`**；**均传**则 **`(target_entity_id = trim(id) OR target_entity_name = trim(name))`**（非 LIKE）；与 rule 条件 AND
   - 预期结果：返回 `Response.success`，data 为分页结构（含 `records`、`total`、`page`、`pageSize`、`totalPage` 等）；**`records` 按 id 倒序**
+  - **列表轻量**：`records` 中 **`sourceData`、`taskResultData` 为 null / 不返回**（SQL 不查这两列）；完整大字段请调 **用例19 详情**
 
 ### 六、任务实例动作（task_instance_action）
 

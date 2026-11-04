@@ -753,7 +753,7 @@
     <div class="logo-icon">⚡</div>
     <div>sls-sales-task <span>/ AI Native</span></div>
   </div>
-  <div class="header-meta">v2026.08 · Token 2.1B · 655 commits</div>
+  <div class="header-meta">v2026.11.03 · feature/202610_op · 726 commits</div>
 </header>
 
 <div class="layout">
@@ -800,14 +800,14 @@
         系统服务于<strong>外勤销售巡店场景</strong>——将销售动作拆解为可配置、可下发、可追踪、可复盘的任务体系（详见 §01 业务域与 PDCA）。
       </p>
       <div class="stats">
-        <div class="stat-card"><div class="stat-num" data-target="505">0</div><div class="stat-label">Java 源文件</div></div>
+        <div class="stat-card"><div class="stat-num" data-target="521">0</div><div class="stat-label">Java 源文件</div></div>
         <div class="stat-card"><div class="stat-num" data-target="26">0</div><div class="stat-label">Controller</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="102">0</div><div class="stat-label">Service 层</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="21">0</div><div class="stat-label">test_spec 文档</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="9170">0</div><div class="stat-label">doc 累计行数</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="655">0</div><div class="stat-label">Git Commits</div></div>
+        <div class="stat-card"><div class="stat-num" data-target="110">0</div><div class="stat-label">Service 层<span class="stat-sublabel">58 接口 + 52 实现</span></div></div>
+        <div class="stat-card"><div class="stat-num" data-target="23">0</div><div class="stat-label">test_spec 文档</div></div>
+        <div class="stat-card"><div class="stat-num" data-target="9423">0</div><div class="stat-label">规范 doc 行数<span class="stat-sublabel">不含联调原文</span></div></div>
+        <div class="stat-card"><div class="stat-num" data-target="726">0</div><div class="stat-label">Git Commits<span class="stat-sublabel">截至 2026-10-15</span></div></div>
         <div class="stat-card"><div class="stat-num stat-num-text">2.1B</div><div class="stat-label">3–5 月 Token<span class="stat-sublabel">约 21 亿</span></div></div>
-        <div class="stat-card"><div class="stat-num stat-num-text">MVP→1.4</div><div class="stat-label">5 个 PRD 版本</div></div>
+        <div class="stat-card"><div class="stat-num stat-num-text">至 202610</div><div class="stat-label">PRD 1.4 已合入<span class="stat-sublabel">代码 feature/202610_op</span></div></div>
         <div class="stat-card"><div class="stat-num" data-target="18">0</div><div class="stat-label">已上线任务包</div></div>
         <div class="stat-card"><div class="stat-num stat-num-compact stat-num-text" title="3,282,705">328万+</div><div class="stat-label">已下发任务</div></div>
       </div>
@@ -834,8 +834,9 @@
             <tr><td>业务愿景</td><td><strong>让销售巡店有重点，让管理有抓手</strong>；形成 <strong>P → D → C → A</strong> 完整的销售动作管理闭环</td></tr>
             <tr><td>服务对象</td><td>总部/区域运营（配置任务包与规则）· 一线销售/督导（外勤执行）· 管理者（进度监控与复盘）</td></tr>
             <tr><td>技术栈</td><td>Java 8 · Spring Boot · MyBatis-Plus · Nacos · XXL-JOB · Kafka · Groovy · OpenFeign · Redisson</td></tr>
-            <tr><td>代码 / 文档</td><td>505 Java · 26 Controller · 102 Service · 21 test_spec · 9170+ 行 doc · 655 commits</td></tr>
-            <tr><td>生产运营</td><td>已上线 <strong>18</strong> 个任务包 · 下发明细 <strong>328 万+</strong>（截止 2026-08-05，见 §04 运营数据）</td></tr>
+            <tr><td>代码 / 文档</td><td>521 Java · 26 Controller · 110 Service · 20 个 <code>@XxlJob</code>（9 个 Job 类）· 23 test_spec（约 6847 行）· 规范 doc 9423 行 · <strong>726</strong> commits</td></tr>
+            <tr><td>代码版本</td><td>统计分支 <code>feature/202610_op</code> · HEAD <code>2886e7c</code> · 2026-10-15。产品 PRD 止于 1.4 且主干已合入；其后为 202608 巡店、202609 分群、202610 运维迭代</td></tr>
+            <tr><td>生产运营</td><td>已上线 <strong>18</strong> 个任务包 · 下发明细 <strong>328 万+</strong>（运营快照仍截止 2026-08-05，见 §04；本次未重拉生产库）</td></tr>
             <tr><td>AI 投入</td><td>2026.03–05 Cursor Token 累计 <strong>2.1B</strong>（约 21 亿，<a href="#token-usage" style="color:var(--accent-2)">§08 明细</a>）</td></tr>
           </tbody>
         </table>
@@ -942,7 +943,7 @@
       <h3 id="ai-native-context">1.4 AI Native 协作背景</h3>
       <div class="card">
         <ul class="bullet">
-          <li><strong>技术特征</strong>：模块多、Job 多、Groovy/CRON/分群规则复杂，文档与代码需强同步；从 MVP 到 1.4 共 5 个 PRD 版本、655 次 commit。</li>
+          <li><strong>技术特征</strong>：模块多、Job 多、Groovy/CRON/分群规则复杂，文档与代码需强同步。产品 PRD 共 5 版（MVP→1.4，1.4 主干已合入）；代码继续到 <code>feature/202610_op</code>，累计 726 次 commit。</li>
           <li><strong>AI Native 动因</strong>：短周期交付模板/规则/明细/实例/统计等多模块；传统 TRD→编码→测试文档串行耗时长，边界（财季末月、DELAY、list N+1）易漏。</li>
           <li><strong>核心策略</strong>：写代码前配置 <strong>Cursor Rules</strong>，强制「改代码必须联动 <code>*_test_spec.md</code>」；1.4 起采用<strong>任务清单 + Rules</strong>编排（见 §05）。</li>
           <li><strong>Token 换吞吐</strong>：3–5 月约 <strong>21 亿</strong> token 支撑 0→1 主体研发与文档同步，人工重心转向需求确认、Review 与联调验收。</li>
@@ -1008,8 +1009,26 @@
             <tr>
               <td><code>task_group</code></td>
               <td>1.4</td>
-              <td>任务组表、任务层独立下发、完成标准三枚举</td>
-              <td><span class="tag tag-doing">进行中</span></td>
+              <td>任务组表、任务层独立下发、完成标准三枚举。<code>TaskGroupController</code> 已落地；TGR 清单 18 项 completed，余 TGR-015 / 023 / 025 / 026 四项 P2</td>
+              <td><span class="tag tag-done">主干已合入</span></td>
+            </tr>
+            <tr>
+              <td><code>v2_tour_patrol_record</code></td>
+              <td>202608</td>
+              <td>巡店 Kafka <code>v2_tour_patrol_record</code>、pure_sku 补写、<code>skuNumer</code> 识别总数、字段映射 EX、任务组联动与进行中统计</td>
+              <td><span class="tag tag-done">已合入</span></td>
+            </tr>
+            <tr>
+              <td><code>crowd sync + childrenList</code></td>
+              <td>202609</td>
+              <td>任务包分群下发与 Redis 占位、<code>childrenList</code> 按任务组聚合、实例 <code>uk_task_code</code> 冲突不再整条跳过</td>
+              <td><span class="tag tag-done">已合入</span></td>
+            </tr>
+            <tr>
+              <td><code>dept leader + IMMEDIATE</code></td>
+              <td>202610</td>
+              <td>明细列表叠加部门负责人管辖部门；定时 Job 跳过手动下发（<code>distributionType=IMMEDIATE</code>）；日志改为标准输出</td>
+              <td><span class="tag tag-doing">当前分支</span></td>
             </tr>
           </tbody>
         </table>
@@ -1043,8 +1062,9 @@
         <h2>进度 · 版本迭代</h2>
       </div>
       <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:12px">
-        版本口径对齐产品 PRD（<code>fivestarshit.github.io/文档/</code>）：<strong>MVP 为第一版</strong>，其后依次为 1.1 → 1.2 → 1.3 → 1.4。
-        下表为各版本范围摘要；展开卡片可见 PRD 功能点、后端模块映射与 AI 协作要点。
+        产品 PRD 口径对齐 <code>fivestarshit.github.io/文档/</code>：<strong>MVP 为第一版</strong>，其后依次为 1.1 → 1.2 → 1.3 → 1.4（1.4 主干已于 2026-08 合入 master）。
+        1.4 之后没有新的 PRD 文件，代码按月度分支继续：<strong>202608 巡店</strong> → <strong>202609 分群</strong> → <strong>202610 运维</strong>（当前 <code>feature/202610_op</code>，HEAD 2026-10-15）。
+        下表为各版本范围摘要；展开卡片可见功能点、后端类与 spec 文件。
       </p>
 
       <div class="version-timeline">
@@ -1052,7 +1072,10 @@
         <span class="vt-node done">1.1</span><span class="vt-arrow">→</span>
         <span class="vt-node done">1.2</span><span class="vt-arrow">→</span>
         <span class="vt-node done">1.3</span><span class="vt-arrow">→</span>
-        <span class="vt-node doing">1.4</span>
+        <span class="vt-node done">1.4</span><span class="vt-arrow">→</span>
+        <span class="vt-node done">202608</span><span class="vt-arrow">→</span>
+        <span class="vt-node done">202609</span><span class="vt-arrow">→</span>
+        <span class="vt-node doing">202610</span>
       </div>
 
       <h3>开发 · 总览</h3>
@@ -1088,9 +1111,27 @@
             </tr>
             <tr>
               <td><strong id="progress-v14">1.4</strong></td>
-              <td>2026.05.25 起</td>
+              <td>2026.05.25 起 · 2026.08.19 / 08.30 合入</td>
               <td>任务包定义调整：任务组、任务层独立下发、去重/完成反向判定</td>
-              <td><span class="tag tag-doing">进行中</span></td>
+              <td><span class="tag tag-done">主干已合入</span></td>
+            </tr>
+            <tr>
+              <td><strong id="progress-202608">202608</strong></td>
+              <td>2026.08.31 ～ 09.09 合入</td>
+              <td>巡店 v2、pure_sku、识别总数、任务组联动与进行中统计</td>
+              <td><span class="tag tag-done">已合入</span></td>
+            </tr>
+            <tr>
+              <td><strong id="progress-202609">202609</strong></td>
+              <td>2026.09.14 ～ 09.24 合入</td>
+              <td>分群下发占位、按任务组聚合查询、Kafka 实例冲突与日志</td>
+              <td><span class="tag tag-done">已合入</span></td>
+            </tr>
+            <tr>
+              <td><strong id="progress-202610">202610</strong></td>
+              <td>2026.10.10 ～ 10.15 · <code>feature/202610_op</code></td>
+              <td>部门负责人数据范围、手动下发与定时 Job 隔离、日志改标准输出</td>
+              <td><span class="tag tag-doing">当前分支</span></td>
             </tr>
           </tbody>
         </table>
@@ -1296,8 +1337,8 @@
         <div class="version-card-header" onclick="toggleVersion(this)">
           <div class="version-card-title">
             <h4>1.4 · 任务包定义调整（任务组）</h4>
-            <span class="version-meta">2026.05.25 起 · @吴企帆</span>
-            <span class="tag tag-doing">进行中</span>
+            <span class="version-meta">2026.05.25 起 · 2026.08 合入 master · @吴企帆</span>
+            <span class="tag tag-done">主干已合入</span>
           </div>
           <svg class="version-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </div>
@@ -1317,14 +1358,13 @@
               </ul>
             </div>
             <div class="version-block">
-              <strong>后端落地（进行中）</strong>
+              <strong>后端落地（主干已合入）</strong>
               <ul>
-                <li>新建 <code>task_group</code> 表 · RWZ 编码</li>
-                <li><code>task_rule.task_group_id</code> + 完成标准枚举</li>
-                <li>TGR-001～028 · <code>202607-1.4-task-group-restructure-tasks.md</code></li>
-                <li>下发 Job 改读任务层 crowd · 去重口径升级</li>
-                <li>中文 test_spec：<code>任务组_test_spec.md</code> 等</li>
-                <li>前端 · Comm-Divisor-Service（TGR-027/028/015）</li>
+                <li><code>business/taskgroup</code> · <code>TaskGroupController</code> · <code>TaskGroupMigrationJob</code></li>
+                <li>新建 <code>task_group</code> 表 · RWZ 编码 · <code>task_rule.task_group_id</code></li>
+                <li>清单 <code>doc/202607-1.4-task-group-restructure-tasks.md</code>：18 completed / 4 pending</li>
+                <li>待收尾 P2：TGR-023 排序、TGR-025 spec 回归、TGR-026 快照对账、TGR-015 功能权限（前端仓）</li>
+                <li>中文 spec：<code>任务组_test_spec.md</code>（239 行）、<code>任务组结构改造_test_spec.md</code>（257 行）、<code>任务组统计_test_spec.md</code>（246 行）</li>
               </ul>
             </div>
             <div class="version-block">
@@ -1333,6 +1373,118 @@
                 <li><strong>任务清单 YAML</strong>：按 TGR id 推进，completed 跳过，失败保持 pending</li>
                 <li>Agent 先输出技术方案（TGR-001）再 DDL（TGR-002），避免「PACKAGE 冒充任务组」</li>
                 <li>1.4 历史问题（统计口径、反馈分类等）在 PRD「历史问题及细节优化」中单列 P0/P1</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="version-card" id="ver-202608">
+        <div class="version-card-header" onclick="toggleVersion(this)">
+          <div class="version-card-title">
+            <h4>202608 · 巡店纯净度与任务组联动</h4>
+            <span class="version-meta">2026.08.31～09.09 合入 · feature/202608_purity_tours</span>
+            <span class="tag tag-done">已合入</span>
+          </div>
+          <svg class="version-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="version-card-body">
+          <div class="version-grid">
+            <div class="version-block">
+              <strong>功能范围</strong>
+              <ul>
+                <li>消费 <code>${profile}-topic-tourease</code>，只处理 key=<code>v2_tour_patrol_record</code></li>
+                <li><code>tourPhotos</code> 展平后按 SKU code 补 <code>pure_sku</code> 的 epuCode</li>
+                <li>下发 JSON 最外层增加 <code>skuNumer</code>（识别 code 去重计数）</li>
+                <li>字段映射增加 EX 表达式类型；任务组联动；进行中统计</li>
+                <li><code>has_visit_task</code> 同步改为批量查询，空结果可容错</li>
+              </ul>
+            </div>
+            <div class="version-block">
+              <strong>代码与文档</strong>
+              <ul>
+                <li><code>SalesTaskConsumer#handleTourPatrolRecordMessage</code></li>
+                <li><code>TourPatrolRecordPureSkuEnrichService</code></li>
+                <li><code>DeviceBinLogMessageHandler</code> · 设备 binlog 独立消费</li>
+                <li><code>doc/v2_tour_patrol_record_kafka_test_spec.md</code>（99 行）</li>
+                <li><code>doc/device_bin_log_kafka_test_spec.md</code>（71 行）</li>
+                <li>联调摘录 <code>doc/202608-purity.md</code>、<code>doc/202608-groovy.md</code>（不计入规范 doc 行数）</li>
+              </ul>
+            </div>
+            <div class="version-block">
+              <strong>同期权限修复</strong>
+              <ul>
+                <li><code>feature/202608_op</code> 于 2026-08-06 合入</li>
+                <li><code>TaskPackageStatisticsServiceImpl#collectPermittedDeptRoots</code>：部门树不再保留无权限祖先</li>
+                <li>评审：<code>doc/ai-review-feature-202608_op-vs-master-2026-08-06.md</code>（高风险 0）</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="version-card" id="ver-202609">
+        <div class="version-card-header" onclick="toggleVersion(this)">
+          <div class="version-card-title">
+            <h4>202609 · 分群下发与任务组查询</h4>
+            <span class="version-meta">2026.09.14～09.24 合入 · feature/202609_op · feature/202609_logs</span>
+            <span class="tag tag-done">已合入</span>
+          </div>
+          <svg class="version-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="version-card-body">
+          <div class="version-grid">
+            <div class="version-block">
+              <strong>功能范围</strong>
+              <ul>
+                <li>任务包分群下发同步，Redis 占位与冷却 key 分开</li>
+                <li><code>childrenList</code> 支持按任务组聚合查询</li>
+                <li>创建任务实例遇到 <code>uk_task_code</code> 冲突时不再把整条 Kafka 消息跳过</li>
+                <li>Kafka 消费日志不再打印完整 value；调整日志保留</li>
+              </ul>
+            </div>
+            <div class="version-block">
+              <strong>代码位置</strong>
+              <ul>
+                <li><code>TaskPackageStatusTransitionJobServiceImpl</code> · 分群同步</li>
+                <li><code>TaskDefinitionServiceImpl</code> · childrenList 聚合</li>
+                <li><code>SalesTaskConsumer</code> · 实例唯一键冲突</li>
+                <li>代表提交：2026-09-15、09-21、09-23</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="version-card open" id="ver-202610">
+        <div class="version-card-header" onclick="toggleVersion(this)">
+          <div class="version-card-title">
+            <h4>202610 · 数据范围与手动下发隔离</h4>
+            <span class="version-meta">2026.10.10～10.15 · feature/202610_op · HEAD 2886e7c</span>
+            <span class="tag tag-doing">当前分支</span>
+          </div>
+          <svg class="version-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="version-card-body">
+          <div class="version-grid">
+            <div class="version-block">
+              <strong>功能范围</strong>
+              <ul>
+                <li>明细列表数据范围：登录人默认部门，加上其作为部门负责人管理的部门</li>
+                <li>EHR 批量部门查询 <code>fieldType=2</code>（deptLeaderId = userId）</li>
+                <li>定时分群 Job 跳过 <code>distributionType=IMMEDIATE</code>；只有点击触发（显式 ids）才下发</li>
+                <li>手动下发使用独立 Redis key，不受 Job 冷却影响</li>
+                <li>去掉本地滚动日志文件，改为标准输出</li>
+              </ul>
+            </div>
+            <div class="version-block">
+              <strong>代码位置</strong>
+              <ul>
+                <li><code>TaskDistributionDetailListDataResourceFilterServiceImpl</code></li>
+                <li><code>EhrDeptListRequest</code> · <code>InfraDeptFeign</code></li>
+                <li><code>TaskDistributionDetailJob</code> · <code>TaskPackageStatusTransitionJobServiceImpl</code></li>
+                <li><code>src/main/resources/logback-spring.xml</code></li>
+                <li>代表提交：2026-10-10 部门负责人、10-12 手动下发、10-15 日志</li>
               </ul>
             </div>
           </div>
@@ -1787,17 +1939,17 @@
         <div class="compare-box traditional">
           <strong>传统 · 1 后端 · 估 6–9 人月</strong>
           <ul>
-            <li>505 Java 文件 + 15+ Job + Groovy 引擎：人力与周期线性增长</li>
+            <li>521 Java 文件 + 20 个 XXL-JOB Handler + Groovy 引擎：人力与周期线性增长</li>
             <li>测试文档往往二期补，联调与交接成本高</li>
-            <li>复杂规则（CRON 窗口、DELAY、分群 Busy）易在后期集中爆雷</li>
-            <li>655 次量级 commit 难以在 3–4 个月内由单人完成并保持文档同步</li>
+            <li>复杂规则（CRON 窗口、DELAY、分群 Busy、手动下发）易在后期集中爆雷</li>
+            <li>726 次量级 commit 难以在数个月内由单人完成并保持文档同步</li>
           </ul>
         </div>
         <div class="compare-box ai">
           <strong>AI 协作 · 实际约 3–5 人月等效</strong>
           <ul>
-            <li><strong>655 commits</strong> 小步迭代；模块按对话/任务清单分批交付</li>
-            <li><strong>21 份 test_spec</strong>、9170 行 doc，文档/代码比高</li>
+            <li><strong>726 commits</strong>（截至 2026-10-15）；模块按对话/任务清单分批交付，1.4 之后改为月度分支</li>
+            <li><strong>23 份 test_spec</strong>（约 6847 行）、规范 doc 9423 行，文档/代码比高</li>
             <li>Cursor 3–5 月 Token 约 <strong>2.1B</strong>（平台 Dashboard）；成本换吞吐与文档质量</li>
             <li>人工重心：需求确认、方案 Review、联调验收——编码与文档同步由 Agent 承担主体</li>
           </ul>
@@ -1851,12 +2003,12 @@
         <div class="token-metric"><div class="tm-val">2.1B</div><div class="tm-label">累计 Token<br/>≈ 21 亿</div></div>
         <div class="token-metric"><div class="tm-val">Mar–May</div><div class="tm-label">统计周期<br/>2026 年 3–5 月</div></div>
         <div class="token-metric"><div class="tm-val">~$696</div><div class="tm-label">Total spend<br/>平台账单（USD）</div></div>
-        <div class="token-metric"><div class="tm-val">655</div><div class="tm-label">对应 commit<br/>小步迭代</div></div>
+        <div class="token-metric"><div class="tm-val">726</div><div class="tm-label">累计 commit<br/>截至 2026-10-15</div></div>
       </div>
       <div class="card" style="margin-top:14px">
         <ul class="bullet">
           <li><strong>覆盖范围</strong>：0→1 全模块（任务定义/规则/明细/实例/数据源/Groovy/统计/任务组等）、list 性能多轮优化、DELAY/CRON 窗口、Groovy @ 解析、1.3 反馈与统计看板等。</li>
-          <li><strong>产出配比</strong>：除 Java 代码外，同步产出 21 份 test_spec、9170+ 行 doc — Token 主要换<strong>编码吞吐 + 文档质量</strong>，而非替代人工联调与生产验收。</li>
+          <li><strong>产出配比</strong>：3–5 月 Token 覆盖 0→1 主体。截至 2026-10-15 仓库为 23 份 test_spec、规范 doc 9423 行 — Token 主要换<strong>编码吞吐 + 文档质量</strong>，而非替代人工联调与生产验收。</li>
           <li><strong>Dashboard 截图</strong>：<a href="index.html#hero" style="color:var(--accent-2)">index.html · Cursor Usage 截图</a>（Mar 01 – May 31 · 2.1B）</li>
         </ul>
       </div>
@@ -1866,13 +2018,13 @@
         <table>
           <thead><tr><th>指标</th><th>数值</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td>代码规模</td><td>505 Java · 26 Controller · 102 Service</td><td>含任务组、统计、Kafka 等全模块</td></tr>
-            <tr><td>文档规模</td><td>9170+ 行（md + sql）</td><td>21 份 test_spec；核心 spec 单文件 700+ 行</td></tr>
-            <tr><td>提交频率</td><td>655 commits</td><td>feat / fix / docs 小步提交，便于 Review 与回滚</td></tr>
-            <tr><td>AI 投入</td><td>2.1B Token · ~$696 · 2026.3–5</td><td>见 §8.1；655 commits 背后为数百轮 Agent 对话</td></tr>
-            <tr><td>文档/代码比</td><td>doc 行数 ≈ 18× Java 文件数</td><td>联调、交接、前端对齐成本显著低于行业平均</td></tr>
-            <tr><td>CR 质量</td><td>1.3 分支 0 Critical / 0 Major</td><td>Agent 预 Review + spec 同步较完整</td></tr>
-            <tr><td>任务清单</td><td>TGR 28 项 · TPS 19 项</td><td>1.4 / 统计迭代采用 YAML 任务队列，可追踪 pending/completed</td></tr>
+            <tr><td>代码规模</td><td>521 Java · 26 Controller · 110 Service · 20 Handler</td><td>含任务组、统计、巡店 Kafka、部门负责人过滤。<code>src/main/java</code>，分支 <code>feature/202610_op</code></td></tr>
+            <tr><td>文档规模</td><td>规范 doc 9423 行</td><td>23 份 test_spec 约 6847 行；<code>task_definition</code> 982 行、<code>task_distribution_detail</code> 936 行。不含 <code>202608-groovy.md</code> / <code>202608-purity.md</code> 联调原文</td></tr>
+            <tr><td>提交频率</td><td>726 commits</td><td>截至 2026-10-15。3 月 188、4 月 171、5 月 115、6 月 89、7 月 76、8 月 49、9 月 21、10 月 5</td></tr>
+            <tr><td>AI 投入</td><td>2.1B Token · ~$696 · 2026.3–5</td><td>见 §8.1。Token 窗口停在 5 月；6–10 月代码继续迭代，本页未计入新的 Token</td></tr>
+            <tr><td>文档/代码比</td><td>规范 doc 行数 ≈ 18× Java 文件数</td><td>9423 / 521。联调原文若计入会把行数抬到约 1.6 万，不反映规格密度</td></tr>
+            <tr><td>CR 质量</td><td>1.3 分支 0 Critical；202608_op 高风险 0</td><td><code>code-review-feature-202606_1.3</code> 与 <code>ai-review-feature-202608_op-vs-master-2026-08-06.md</code></td></tr>
+            <tr><td>任务清单</td><td>TGR 18 completed / 4 pending · TPS 19 项</td><td>待收尾：TGR-015、TGR-023、TGR-025、TGR-026</td></tr>
             <tr><td>生产运营</td><td>18 任务包 · 328 万+ 下发明细</td><td>已完成 43.9 万 · 进行中 1.5 万 · 已过期 276 万（截止 2026-08-05）</td></tr>
           </tbody>
         </table>
@@ -2019,22 +2171,29 @@
             <tr><td>产品 PRD</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E6%96%87%E6%A1%A3/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%201.1%20PRD%EF%BC%88%E6%95%B0%E6%8D%AE%E6%BA%90%26%E6%8C%87%E6%A0%87%E4%BB%BB%E5%8A%A1%EF%BC%89.md" target="_blank" rel="noopener">1.1 数据源&amp;指标任务</a></td><td>2026.03.30～04.03</td></tr>
             <tr><td>产品 PRD</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E6%96%87%E6%A1%A3/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%201.2%20PRD%EF%BC%88%E4%BB%BB%E5%8A%A1%E5%9F%BA%E7%A1%80%E9%85%8D%E7%BD%AE%E8%A1%A5%E5%85%A8%EF%BC%89.md" target="_blank" rel="noopener">1.2 任务基础配置补全</a></td><td>2026.04.21～04.27</td></tr>
             <tr><td>产品 PRD</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E6%96%87%E6%A1%A3/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%201.3%20PRD%EF%BC%88%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6%26%E6%89%A7%E8%A1%8C%E5%88%86%E6%9E%90%EF%BC%89.md" target="_blank" rel="noopener">1.3 反馈&amp;执行分析</a></td><td>2026.05.25</td></tr>
-            <tr><td>产品 PRD</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E6%96%87%E6%A1%A3/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%201.4%20PRD%EF%BC%88%E4%BB%BB%E5%8A%A1%E5%8C%85%E5%AE%9A%E4%B9%89%E8%B0%83%E6%95%B4%EF%BC%89.md" target="_blank" rel="noopener">1.4 任务包定义调整</a></td><td>2026.05.25 起 · 进行中</td></tr>
+            <tr><td>产品 PRD</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E6%96%87%E6%A1%A3/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%201.4%20PRD%EF%BC%88%E4%BB%BB%E5%8A%A1%E5%8C%85%E5%AE%9A%E4%B9%89%E8%B0%83%E6%95%B4%EF%BC%89.md" target="_blank" rel="noopener">1.4 任务包定义调整</a></td><td>2026.05.25 起 · 主干已合入，4 项 P2 未收尾</td></tr>
             <tr><td>业务流程</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=README.md">README.md</a></td><td>PDCA 与配置→下发→执行串列</td></tr>
-            <tr><td>任务清单</td><td><code>doc/202607-1.4-task-group-restructure-tasks.md</code></td><td>1.4 任务组 TGR-001~028 · <span style="color:var(--text-dim)">未同步至本站，见 sls-sales-task 仓库</span></td></tr>
+            <tr><td>任务清单</td><td><code>doc/202607-1.4-task-group-restructure-tasks.md</code></td><td>1.4 任务组 · 18 completed / 4 pending · <span style="color:var(--text-dim)">未同步至本站，见 sls-sales-task 仓库</span></td></tr>
             <tr><td>任务清单</td><td><code>doc/202606-task-package-statistics-tasks.md</code></td><td>统计快照 TPS-001~019 · <span style="color:var(--text-dim)">未同步至本站</span></td></tr>
             <tr><td>Code Review</td><td><code>doc/code-review-feature-202606_1.3-2026-06-16.md</code></td><td>1.3 迭代 Agent 审查报告 · <span style="color:var(--text-dim)">未同步至本站</span></td></tr>
-            <tr><td>DDL 累计</td><td><a class="prd-link" href="sql-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=sql/update_tables.sql">sql/update_tables.sql</a></td><td>表结构变更审计</td></tr>
-            <tr><td>核心 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=task_definition_test_spec.md">task_definition_test_spec.md</a></td><td>任务定义 · 约 900+ 行</td></tr>
-            <tr><td>核心 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=task_distribution_detail_test_spec.md">task_distribution_detail_test_spec.md</a></td><td>下发明细 + Job · 约 680+ 行</td></tr>
-            <tr><td>1.4 spec</td><td><code>doc/任务组*_test_spec.md</code></td><td>任务组结构改造 · <span style="color:var(--text-dim)">中文 spec 未同步至本站</span></td></tr>
+            <tr><td>Code Review</td><td><code>doc/ai-review-feature-202608_op-vs-master-2026-08-06.md</code></td><td>部门树权限根节点 · 高风险 0 / 中风险 1 · <span style="color:var(--text-dim)">未同步至本站</span></td></tr>
+            <tr><td>DDL 累计</td><td><a class="prd-link" href="sql-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=sql/update_tables.sql">sql/update_tables.sql</a></td><td>表结构变更审计 · 仓库 <code>doc/sql/update_tables.sql</code> 794 行，<code>dpc/sql/update_tables.sql</code> 1600 行</td></tr>
+            <tr><td>核心 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=task_definition_test_spec.md">task_definition_test_spec.md</a></td><td>任务定义 · 982 行 · 已与仓库 2026-10-15 对齐</td></tr>
+            <tr><td>核心 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=task_distribution_detail_test_spec.md">task_distribution_detail_test_spec.md</a></td><td>下发明细 + Job · 936 行 · 已对齐</td></tr>
+            <tr><td>统计 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=task_package_statistics_test_spec.md">task_package_statistics_test_spec.md</a></td><td>任务包统计 · 733 行</td></tr>
+            <tr><td>1.4 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E4%BB%BB%E5%8A%A1%E7%BB%84_test_spec.md">任务组_test_spec.md</a></td><td>任务组 CRUD · 239 行</td></tr>
+            <tr><td>1.4 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E4%BB%BB%E5%8A%A1%E7%BB%84%E7%BB%93%E6%9E%84%E6%94%B9%E9%80%A0_test_spec.md">任务组结构改造_test_spec.md</a></td><td>结构、迁移与对接 · 257 行</td></tr>
+            <tr><td>1.4 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=%E4%BB%BB%E5%8A%A1%E7%BB%84%E7%BB%9F%E8%AE%A1_test_spec.md">任务组统计_test_spec.md</a></td><td>任务组维度统计 · 246 行</td></tr>
+            <tr><td>202608 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=v2_tour_patrol_record_kafka_test_spec.md">v2_tour_patrol_record_kafka_test_spec.md</a></td><td>巡店 v2 + pure_sku · 99 行</td></tr>
+            <tr><td>202608 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=device_bin_log_kafka_test_spec.md">device_bin_log_kafka_test_spec.md</a></td><td>设备 binlog Kafka · 71 行</td></tr>
+            <tr><td>权限 spec</td><td><a class="prd-link" href="md-viewer.html?from=ai_rd_efficiency_summary.html%23appendix&file=op_permissions_sync_test_spec.md">op_permissions_sync_test_spec.md</a></td><td>OP 功能权限同步 · 86 行</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
     <footer>
-      文档版本 2026-08-05 · 项目 sls-sales-task · AI Native 迭代总结 · 维护：随协作流程重大变更同步更新
+      文档版本 2026-11-03 · 代码 HEAD 2026-10-15 · feature/202610_op · 2886e7c · 726 commits · 521 Java · 维护：随协作流程重大变更同步更新
     </footer>
   </main>
 </div>

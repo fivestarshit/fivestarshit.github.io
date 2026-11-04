@@ -1,10 +1,13 @@
 # 字段筛选操作符测试规格
 
+## 变更说明
+- **2026-09-02**：`listAll` 的 `fieldTypes` 白名单新增 **`EX`**（表达式，与 `dataTypeDefinition=EX` 对齐）。请求 `["EX"]` 不再被丢弃；库中 `field_types` 含 `EX` 的操作符（如 `operator_code=EX`）可被筛出。
+
 ## 1. 查询全部未删除操作符
 
 - 接口：`POST /sales/task/fieldFilter/operator/listAll`
-- 说明：返回 `is_deleted=0` 的记录，按 `sort_order`、`id` 升序；每条含 `fieldTypes`（适用类型：`STRING` 字符串 / `NUMBER` 数字 / `DATE` 日期 / `BOOLEAN` 布尔 / `OTHER` 其他，可多选）。**`OTHER` 仅允许使用「为空」「不为空」**（仅这两条记录的 `fieldTypes` 含 `OTHER`）。
-- **按类型过滤**：请求体可选 `fieldTypes` 数组（如 `["STRING"]`、`["BOOLEAN"]`）；服务端仅保留「库中 `field_types` 与入参存在交集」的操作符（入参多个类型时为 **任一命中即保留**，交集语义）。不传、`fieldTypes` 为空或仅非法值时返回**全部**未删除操作符；合法元素为 `STRING`、`NUMBER`、`DATE`、`BOOLEAN`、`OTHER`（忽略大小写，归一为全大写）。
+- 说明：返回 `is_deleted=0` 的记录，按 `sort_order`、`id` 升序；每条含 `fieldTypes`（适用类型：`STRING` 字符串 / `NUMBER` 数字 / `DATE` 日期 / `BOOLEAN` 布尔 / `OTHER` 其他 / `EX` 表达式，可多选）。**`OTHER` 仅允许使用「为空」「不为空」**（仅这两条记录的 `fieldTypes` 含 `OTHER`）。**`EX`** 对应表达式操作符（`operator_code=EX`）。
+- **按类型过滤**：请求体可选 `fieldTypes` 数组（如 `["STRING"]`、`["BOOLEAN"]`、`["EX"]`）；服务端仅保留「库中 `field_types` 与入参存在交集」的操作符（入参多个类型时为 **任一命中即保留**，交集语义）。不传、`fieldTypes` 为空或仅非法值时返回**全部**未删除操作符；合法元素为 `STRING`、`NUMBER`、`DATE`、`BOOLEAN`、`OTHER`、`EX`（忽略大小写，归一为全大写）。
 
 ### 1.1 请求示例
 
@@ -35,6 +38,22 @@
 ```json
 {
   "fieldTypes": ["BOOLEAN"]
+}
+```
+
+仅查询表达式类型可用操作符：
+
+```json
+{
+  "fieldTypes": ["EX"]
+}
+```
+
+调试弹窗混合类型（含表达式字段）示例：
+
+```json
+{
+  "fieldTypes": ["STRING", "EX"]
 }
 ```
 
@@ -72,3 +91,4 @@
 - 逻辑删除后不应出现在列表中
 - `operator_code` 唯一；`field_types` 为合法 JSON 数组
 - 请求 `fieldTypes: ["BOOLEAN"]`（或 `boolean`）时，仅返回库中 `field_types` 含 `BOOLEAN` 的操作符
+- 请求 `fieldTypes: ["EX"]`（或 `ex`）时，仅返回库中 `field_types` 含 `EX` 的操作符（如表达式 `EX`）；`EX` 不再被白名单丢弃

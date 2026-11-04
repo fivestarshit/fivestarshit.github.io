@@ -89,7 +89,7 @@ Content-Type: application/json
 
 | 字段 | 含义 |
 |------|------|
-| code | 纷享销客授权码或测试手机号，见 `UserController` 实现 |
+| code | 纷享销客授权码或测试手机号，见 `UserController` 实现；传 `10000000000` 时映射为 `13261178730` 并按手机号查询 |
 
 **期望**：不经过 JWT 与 OP 业务拦截（白名单）。
 

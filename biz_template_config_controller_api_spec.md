@@ -81,8 +81,8 @@
 | `mappedCol` | 字符串 | 映射业务字段名 |
 | `mappedColVal` | 字符串 | 映射值（运行期场景），可空 |
 | `logicalName` | 字符串 | 展示名 |
-| `dataType` | 字符串 | 逻辑数据类型（映射提取） |
-| `dataTypeDefinition` | 字符串 | 业务属性类型定义，可空；**非空时仅允许** `NUMBER`、`STRING`、`BOOLEAN`、`DATE`（忽略大小写） |
+| `dataType` | 字符串 | 逻辑数据类型（映射提取）；**落库由服务端按 `extractRule` 自动赋值**：无 `extractRule` → `String`，有 `extractRule` → `JSON`（请求传入值会被覆盖） |
+| `dataTypeDefinition` | 字符串 | 业务属性类型定义，可空；**非空时仅允许** `NUMBER`、`STRING`、`BOOLEAN`、`DATE`、`EX`（忽略大小写；`EX` 表示表达式） |
 | `length` | 数值 | 长度，可空 |
 | `precision` | 数值 | 精度，可空 |
 | `isCalculable` | 布尔 | 是否可计算 |
@@ -201,7 +201,7 @@
 | `isDeleted` | 数值 | 逻辑删除 0/1 |
 | `createdBy` | 字符串 | 创建人 |
 | `updatedBy` | 字符串 | 最后修改人 |
-| `fieldDetails` | 数组 | 见 **1.2**：`null`/不传则不同步；非 null 则逐项 upsert（空数组无操作）；并校验 `mappedCol` 唯一；**仅 `isSearchPrimaryKey=true` 时**校验 `objectCode`（trim）不重复；**`dataTypeDefinition` 非空时**须为 NUMBER/STRING/BOOLEAN/DATE；元素见 **1.3** |
+| `fieldDetails` | 数组 | 见 **1.2**：`null`/不传则不同步；非 null 则逐项 upsert（空数组无操作）；并校验 `mappedCol` 唯一；**仅 `isSearchPrimaryKey=true` 时**校验 `objectCode`（trim）不重复；**`dataTypeDefinition` 非空时**须为 NUMBER/STRING/BOOLEAN/DATE/EX；元素见 **1.3** |
 
 #### 2.2.2 请求示例（仅主表；不同步字段映射时 `fieldDetails` 传 `null` 或省略）
 
@@ -343,7 +343,7 @@
 | `fieldDetails` 中 `id` 归属其它模板 | `字段映射不属于当前模板，id=…` |
 | `fieldDetails` 中 `mappedCol`（trim 后）重复 | `fieldDetails 中 mappedCol 重复: xxx` |
 | `fieldDetails` 中多条 `isSearchPrimaryKey=true` 且 `objectCode` 相同 | `fieldDetails 中 isSearchPrimaryKey=true 时 objectCode 重复: xxx` |
-| `fieldDetails` 中 `dataTypeDefinition` 非空且非法 | `fieldDetails 中 dataTypeDefinition 仅允许 NUMBER、STRING、BOOLEAN、DATE，当前值: …` |
+| `fieldDetails` 中 `dataTypeDefinition` 非空且非法 | `fieldDetails 中 dataTypeDefinition 仅允许 NUMBER、STRING、BOOLEAN、DATE、EX，当前值: …` |
 
 更新成功后如需核对字段映射，可再调 **`POST /sales/task/biz/template/config/detail`**（`IdRequest`）拉取含 `fieldDetails` 的完整 DTO。
 

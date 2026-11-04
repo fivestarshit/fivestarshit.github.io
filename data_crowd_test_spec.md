@@ -256,6 +256,8 @@
         "isDeleted": 0,
         "status": 1,
         "syncScheduler": 1,
+        "latestCount": 1280,
+        "//latestCount": "最新分群对象数量（Long，可 null）",
         "timeConfig": {
           "offset": 0,
           "timeType": "FOREVER",

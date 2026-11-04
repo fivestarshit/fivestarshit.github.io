@@ -174,4 +174,4 @@
 
 ## 6. 表结构（DDL）
 
-见 **`doc/sql/update_tables.sql`** / **`dpc/sql/update_tables.sql`** 中 **`trial_data_config`** 建表语句；部署后需执行该段 DDL 方可查询到数据。
+见 **`doc/sql/update_tables.sql`** 中 **`trial_data_config`** 建表语句；部署后需执行该段 DDL 方可查询到数据。

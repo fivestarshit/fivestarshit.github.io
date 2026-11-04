@@ -2284,7 +2284,7 @@
     <div class="logo-icon">⚡</div>
     <div>sls-sales-task <span>/ AI Cowork</span></div>
   </div>
-  <div class="header-meta">v2026.06.08 · Cursor Agent · 508 commits</div>
+  <div class="header-meta">v2026.11.03 · feature/202610_op · 726 commits</div>
 </header>
 
 <div class="layout">
@@ -2330,16 +2330,16 @@
         <br/><br/>
         本文档在介绍该系统业务价值与 PDCA 闭环的同时，也总结了项目以 <strong>Cursor Agent</strong> 从 0 到 1 完成研发的全链路 AI 提效实践。本项目最核心的提效经验之一：<strong>在写第一行业务代码之前，先把 Rules 配好</strong>——尤其是「改代码必须联动修改对应 md 文件」这条约束，让 AI 的每次产出都自带过程留存。
         <br/><br/>
-        <a href="ai_rd_efficiency_summary.html" style="color:var(--accent-2);text-decoration:none;border-bottom:1px dashed rgba(34,211,238,.35)">→ AI Agent 协作与提效实践</a>（独立文档：MVP→1.4 版本进度 · Token 用量 · 任务清单 + Rules 流程）
+        <a href="ai_rd_efficiency_summary.html" style="color:var(--accent-2);text-decoration:none;border-bottom:1px dashed rgba(34,211,238,.35)">→ AI Agent 协作与提效实践</a>（独立文档：MVP→1.4 已合入，代码跟到 202610 · Token 用量 · 任务清单 + Rules 流程）
       </p>
       <div class="stats">
-        <div class="stat-card"><div class="stat-num" data-target="388">0</div><div class="stat-label">Java 源文件</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="84">0</div><div class="stat-label">Service 层</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="24">0</div><div class="stat-label">Controller</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="15">0</div><div class="stat-label">Job 实现<span class="stat-sublabel">XXL-JOB Handler</span></div></div>
-        <div class="stat-card"><div class="stat-num" data-target="16">0</div><div class="stat-label">测试规格文档</div></div>
-        <div class="stat-card"><div class="stat-num" data-target="9000">0</div><div class="stat-label">Spec 行数+<span class="stat-sublabel">doc 全部 md + sql</span></div></div>
-        <div class="stat-card"><div class="stat-num" data-target="508">0</div><div class="stat-label">Git Commits</div></div>
+        <div class="stat-card"><div class="stat-num" data-target="521">0</div><div class="stat-label">Java 源文件</div></div>
+        <div class="stat-card"><div class="stat-num" data-target="110">0</div><div class="stat-label">Service 层<span class="stat-sublabel">58 接口 + 52 实现</span></div></div>
+        <div class="stat-card"><div class="stat-num" data-target="26">0</div><div class="stat-label">Controller</div></div>
+        <div class="stat-card"><div class="stat-num" data-target="20">0</div><div class="stat-label">Job Handler<span class="stat-sublabel">9 个 Job 类</span></div></div>
+        <div class="stat-card"><div class="stat-num" data-target="23">0</div><div class="stat-label">测试规格文档</div></div>
+        <div class="stat-card"><div class="stat-num" data-target="9423">0</div><div class="stat-label">规范 doc 行数<span class="stat-sublabel">不含联调原文</span></div></div>
+        <div class="stat-card"><div class="stat-num" data-target="726">0</div><div class="stat-label">Git Commits<span class="stat-sublabel">截至 2026-10-15</span></div></div>
         <div class="stat-card"><div class="stat-num stat-num-text">2.1B</div><div class="stat-label">3-5 月 Token<span class="stat-sublabel">约 21 亿</span></div></div>
       </div>
       <p class="hero-token-note">
@@ -2369,9 +2369,10 @@
           <tr><td>业务域</td><td>销售任务管理：外勤巡店任务下发、执行、监控与复盘；支撑外勤动作中查看销售任务、列出外勤任务清单</td></tr>
           <tr><td>业务愿景</td><td>让销售巡店有重点，让管理有抓手；形成 P → D → C → A 完整的销售动作管理闭环</td></tr>
           <tr><td>技术栈</td><td>Java 8、Spring Boot、MyBatis-Plus、Nacos、XXL-JOB、Redisson、Kafka、OpenFeign、Groovy</td></tr>
-          <tr><td>代码规模</td><td>约 388 个 Java 源文件、84 个 Service、24 个 Controller、<strong>15 个 Job 实现</strong>（XXL-JOB Handler，分布在 6 个 Job 类）</td></tr>
-          <tr><td>文档规模</td><td><code>doc/</code> 目录全部 Markdown（16 份 test_spec 等）+ SQL + <code>dpc/sql</code> 累计变更，合计约 <strong>9000+</strong> 行；含 test_spec、api_spec、groovy 片段库、DDL 与 update_tables</td></tr>
-          <tr><td>提交历史</td><td><strong>508</strong> Git commits（截至 2026-06），以 feat / fix / refactor / docs 小步迭代；近期含 list 性能、DELAY 扫描、CRON 窗口、Groovy @ 解析等</td></tr>
+          <tr><td>代码规模</td><td><strong>521</strong> 个 Java 源文件（<code>src/main/java</code>）、<strong>110</strong> 个 Service（58 接口 + 52 实现）、<strong>26</strong> 个 Controller、<strong>20</strong> 个 <code>@XxlJob</code>（分布在 9 个 Job 类）</td></tr>
+          <tr><td>代码版本</td><td>分支 <code>feature/202610_op</code> · HEAD <code>2886e7c</code> · 2026-10-15。1.4 任务组主干已合入；其后为 202608 巡店、202609 分群、202610 部门负责人与手动下发隔离</td></tr>
+          <tr><td>文档规模</td><td>23 份 <code>*_test_spec.md</code> 约 <strong>6847</strong> 行；规范 Markdown <strong>9423</strong> 行（不含 <code>202608-groovy.md</code> / <code>202608-purity.md</code> 联调原文）。<code>doc/sql/update_tables.sql</code> 794 行，<code>dpc/sql/update_tables.sql</code> 1600 行</td></tr>
+          <tr><td>提交历史</td><td><strong>726</strong> Git commits（截至 2026-10-15）。近期：巡店 v2 与 pure_sku、分群下发 Redis 占位、<code>childrenList</code> 按任务组聚合、部门负责人数据范围、手动下发不被定时 Job 触发、日志改标准输出</td></tr>
           <tr><td>AI 投入</td><td>2026 年 3–5 月 Cursor Agent Token 累计约 <strong>2.1B</strong>（约 <strong>21 亿</strong> token，<a href="#hero" style="color:var(--accent-2)">Dashboard 截图</a>）</td></tr>
           </tbody>
         </table>
@@ -2471,10 +2472,10 @@
         <div class="pipeline">
           <div class="pipeline-step"><div class="pipeline-dot">1</div><div class="pipeline-content"><strong>biz_template_config</strong><span>数据模板 — 定义数据源结构与事件规则</span></div></div>
           <div class="pipeline-step"><div class="pipeline-dot">2</div><div class="pipeline-content"><strong>biz_template_field_map</strong><span>字段映射 + 主键标识 is_search_primary_key</span></div></div>
-          <div class="pipeline-step"><div class="pipeline-dot">3</div><div class="pipeline-content"><strong>task_definition</strong><span>任务包 PACKAGE + 子任务 TASK + 动作 ACTION</span></div></div>
+          <div class="pipeline-step"><div class="pipeline-dot">3</div><div class="pipeline-content"><strong>task_group + task_definition</strong><span>1.4 起任务组 RWZ 关联任务包 PACKAGE，子任务 TASK 各自下发，动作 ACTION</span></div></div>
           <div class="pipeline-step"><div class="pipeline-dot">4</div><div class="pipeline-content"><strong>task_rule + condition_repo</strong><span>下发/完成/截止规则 + 条件库</span></div></div>
           <div class="pipeline-step"><div class="pipeline-dot">5</div><div class="pipeline-content"><strong>task_distribution_detail</strong><span>任务下发明细（包 + 任务 + 目标实体）</span></div></div>
-          <div class="pipeline-step"><div class="pipeline-dot">6</div><div class="pipeline-content"><strong>task_instance</strong><span>任务实例 + Groovy 条件匹配 + 状态流转</span></div></div>
+          <div class="pipeline-step"><div class="pipeline-dot">6</div><div class="pipeline-content"><strong>task_instance + 巡店 Kafka</strong><span>条件匹配、状态流转；202608 起消费 v2_tour_patrol_record 并补 pure_sku</span></div></div>
         </div>
       </div>
 
@@ -2488,7 +2489,10 @@
         <div class="module-card"><code>taskinstance</code><p>任务实例、执行日志、条件匹配 Job</p></div>
         <div class="module-card"><code>groovy</code><p>Groovy 脚本执行、脚本实例管理、联调测试接口</p></div>
         <div class="module-card"><code>dynamichttp</code><p>动态 HTTP 端点与分组，支撑 DELAY 同步策略</p></div>
-        <div class="module-card"><code>external</code><p>数据分群、EHR 部门、纷享销客、Kafka 等外部集成</p></div>
+        <div class="module-card"><code>taskgroup</code><p>1.4 任务组表、RWZ 编码、包关联与迁移 Job。主干已合入，4 项 P2 未收尾</p></div>
+        <div class="module-card"><code>taskpackagestatistics</code><p>统计快照、部门树权限根、末级负责人表现</p></div>
+        <div class="module-card"><code>tour / kafka</code><p>v2 巡店记录、pure_sku 补写、skuNumer、设备 binlog</p></div>
+        <div class="module-card"><code>external</code><p>数据分群、EHR 部门与部门负责人、纷享销客、Kafka</p></div>
       </div>
     </section>
 
@@ -2718,7 +2722,7 @@
             <div class="benefit-icon">📜</div>
             <h4>过程结果留存，便于追溯</h4>
             <p>每次需求/修复都会在 spec 顶部留下「变更说明」，形成按时间叠加的决策日志。回看 git history 时，md 变更说明比 commit message 更完整地还原「为什么改」。</p>
-            <div class="example">例：task_distribution_detail_test_spec.md 694 行，9 个 Job + 12+ API 全量留存，见下方典型范例</div>
+            <div class="example">例：task_distribution_detail_test_spec.md 仓库现行 936 行，覆盖下发 API 与 XXL-JOB，见下方典型范例（页内全文为 2026-06 快照）</div>
           </div>
           <div class="benefit-card">
             <div class="benefit-icon">🔧</div>
@@ -2874,7 +2878,7 @@
             </div>
             <div class="rule-item-body">
               <div class="desc">测试用例用 Markdown 存 <code>doc/[功能模块]_test_spec.md</code>；请求/响应必须有 JSON 示例，每个字段加 // 注释。</div>
-              <div class="proj-example"><strong>本项目举例</strong>task_definition_test_spec.md 中 createPackage 请求 JSON 80+ 行，每个字段如 taskName、taskRule.distributionType 均有 // 注释；<code>doc/</code> 下全部 md + sql 合计 9000+ 行。</div>
+              <div class="proj-example"><strong>本项目举例</strong>task_definition_test_spec.md 现行 982 行，createPackage 请求 JSON 每个字段如 taskName、taskRule.distributionType 均有 // 注释；规范 doc 9423 行（截至 2026-10-15，不含联调原文）。</div>
             </div>
           </div>
 
@@ -3128,7 +3132,7 @@ private TaskRuleDTO taskRule;</pre>
               </div>
               <div class="proj-example" style="padding:12px 14px;border-radius:8px;background:rgba(52,211,153,.06);border-left:3px solid var(--accent-4);font-size:0.8rem;color:var(--text-muted)">
                 <strong style="color:var(--accent-4);font-size:0.68rem;display:block;margin-bottom:6px">本项目举例</strong>
-                <code>doc/</code> 目录全部 md + sql 合计 9000+ 行（16 份 test_spec 约 4300 行，另含 api_spec、groovy 片段、DDL 与 update_tables）。task_definition_test_spec.md 单文件 700+ 行，createPackage 请求 JSON 80+ 字段均有 // 注释。
+                截至 2026-10-15：23 份 test_spec 约 6847 行，规范 doc 9423 行（另含 api_spec、groovy 片段、DDL 与 update_tables）。task_definition_test_spec.md 单文件 982 行，createPackage 请求 JSON 字段均有 // 注释。
               </div>
             </div>
 
@@ -3359,7 +3363,7 @@ private TaskRuleDTO taskRule;</pre>
           <summary class="spec-doc-header">
             <div class="spec-doc-header-main">
               <h3 class="spec-doc-main-title">附录：任务下发明细测试规格（完整文档）</h3>
-              <p class="spec-doc-subtitle">内嵌自 <code>task_distribution_detail_test_spec.md</code> · 694 行 · 独立分享本 HTML 即可查阅全文</p>
+              <p class="spec-doc-subtitle">内嵌为 2026-06 快照。仓库现行 <code>task_distribution_detail_test_spec.md</code> 为 936 行（截至 2026-10-15），完整增量见 sls-sales-task 仓库</p>
               <p class="spec-doc-expand-hint">▸ 点击此处展开完整测试规格明细</p>
             </div>
             <span class="spec-doc-chevron" aria-hidden="true">▼</span>
@@ -4269,7 +4273,7 @@ private TaskRuleDTO taskRule;</pre>
             <ul>
               <li>每次改动 Java + md + SQL 同 PR 完成，文档即代码</li>
               <li>spec 变更说明 = 可检索的决策日志</li>
-              <li>9000+ 行 doc 文档（全部 md + sql）与 388 个 Java 文件保持同频</li>
+              <li>规范 doc 9423 行与 521 个 Java 文件保持同频（截至 2026-10-15）</li>
               <li>fix 必补回归用例，问题有闭环</li>
               <li>新人读 spec 即可联调，上手以「天」计</li>
             </ul>
@@ -4552,11 +4556,11 @@ private TaskRuleDTO taskRule;</pre>
       <div class="card-grid">
         <div class="card">
           <h4 style="margin-top:0;color:var(--accent)">文档 / 代码比</h4>
-          <p style="color:var(--text-muted);font-size:0.88rem"><code>doc/</code> 全部 md + sql 约 9000 行，对 388 个 Java 文件，文档密度高，联调与交接成本低</p>
+          <p style="color:var(--text-muted);font-size:0.88rem">规范 doc 9423 行，对 521 个 Java 文件（约 18 倍），文档密度高，联调与交接成本低</p>
         </div>
         <div class="card">
           <h4 style="margin-top:0;color:var(--accent-2)">迭代速度</h4>
-          <p style="color:var(--text-muted);font-size:0.88rem"><strong>508</strong> Git commits 小步提交，AI 快速响应 list 性能、DELAY 扫描、CRON 窗口、Groovy @ 解析等迭代</p>
+          <p style="color:var(--text-muted);font-size:0.88rem"><strong>726</strong> Git commits（截至 2026-10-15）。早期覆盖 list 性能、DELAY、CRON、Groovy；202608 之后覆盖巡店 v2、分群下发、部门负责人与手动下发隔离</p>
         </div>
         <div class="card">
           <h4 style="margin-top:0;color:var(--accent-3)">AI Token 投入</h4>
@@ -4618,7 +4622,7 @@ private TaskRuleDTO taskRule;</pre>
               <li><strong>全部功能均为对话式生成</strong>：任务定义、下发明细、9 个 XXL-JOB、模板配置、分群匹配等模块，均是「开一个新对话 → 描述需求 → 生成代码」逐块堆叠，没有前置 Plan 把全局一次画清</li>
               <li><strong>后续对话会改前面已完成功能</strong>：例如先对话完成 <code>list</code> 接口，几轮后在优化 <code>listByPackage</code> 或 DELAY Job 时又回头改 <code>buildListQueryWrapper</code>、状态统计口径——当时对话的上下文里<b>❌没有完整模块地图</b>，容易漏改关联点或引入回归</li>
               <li><strong>缺少全局思考，只有局部最优</strong>：每轮对话 Agent 只看见当前 Prompt + 有限上下文，不会主动问「这个改动是否影响 task_definition 的 createPackage？」；人工若未主动 @ 相关 spec，AI 不会全局检索依赖</li>
-              <li><strong>只有对话式生成，没有宏观把控</strong>：508 次 commit、21 亿 token 背后是数百轮对话，但<b>没有任务队列</b>记录「TDD-001 已完成 / TDD-002 待验收」；完成与否全靠开发者记忆 + 人工 Review，无法批量推进或并行分工</li>
+              <li><strong>只有对话式生成，没有宏观把控</strong>：0→1 阶段约 508 次 commit、21 亿 token 背后是数百轮对话，当时<b>没有任务队列</b>记录「TDD-001 已完成 / TDD-002 待验收」。1.3 统计（TPS）与 1.4 任务组（TGR）起已改为清单驱动；代码现为 726 commits（截至 2026-10-15）</li>
               <li><strong>典型踩坑场景</strong>：新增 <code>end_time</code> 闭区间筛选时，若未同步想到 export / statusStats 共用同一套 wrapper，联调阶段才发现口径不一致；fix 类改动若未强制补回归用例，同类边界 bug 会在后续对话中再次出现</li>
               <li>同一功能不同开发者描述方式不同，AI 产出稳定性差异大；多模块并行时难以追踪「哪些已完成、哪些未验收、哪些被后续对话改坏」</li>
             </ul>
@@ -5161,10 +5165,15 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td><strong>核心</strong> · 任务包/任务/动作创建与 list/listStats · createPackage 校验链 · TEMPLATE 拆分 · 约 717 行</td></tr>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_distribution_detail_test_spec.md" style="color:var(--accent-2)">task_distribution_detail_test_spec.md</a></td><td>下发明细触发、API、Action 同步 · 条件匹配与 XXL-JOB · 两篇合并 · 约 694 行</td></tr>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_template_test_spec.md" style="color:var(--accent-2)">task_template_test_spec.md</a></td><td>任务模板（<code>task_template_definition</code>）CRUD、分页、与任务定义 TEMPLATE 分支联调 · 约 463 行</td></tr>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=condition_action_task_rule_test_spec.md" style="color:var(--accent-2)">condition_action_task_rule_test_spec.md</a></td><td>条件库、动作库、任务规则（task_rule）、任务实例 · CRON/周期配置 · 约 298 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_definition_test_spec.md" style="color:var(--accent-2)">task_definition_test_spec.md</a></td><td><strong>核心</strong> · 任务包/任务/动作 · createPackage 校验链 · 982 行 · 已与仓库 2026-10-15 对齐</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_distribution_detail_test_spec.md" style="color:var(--accent-2)">task_distribution_detail_test_spec.md</a></td><td>下发明细、条件匹配与 XXL-JOB · 936 行 · 已对齐。本页内嵌全文仍是 2026-06 快照</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_template_test_spec.md" style="color:var(--accent-2)">task_template_test_spec.md</a></td><td>任务模板 CRUD、分页、TEMPLATE 分支 · 526 行 · 已对齐</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=condition_action_task_rule_test_spec.md" style="color:var(--accent-2)">condition_action_task_rule_test_spec.md</a></td><td>条件库、动作库、任务规则、任务实例 · 397 行 · 已对齐</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=%E4%BB%BB%E5%8A%A1%E7%BB%84_test_spec.md" style="color:var(--accent-2)">任务组_test_spec.md</a></td><td>1.4 任务组 CRUD · 239 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=%E4%BB%BB%E5%8A%A1%E7%BB%84%E7%BB%93%E6%9E%84%E6%94%B9%E9%80%A0_test_spec.md" style="color:var(--accent-2)">任务组结构改造_test_spec.md</a></td><td>任务组结构、迁移与前后端对接 · 257 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=%E4%BB%BB%E5%8A%A1%E7%BB%84%E7%BB%9F%E8%AE%A1_test_spec.md" style="color:var(--accent-2)">任务组统计_test_spec.md</a></td><td>任务组维度统计 · 246 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=task_package_statistics_test_spec.md" style="color:var(--accent-2)">task_package_statistics_test_spec.md</a></td><td>任务包统计快照与部门树 · 733 行</td></tr>
+          <tr><td><code>doc/202607-1.4-task-group-restructure-tasks.md</code></td><td>TGR 任务清单 · 18 completed / 4 pending（TGR-015、023、025、026）</td></tr>
           </tbody>
         </table>
       </div>
@@ -5175,8 +5184,8 @@ tasks:
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=biz_template_config_controller_api_spec.md" style="color:var(--accent-2)">biz_template_config_controller_api_spec.md</a></td><td><strong>接口字典</strong> · BizTemplateConfigController 全字段 DTO、PageResult 结构 · 前端类型生成首选 · 约 593 行</td></tr>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=biz_template_config_test_spec.md" style="color:var(--accent-2)">biz_template_config_test_spec.md</a></td><td>业务模板 config 更新、fieldDetails 批量 upsert、主键/映射校验 · 约 248 行</td></tr>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=datasource_template_test_spec.md" style="color:var(--accent-2)">datasource_template_test_spec.md</a></td><td>数据源连接与业务模板配置联调、模板字段映射规则 · 约 339 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=biz_template_config_test_spec.md" style="color:var(--accent-2)">biz_template_config_test_spec.md</a></td><td>业务模板 config、fieldDetails 批量 upsert、主键/映射校验 · 286 行 · 含 EX 表达式 · 已对齐</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=datasource_template_test_spec.md" style="color:var(--accent-2)">datasource_template_test_spec.md</a></td><td>数据源连接与业务模板配置联调、模板字段映射规则 · 339 行</td></tr>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=trial_data_config_test_spec.md" style="color:var(--accent-2)">trial_data_config_test_spec.md</a></td><td>试用数据配置（trial_data_config）增删改查与联调要点 · 约 177 行</td></tr>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=data_crowd_test_spec.md" style="color:var(--accent-2)">data_crowd_test_spec.md</a></td><td>数仓分群 Feign 分页查询、圈选条件与任务下发 crowd 联调 · 约 371 行</td></tr>
           </tbody>
@@ -5188,7 +5197,7 @@ tasks:
         <table>
           <thead><tr><th>文档</th><th>说明</th></tr></thead>
           <tbody>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=dynamic_http_endpoint_test_spec.md" style="color:var(--accent-2)">dynamic_http_endpoint_test_spec.md</a></td><td>动态 HTTP 外部接口配置 CRUD、invoke 调用、密钥脱敏 · 约 305 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=dynamic_http_endpoint_test_spec.md" style="color:var(--accent-2)">dynamic_http_endpoint_test_spec.md</a></td><td>动态 HTTP 外部接口配置 CRUD、invoke 调用、密钥脱敏 · 仓库现行 370 行</td></tr>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=dynamic_http_group_test_spec.md" style="color:var(--accent-2)">dynamic_http_group_test_spec.md</a></td><td>动态 HTTP 聚合分组配置与 endpoint 归属关系 · 约 84 行</td></tr>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_script_instance_test_spec.md" style="color:var(--accent-2)">groovy_script_instance_test_spec.md</a></td><td>Groovy 脚本实例管理、启用/禁用、分页与版本 · 约 179 行</td></tr>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=groovy_shell_test_spec.md" style="color:var(--accent-2)">groovy_shell_test_spec.md</a></td><td>GroovyShell execute / executeMap / assembleMap 测试接口与入参结构 · 约 161 行</td></tr>
@@ -5218,14 +5227,18 @@ tasks:
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=ehr_department_test_spec.md" style="color:var(--accent-2)">ehr_department_test_spec.md</a></td><td>EHR 部门树查询、dept_code / path 与明细归属部门字段联调</td></tr>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=auth_interceptor_test_spec.md" style="color:var(--accent-2)">auth_interceptor_test_spec.md</a></td><td>JwtAuthFilter + OpAuthInterceptor 双链路认证、白名单与 403 场景 · 约 101 行</td></tr>
           <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=kafka_test_push_spec.md" style="color:var(--accent-2)">kafka_test_push_spec.md</a></td><td>Kafka 测试推送接口，消息体结构与发送验证</td></tr>
-          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=sfa_tour_device_photos_kafka_test_spec.md" style="color:var(--accent-2)">sfa_tour_device_photos_kafka_test_spec.md</a></td><td>巡店照片结果 Kafka 消费、与任务/明细状态联动测试</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=sfa_tour_device_photos_kafka_test_spec.md" style="color:var(--accent-2)">sfa_tour_device_photos_kafka_test_spec.md</a></td><td>巡店照片结果 Kafka 消费 · 73 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=v2_tour_patrol_record_kafka_test_spec.md" style="color:var(--accent-2)">v2_tour_patrol_record_kafka_test_spec.md</a></td><td>202608 巡店记录 v2 + pure_sku + skuNumer · 99 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=device_bin_log_kafka_test_spec.md" style="color:var(--accent-2)">device_bin_log_kafka_test_spec.md</a></td><td>设备 binlog Kafka · 71 行</td></tr>
+          <tr><td><a href="https://fivestarshit.github.io/md-viewer.html?file=op_permissions_sync_test_spec.md" style="color:var(--accent-2)">op_permissions_sync_test_spec.md</a></td><td>OP 功能权限同步 · 86 行</td></tr>
+          <tr><td><code>doc/ai-review-feature-202608_op-vs-master-2026-08-06.md</code></td><td>部门树权限根节点评审 · 高风险 0 / 中风险 1</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
     <footer>
-      文档版本 2026-06-08 · 项目 sls-sales-task · 508 commits · 维护：随重大流程变更同步更新
+      文档版本 2026-11-03 · 代码 HEAD 2026-10-15 · feature/202610_op · 2886e7c · 726 commits · 521 Java · 维护：随重大流程变更同步更新
     </footer>
 
   </main>

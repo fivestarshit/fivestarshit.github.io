@@ -3,11 +3,36 @@
 ## 功能模块：任务定义创建
 
 ### 一、变更说明
+- **2026-09-15**：`POST /sales/task/definition/childrenList` 新增可选 **`aggregationFilter`**。不传保持按 `parentId` 查直接子任务；传 **`TASK_GROUP`**（**`PACKAGE` 同义**）时，按 `parentId` 解析所属任务组（可为任务包/TASK/ACTION 的定义 id，或直接为 **`task_group.id`**），查出该组下全部 PACKAGE 的相关 TASK，返回结构仍为 `List<TaskDefinitionDTO>`。无法解析任务组（如包未关联组）时回退现状。`/children` 分页接口不改。
+- **2026-09-02**：`POST /sales/task/definition/listStats` 新增 **`inProgressTaskCount`**：仅统计 `task_distribution_detail.status=IN_PROGRESS`（`is_deleted=0`）；口径与 `distributionTaskCount` 相同（TASK 按 `task_def_id`，PACKAGE 按 `task_package_id`，ACTION 为 0）。旧 Redis 无该字段时视为未命中并回源。停用确认弹窗「执行中的任务」改读此字段，不再用「总数 − 完成数」。
+- **2026-08-10**：`POST /sales/task/definition/list`（`taskType=PACKAGE`）批量回填轻量 **`childTaskList`**（直接子 TASK，含执行类型）；**`taskExecutionType` 筛选**按子 TASK EXISTS；顶层兼容回填首个子任务类型；任务规则列表「任务类型」列展示子任务类型。
+- **2026-08-04（1.4 任务组 · TGR-028）**：
+  - **`createPackage` / `updatePackage` 顶层 `taskGroupId` 必填**（DTO `@NotNull` + Service 校验）；落库 **PACKAGE.task_group_id**，并同步包规则 / 改绑时子 TASK 规则的 **`task_rule.task_group_id`**。
+  - 前端「任务规则配置」页：左栏「下发标准」、右栏「完成标准」；子任务完成标准三选一 **`completionStandardType`**（TEMPLATE/CUSTOM/OBJECT_GROUP）；OBJECT_GROUP 须传完成群 + `membershipOperator`。
+  - 前端菜单对外名「任务规则管理」= **PACKAGE 列表**（`/sales-task/package-rules`）；旧独立 `task-rules` 菜单下线（路由可暂留）。
+- **2026-08-03（1.4 任务组 · TGR-007 已落地）**：
+  - **`task_definition.task_group_id`**：仅 **PACKAGE** 落库。读：`detail`/`list` 的 **`TaskDefinitionDTO.taskGroupId`**。写：**`createPackage` / `updatePackage` 顶层 `taskGroupId`（TGR-028 起必填）**；改绑时回写包规则 + 子 TASK 规则的 **`task_rule.task_group_id`**。
+  - **独立任务 API**：**`POST /sales/task/definition/createTask`**、**`/updateTask`**（必填 **`taskPackageId`**；所属任务组由包关联带出；任务层下发/完成标准写在 **`taskRule`**）。过渡期仍可用 **`createPackage` 内嵌 `tasks[]`**。
+  - **`task_rule` 1.4 字段**写路径：createPackage/updatePackage/createTask/updateTask 的 **`taskRule` / `tasks[].taskRule`** 落库（完整备注见 **`doc/condition_action_task_rule_test_spec.md`**）：
+
+    | 字段 | 说明摘要 |
+    |------|----------|
+    | `taskGroupId` | 服务端按所属 PACKAGE 写入，与包 `task_group_id` 一致 |
+    | `completionStandardType` | `TEMPLATE` / `CUSTOM` / `OBJECT_GROUP`；不传按 hasAction 推断 |
+    | `completionObjectGroupId` / `completionObjectGroupName` | 完成判定群（≠下发群）；OBJECT_GROUP 时必填 |
+    | `membershipOperator` | `IN` / `NOT_IN`；OBJECT_GROUP 时必填 |
+    | `repeatWindowType` | **`MONTH`（默认）/ `DAYS` / `GLOBAL`**；历史 NONE/LEGACY→GLOBAL；不传默认 MONTH |
+
+  - **`hasAction`**：仍用于 createPackage/createTask 创建逻辑；读侧与 **`completionStandardType`** 并存，以新枚举为完成标准主口径。
+  - **明细**：不存 `task_group_id`；按组查明细经 **`task_package_id → task_definition.task_group_id`**。
+  - **迁移 Job**：`migrateTaskGroupStructure`，见 **`doc/任务组_test_spec.md`**。
+- **2026-08-03（1.4 任务组 · TGR-002/003）**：DDL 与迁移见上；读侧字段此前已可回显。
+- **2026-07-16**：`createPackage` / `updatePackage`：子 TASK **`hasAction=false`** 时，按请求保存 **`taskExecutionType`**、**`taskExecutionTypeName`**（trim；空则写 null）；**`hasAction=true`** 仍从绑定模板反填。
 - **`task_type=TEMPLATE` 的任务定义**：已拆到独立表 **`task_template_definition`**，字段结构与 `task_definition` 一致，原 **`template_ids`** 列在新表中为 **`data_template_ids`**；**`template_type`** 表示模板类型（**TEMPORARY** 临时模板 / **COMMON** 常用模板）；**`rule_id`** 关联 **`task_rule.id`**（与 `task_definition.rule_id` 一致，无规则时为 null）。接口 **`TaskDefinitionDTO.templateIds`** 不变，服务端读/写与 `data_template_ids` 映射。列表/分页查询 **`taskType=TEMPLATE`** 时走 `task_template_definition`；未传 `taskType` 时仅查 `task_definition`（不含 TEMPLATE，与迁移后数据一致）。
 - 任务定义分页接口 **`POST /sales/task/definition/list`** 性能：`childTaskCount` 与下发明细 **distributionTaskCount / distributionIssuedTaskCount** 为按当前页 id **批量 SQL 聚合**（`GROUP BY`）后回写，避免原逐行 `COUNT` 多次往返。
 - 任务定义分页接口 **`POST /sales/task/definition/list`** 返回中新增 **`childTaskCount`**：当记录为任务包（`taskType=PACKAGE`）时，统计其直接子 `TASK` 数量（`parent_id=packageId` 且 `is_deleted=0`）；非任务包记录该字段可为 null/不关注。
 - 任务定义分页接口 **`POST /sales/task/definition/list`** 已剥离下发统计聚合逻辑：不再在列表查询中实时聚合 **`distributionTaskCount` / `distributionIssuedTaskCount` / `issuedTaskPackageCount` / `completedTaskPackageCount`**（避免影响列表 RT）。
-- 新增统计接口 **`POST /sales/task/definition/listStats`**：按 **`taskType + ids`** 批量返回上述 4 个统计字段。`taskType` 支持 `PACKAGE/TASK/ACTION`；其中 `issuedTaskPackageCount` / `completedTaskPackageCount` 按关联任务包维度统计（PACKAGE=自身、TASK=parent_id、ACTION=父 TASK 的 parent_id）。
+- 新增统计接口 **`POST /sales/task/definition/listStats`**：按 **`taskType + ids`** 批量返回统计字段（含 **`inProgressTaskCount`**）。`taskType` 支持 `PACKAGE/TASK/ACTION`；其中 `issuedTaskPackageCount` / `completedTaskPackageCount` 按关联任务包维度统计（PACKAGE=自身、TASK=parent_id、ACTION=父 TASK 的 parent_id）。
 - 任务定义分页接口 **`POST /sales/task/definition/list`** 请求新增 **`packageId`**：当传入时按 `task_definition.parent_id = packageId` 精确过滤（常用于查询某任务包下的子 TASK/ACTION）。
 - 任务定义分页接口 **`POST /sales/task/definition/list`**：请求 **`taskName`**（模糊，trim）同时匹配 **`task_name`**、**`task_title`**、**`task_code`**（OR + LIKE，命中其一即可）；请求 **`targetEntityName`**（模糊，trim）表示存在 **`task_distribution_detail`** 行 **`target_entity_name`** 匹配且 **`task_def_id`** 或 **`task_package_id`** 与当前 **`task_definition.id`** 一致；**`taskType=TEMPLATE`** 时查 **`task_template_definition`**，**`taskName`** 同上三字段 OR 模糊，**`targetEntityName` 不参与筛选**。
 - 任务定义分页接口 **`POST /sales/task/definition/list`**：请求新增 **`ids`**（Long 数组，去重去 null），按 **`id IN (...)`** 精确过滤；`taskType=TEMPLATE` 时作用于 `task_template_definition.id`，其余作用于 `task_definition.id`；与其它筛选条件为 AND 关系。
@@ -16,6 +41,7 @@
 - **`task_definition` 表**：已删除 `object_type` 列，对象维度统一使用 **`object_code`** 落库与接口返回（与 `task_object_option.object_code` 对齐）。
 - 创建时默认运行状态：`task_definition.task_status` 为 `NOT_STARTED`（未开始）；当 `distributed_at` 到达后，由 XXL-JOB `syncPackageTaskStatusNotStartedToInProgress` 将任务包推进为 `IN_PROGRESS`（进行中）。
 - **`task_definition.distribution_push_completed`**（仅 **`task_type=PACKAGE`**）：分群/手动下发明细同步**占用标记**。`0/false`：空闲，可被分群 Job 扫描；`1/true`：**处理中**（开始处理时置 `1`，本次处理结束 **`finally` 置回 `0`**）。新建任务包默认为 `0`；`NOT_STARTED→IN_PROGRESS` 迁移时显式置 `0`。详情/列表 **`TaskDefinitionDTO.distributionPushCompleted`**：`true` 表示当前正在同步处理。
+- **`task_definition` 反馈配置**（2026-06-11）：新增 **`feedback_enabled`**（是否反馈，默认 `false`）、**`feedback_close`**（反馈关闭，默认 `false`）、**`feedback_other_remark`**（反馈其他说明，默认 `true`）、**`feedback_reasons`**（反馈的理由选项，JSON 数组，可 null）。**`createPackage` / `updatePackage`** 在 **`tasks[i]`** 上传 **`feedbackEnabled` / `feedbackClose` / `feedbackOtherRemark` / `feedbackReasons`** 落库；详情/列表 **`TaskDefinitionDTO`** 同名字段回显。
 - **`task_rule.is_repeat`**：是否需要重复下发（`0`-否，`1`-是，`NULL` 未配置）。创建/更新任务包时可在 **`taskRule` / `tasks[i].taskRule`** 上传 **`isRepeat`**（布尔），服务端落库 **`task_rule.is_repeat`**；详情 **`taskRuleList`** 中 **`isRepeat`** 为整型 `0`/`1`/`null`。
 - **`task_rule.auto_close_on_deadline` / `sync_complete_task`**：是否截止自动关闭、是否同步完成任务（库表 `0`-否，`1`-是，`NULL` 未配置）。创建/更新任务包时可在 **`taskRule` / `tasks[i].taskRule`** 上传 **`autoCloseOnDeadline` / `syncCompleteTask`**（布尔）；详情 **`taskRuleList`** 中 **`TaskRuleDTO`** 对应字段为 **布尔** `true`/`false`/`null`，与 **`is_repeat`**（仍为整型 `0`/`1`/`null`）区分。
 - **`task_rule.completion_judgment_type` / `completion_judgment_config`**：完成判断类型与配置。创建/更新任务包时可在 **`taskRule` / `tasks[i].taskRule`** 上传 **`completionJudgmentType` / `completionJudgmentConfig`**；其中类型枚举与 **`distributionType`** 一致（`CRON/FIXED/IMMEDIATE`），配置结构与 **`distributionConfig`** 一致（Map），服务端落库到 `task_rule` 对应列。
@@ -38,9 +64,10 @@
 - **`task_rule.rule_code`** / **`task_definition.task_code`**：**createPackage** 时由服务端按 **「类型前缀 + yyMMdd + 8 位当日不重复随机码」** 生成，**忽略**请求体中的 **`ruleCode`** / **`taskCode`**。规则：**任务包 GZB**、**子任务 GZR**；任务编码：**任务包 B**、**子任务 R**（示例 `GZB260422087d8ee`、`B260422087d8ey`）。**updatePackage** 保留库中已有编码。
 - **`task_rule.has_action`**：任务包对应规则落库 **0**；每个子 TASK 对应规则与 **`tasks[i].hasAction`** 一致（true→1，false→0）。
 - 在该任务包下创建多个 `TASK` 普通任务（`parent_id = packageId`）；
-- 每个 `TASK` 的 `templateIds` 为 **TEMPLATE 任务定义 ID 数组**，**可不传或传空**；`hasAction=true` 时须传 **且仅能 1 个** id，类型为 `TEMPLATE`。子 TASK 的 **`objectCode`/`objectName` 与任务包顶层 **`objectCode`/`objectName`** 一致（不从模板反查）；绑定模板时仅从模板反填 `taskExecutionType`、`taskExecutionTypeName`、`taskExecutionEventCode`、`systemIds`。
-- 创建 PACKAGE 时：顶层 **`objectCode`、`objectName`** 均必填（与 `task_object_option` 的编码、名称对应）；顶层 **`startTime`/`endTime`** 写入任务包 **`task_definition.start_time`/`end_time`**（可空）；**`updatePackage`** 时同样可更新上述时间字段。
+- 每个 `TASK` 的 `templateIds` 为 **TEMPLATE 任务定义 ID 数组**，**可不传或传空**；`hasAction=true` 时须传 **且仅能 1 个** id，类型为 `TEMPLATE`。子 TASK 的 **`objectCode`/`objectName` 与任务包顶层 **`objectCode`/`objectName`** 一致（不从模板反查）；绑定模板时仅从模板反填 `taskExecutionType`、`taskExecutionTypeName`、`taskExecutionEventCode`、`systemIds`。**`hasAction=false`** 时按请求保存 **`taskExecutionType` / `taskExecutionTypeName`**（可空）。
+- 创建 PACKAGE 时：顶层 **`objectCode`、`objectName`** 均必填（与 `task_object_option` 的编码、名称对应）；顶层 **`startTime`/`endTime`** 写入任务包 **`task_definition.start_time`/`end_time`**（可空）；**`updatePackage`** 时同样可更新上述时间字段。**`taskRule.distributionType=IMMEDIATE`（手动下发）时忽略请求体 `endTime`，任务包 `end_time` 落库为 null**（更新时清掉库中已有值）；子 TASK 的 `endTime` 仍按请求写入。
 - 子 TASK 的 `objectCode`/`objectName` 落库与任务包顶层 **`objectCode`/`objectName`** 相同（请求体中 `tasks[].objectCode`/`objectName` 可忽略）。
+- **顶层 `status`**（**createPackage** / **updatePackage** 可选）：**`1` 启用 / **`0` 停用**；**不传或 `null` 时默认 `1`**，写入任务包及全部子 TASK 的 **`task_definition.status`**；传其他值返回业务错误「status 仅支持 1（启用）或 0（停用）」。前端「仅保存」传 `0`，「保存并启用」传 `1`。
 
 ### 二、接口与请求示例
 
@@ -67,15 +94,21 @@
   - 说明：返回 TASK 详情（含 `conditionDetailList`），并动态生成通用 Groovy 脚本；当传了 `mappedResults` 时会执行脚本并返回布尔结果 `matched`。脚本中非 `OR` 分支支持 **`operator`**：`EQ`、`NE`、`LIKE`、`GT`、`GTE`/`GE`、`LT`、`LTE`/`LE`。**`defaultValue`** 可为 **对象**或 **数组**：**数组长度大于 1** 时按多值（EQ/NE 为实际值是否落在该值集；LIKE 为任一模式命中；数值比较为对列表中任一期望值满足比较）；**长度为 1** 时与单对象一样按单个标量解析。**`LIKE`** 单值模式语义同 SQL：**`%`**、**`_`**；模式不含 `%`、`_` 时按「名称包含」自动补两端 `%`。若 id 非 TASK 类型会返回业务错误。
 - 必填校验（节选）：`taskName`、`objectCode`、`objectName`、`distributionObjectGroupId`、`distributionObjectGroupName`、`distributionTypeCode`、`distributionTypeName`、`taskRule`、`tasks`；上述字符串字段均不可为空串。**`taskRule` 与每个 `tasks[i].taskRule` 均须传 `conditionMode`、`completionType`（非空、非空白串）**，由 Bean Validation（`@NotBlank`）在接口层强校验。
 - 每个 `tasks[i]` 可传 `conditionRepos`：`ConditionRepoDTO` 数组；服务端逐项 `INSERT condition_repo`，将新 id 列表写入对应子 TASK 的 `task_definition.condition_ids`（JSON）；`condition_code` 由服务端生成；`objectType` 可省略，默认与任务包顶层 **`objectCode`** 一致；**`hasAction=true` 时 `conditionRepos` 至少 1 条**；`defaultValue` 可为 **JSON 对象、JSON 数组或 JSON 字符串**，落库仍为 `condition_repo.default_value` 字符串。**`condition_repo.template_id`**：绑定 **COMMON/TEMPORARY** 模板时，取 **`task_template_definition.data_template_ids`** 首元素（`biz_template_config.id`）；绑定 **TARGET** 模板时**不校验 data_template_ids**，**`template_id` 写 null**，条件行直接落库；**`dataTypeDefinition` 未传**时 TARGET 从 **`template_field_ids` JSON** 按 `fieldCode` 匹配 `mappedCol`/`logicalName` 补全。
-- **`conditionRepos[].fieldCode`**（`mapped_col` 语义）：当子 TASK **`hasAction=true`** 且已绑定 **`templateIds`** 时**必填**；**COMMON/TEMPORARY** 须落在 **`template_field_ids`** 关联的 **`biz_template_field_map.mapped_col`** 集合内；**TARGET** 须落在 **`template_field_ids` JSON** 中的 **`mappedCol`**（无则 **`logicalName`**），**不依赖 data_template_ids**（**createPackage** / **updatePackage** 均校验；比对规则 `normalizeMappedColForCompare`）。
+- **`conditionRepos[].fieldCode`**（`mapped_col` 语义）：当子 TASK **`hasAction=true`** 且已绑定 **`templateIds`** 时**必填**；若绑定模板 **已配置 `template_field_ids`**（解析后允许集合非空）：**COMMON/TEMPORARY** 须落在关联的 **`biz_template_field_map.mapped_col`** 集合内；**TARGET** 须落在 **`template_field_ids` JSON** 中的 **`mappedCol`**（无则 **`logicalName`**），**不依赖 data_template_ids**（**createPackage** / **updatePackage** 均校验；比对规则 `normalizeMappedColForCompare`）。**模板未配置 `template_field_ids`（空/无法解析出字段）时跳过本白名单校验**，允许建包/更新。
 - **`conditionRepos[].operator`**（**createPackage** / **updatePackage**）：**必填**，须由请求体显式传递（非空、非仅空白）；**服务端不根据 `defaultValue` 推断或改写**，落库以请求体为准。
 - **`conditionRepos[].operatorName`**（**createPackage** / **updatePackage**）：可选，操作符中文名称（如「大于等于」）；传入则原样写入 `condition_repo.operator_name`，未传保持 null。
 - **`conditionRepos[].dataTypeDefinition`**：可选；请求体传入则原样落库 **`condition_repo.data_type_definition`**；**未传**且 **`fieldCode`** 非空时，服务端按 **`condition_repo.template_id`**（业务模板 id）查询 **`biz_template_field_map`**，若存在 **`mapped_col`** 与 **`fieldCode`** 规范化后一致的首条映射，则将其 **`data_type_definition`** 写入 **`condition_repo`**。
 - **任务包子任务落库 `condition_repo` 前**（**createPackage** 写入新条件行时）：先按条过滤 **`ConditionRepoDTO`**——若某条 **`defaultValue` 经规范化后视为空**（`null`、空/空白串、空数组、空对象、单对象含空 **`value`**、数组剔除空 **`value`** 项后无剩余等），则**不写入该条**；**过滤后 `conditionRepos` 须至少保留 1 条** `ConditionRepoDTO`，否则接口报错。单条内若 **`defaultValue` 为 JSON 数组**，仍会**去掉**其中带 **`value` 键**且 **`value` 为 null 或空串**的元素；**该条**剔除后数组须至少 1 个元素，否则该条整项视为空并丢弃。**`updatePackage`** 子任务条件行与 `condition_ids` **一一对应**，**不能**删条；若某条 **`defaultValue` 无效**则接口报错（提示不可删除条件行）。
-- **`tasks[i].hasAction=true`** 时：**`conditionRepos`** 至少 1 条，且 **`completionScript`** 必填（非空串）；**createPackage** / **updatePackage** 不做 Groovy 语法/关键字合法性校验，原样落库 **`task_definition.completion_script`**。
+- **`tasks[i].hasAction=true`** 时：**`completionScript`** 必填（非空串）；**`conditionRepos`** 在绑定模板**已配置 `template_field_ids`** 时至少 1 条，**模板无字段（空 `template_field_ids`）时可不传**；**createPackage** / **updatePackage** 不做 Groovy 语法/关键字合法性校验，原样落库 **`task_definition.completion_script`**。
+- **`tasks[i]` 反馈配置**（**createPackage** / **updatePackage**，可选，落库子 TASK 的 **`task_definition`**）：
+  - **`feedbackEnabled`**：是否反馈，布尔，默认 **`false`**（未传或 `null` 按 `false` 落库）。
+  - **`feedbackClose`**：反馈关闭，布尔，默认 **`false`**（未传或 `null` 按 `false` 落库）。
+  - **`feedbackOtherRemark`**：反馈其他说明，布尔，默认 **`true`**（未传或 `null` 按 `true` 落库）。
+  - **`feedbackReasons`**：反馈的理由选项，字符串数组，可 null/不传；落库 **`task_definition.feedback_reasons`**（JSON 数组）；空数组或不传时库中为 **null**。
+- **DynamicHttp @ 指令数据源校验**（**createPackage** / **updatePackage**）：对每条子 TASK 的 **`tasks[].completionScript`**，若脚本能被 **`GroovyScriptCustomizationUtils.extractDynamicHttpEndpointId`** 解析出 **`dynamic_http_endpoint.id`**（`@` 行最后一对括号内纯数字，如 **`@smatBi(2)`**），则须反查 **`dynamic_http_endpoint`** 表存在该主键（逻辑删除视为不存在）；不存在则 **`BizException`**，文案含字段路径、**`dynamic_http_endpoint.id=`** 与 **`taskName`**。**不校验** **`tasks[].taskRule.targetConditionScript`**。
 - **同时**存在非空 **`templateIds`**（至少 1 个有效 ID）与非空 **`conditionRepos`**（至少 1 条）时（与 **`hasAction`** 无关），对应 **`tasks[i].completionScript`** 亦必填；**`taskRule` 中不传** `completionScript`（落库 `task_rule` 时该字段为 null）。
 - **任务包下发扩展**（**必填**）：**`distributionObjectGroupId`**、**`distributionObjectGroupName`**、**`distributionTypeCode`**、**`distributionTypeName`**（均不可为空串）；创建成功后写入表 **`task_package_distribution_ext`**，与任务包 **`task_definition.id`**（`task_type=PACKAGE`）**1:1**。详情/列表中 PACKAGE 行在 **`TaskDefinitionDTO.packageDistributionExt`** 中返回完整对象（含扩展表 **`id`**、**`taskPackageDefId`** 及四业务字段）。
-- **任务包全量更新** **`POST /sales/task/definition/updatePackage`**：请求体与 **`createPackage`** 相同结构，并增加 **`id`**（已有任务包 **`task_definition.id`**）；每个 **`tasks[i]`** 须带 **`taskDefId`**（该子 TASK 的 **`task_definition.id`**），且 **`tasks` 条数须与当前任务包下子 TASK 数量一致**（不支持增删子任务，仅全量改内容）。服务端**原地更新**已关联的 **`task_rule`**（同一 **`rule_id`**）、**`task_package_distribution_ext`**、既有 **`condition_repo`**（**`hasAction=true`** 时 **`conditionRepos`** 条数与顺序须与 **`condition_ids` 一致**，按序 **`UPDATE`**，不 `INSERT` 新条件行），并对已存在的 **`task_distribution_detail`** 批量 **`UPDATE`** 冗余字段（任务标题/说明/执行类型/时间/对象等），**不新建**下发明细。
+- **任务包全量更新** **`POST /sales/task/definition/updatePackage`**：请求体与 **`createPackage`** 相同结构，并增加 **`id`**（已有任务包 **`task_definition.id`**）；每个 **`tasks[i]`** 须带 **`taskDefId`**（该子 TASK 的 **`task_definition.id`**），且 **`tasks` 条数须与当前任务包下子 TASK 数量一致**（不支持增删子任务，仅全量改内容）。顶层 **`status`**（1/0，未传默认 1）同步写入任务包及全部子 TASK。服务端**原地更新**已关联的 **`task_rule`**（同一 **`rule_id`**）、**`task_package_distribution_ext`**；**`conditionRepos` 以本次请求为准**：条数与 id 顺序均与历史一致则按序 **`UPDATE condition_repo`**，否则按创建逻辑 **`INSERT`** 并重写子任务 **`condition_ids`**（不再要求与历史条数一致）；模板无字段时允许空条件清空。并对已存在的 **`task_distribution_detail`** 批量 **`UPDATE`** 冗余字段（任务标题/说明/执行类型/时间/对象等），**不新建**下发明细。
 - **`POST /sales/task/definition/update`**（`TaskDefinitionDTO`）：**Body 须带 `id` 与 `taskType`**，用于区分落库表，避免 **`task_definition.id` 与 `task_template_definition.id` 数值相同**时误更新。**`taskType=TEMPLATE`** → 仅更新 **`task_template_definition`**；**`taskType=TASK` 或 `ACTION`** → 仅更新 **`task_definition`**；**`taskType=PACKAGE`** → 返回业务错误，须改用 **`/updatePackage`**。未传 `taskType` 时返回业务错误。
 - 请求 JSON 示例：
 
@@ -85,18 +118,20 @@
   "taskTitle": "3月门店巡检任务包", // 任务包标题（可空，为空时默认同 taskName）
   "taskDescription": "用于按模板批量下发巡检任务", // 任务包说明（可空）
   "startTime": "2026-03-23 09:00:00", // 任务包开始时间（可空）
-  "endTime": "2026-03-31 23:59:59", // 任务包结束时间（可空）
+  "endTime": "2026-03-31 23:59:59", // 任务包结束时间（可空）；taskRule.distributionType=IMMEDIATE 时服务端忽略本字段，任务包 end_time 写 null
   "objectCode": "STORE", // 对象编码（必填）
   "objectName": "门店", // 对象名称（必填）
   "distributionObjectGroupId": "G1001", // 必填：下发对象群ID，落库 task_package_distribution_ext.distribution_object_group_id
   "distributionObjectGroupName": "华东门店群", // 必填：下发对象群名称
   "distributionTypeCode": "CIRCLE", // 必填：下发类型编码
   "distributionTypeName": "圈选下发", // 必填：下发类型名称
+  "taskGroupId": 10001, // 必填（TGR-028）：关联任务组 task_group.id；仅 PACKAGE 落库 task_definition.task_group_id；同步包规则 task_rule.task_group_id；改绑时同步子 TASK 规则
+  "status": 1, // 可选：启用状态 1 启用 / 0 停用；不传默认 1，任务包及子 TASK 均落库 task_definition.status
   "taskRule": { // PACKAGE 对应的 task_rule（必填）
     "ruleName": "任务包规则", // 可忽略：落库 task_rule.rule_name 与任务包 task_definition.task_name 一致
     "targetObjectType": "STORE", // 下发对象类型
     "conditionMode": "FACTOR", // 必填：条件模式 FACTOR/SCRIPT
-    "distributionType": "IMMEDIATE", // 必填；CRON 时从 distributionConfig.cron 解析下次执行时间写入 distributedAt；FIXED 时 distributedAt 必填且需大于当前时间；IMMEDIATE 时 distributedAt=当前时间
+    "distributionType": "IMMEDIATE", // 必填；CRON 时从 distributionConfig.cron 解析下次执行时间写入 distributedAt；FIXED 时 distributedAt 必填且需大于当前时间；IMMEDIATE（手动下发）保存时 distributed_at 为 null、endTime 强制为 null，点击下发时再写 distributed_at
     "distributionConfig": null, // 分发配置（Map）；CRON 场景需传 {"cron":"0 0/5 * * * ?"}
     "completionType": "ACTION_BASED", // 必填：完成类型 ACTION_BASED/OVERALL/SCRIPT_BASED 等
     "completionJudgmentType": "CRON", // 可选：完成判断类型，枚举与 distributionType 一致（CRON/FIXED/IMMEDIATE）
@@ -105,6 +140,12 @@
     "isRepeat": false, // 可选：是否重复下发，落库 task_rule.is_repeat（0/1）；不传则为 null
     "autoCloseOnDeadline": false, // 可选：是否截止自动关闭，落库 task_rule.auto_close_on_deadline（0/1）；不传则为 null
     "syncCompleteTask": false, // 可选：是否同步完成任务，落库 task_rule.sync_complete_task（0/1）；不传则为 null
+    "taskGroupId": null, // 可选（1.4）：请求可忽略；服务端按顶层 taskGroupId 写入 task_rule.task_group_id
+    "completionStandardType": null, // 可选（1.4）：TEMPLATE|CUSTOM|OBJECT_GROUP；不传按 hasAction 推断；包规则通常 CUSTOM
+    "completionObjectGroupId": null, // 可选（1.4）：完成判定对象群 ID，≠ distributionObjectGroupId；仅 OBJECT_GROUP 时必填
+    "completionObjectGroupName": null, // 可选（1.4）：完成判定对象群名称；OBJECT_GROUP 时成对必填
+    "membershipOperator": null, // 可选（1.4）：IN=在群内完成 | NOT_IN=不在群内完成；仅 OBJECT_GROUP 时必填
+    "repeatWindowType": null, // 可选（1.4）：NONE|MONTH|DAYS|LEGACY；与 isRepeat 兼容；不传按 isRepeat 推断
     "distributionObjectGroupId": "G1001", // 可选：省略或空串时沿用顶层 distributionObjectGroupId，落库 task_rule.distribution_object_group_id
     "distributionObjectGroupName": "华东门店群", // 可选：省略或空串时沿用顶层名称，落库 task_rule.distribution_object_group_name
     "taskJudgmentDeadlineType": "RELATIVE", // 可选：任务判断截止时间类型，与 deadlineType 取值一致（RELATIVE/ABSOLUTE）；不传则不校验、不落库类型列
@@ -152,10 +193,20 @@
         }, // 截止配置（Map）
         "completionType": "ACTION_BASED", // 必填：完成类型
         "actionExecutionMode": "ALL", // 执行模式（不在 taskRule 传 completionScript）
-        "distributionObjectGroupId": "G1001", // 可选：与子 TASK 任务包顶层一致时可省略，由服务端回填
-        "distributionObjectGroupName": "华东门店群" // 可选：同上
+        "taskGroupId": null, // 可选（1.4）：请求可忽略；服务端按所属包 task_group_id 写入
+        "completionStandardType": "TEMPLATE", // 可选（1.4）：hasAction=true 时语义等同 TEMPLATE；可显式传并落库
+        "completionObjectGroupId": null, // 完成判定群 ID；TEMPLATE/CUSTOM 时为 null
+        "completionObjectGroupName": null,
+        "membershipOperator": null, // OBJECT_GROUP 时 IN 或 NOT_IN
+        "repeatWindowType": "NONE", // 与 isRepeat=false 对应；isRepeat=true 迁移后为 LEGACY
+        "distributionObjectGroupId": "G1001", // 可选：下发对象群 ID，与子 TASK 任务包顶层一致时可省略，由服务端回填
+        "distributionObjectGroupName": "华东门店群" // 可选：下发对象群名称，同上
       },
       "completionScript": "baseUnitQuantity2>=15\nshopName2=测试2", // 非空时强校验：换行分条，每行 字段名+运算符+值；与模板+conditionRepos 同时存在时必填
+      "feedbackEnabled": true, // 可选：是否反馈，默认 false
+      "feedbackClose": false, // 可选：反馈关闭，默认 false
+      "feedbackOtherRemark": true, // 可选：反馈其他说明，默认 true
+      "feedbackReasons": ["缺货", "门店关闭", "其他"], // 可选：反馈的理由选项（字符串数组），落库 task_definition.feedback_reasons；不传或空数组为 null
       "conditionRepos": [
         {
           "conditionName": "陈列SKU条件", // 必填：条件名称
@@ -187,12 +238,12 @@
       "taskDescription": "按库存模板执行", // TASK 说明（可空）
       "startTime": "2026-03-23T09:00:00", // TASK 开始时间（可空）
       "endTime": "2026-03-31T23:59:59", // TASK 结束时间（可空）
-      "taskExecutionType": "MANUAL", // 执行类型编码（可空）
-      "taskExecutionTypeName": "手动执行", // 执行类型名称（可空）
-      "taskExecutionEventCode": "store_stock_check", // 监听事件编码（可空）
+      "taskExecutionType": "MANUAL", // hasAction=false 时按请求落库执行类型编码
+      "taskExecutionTypeName": "手动执行", // hasAction=false 时按请求落库执行类型名称
+      "taskExecutionEventCode": "store_stock_check", // 监听事件编码（可空；hasAction=false 时本字段不从请求强制写入）
       "objectCode": "STORE", // 可忽略：子 TASK 落库 objectCode 与顶层 objectCode 一致
       "objectName": "门店", // 可忽略：子 TASK 落库 objectName 与顶层 objectName 一致
-      "hasAction": false, // 是否有操作（必填）
+      "hasAction": false, // 是否有操作（必填）；false 时 taskExecutionType/Name 按请求保存
       "taskRule": { // TASK 对应的 task_rule（必填）
         "ruleName": "陈列检查规则", // 可忽略：落库与对应 TASK 的 task_name 一致
         "targetObjectType": "STORE", // 下发对象类型
@@ -204,16 +255,119 @@
           "time": "22:30"
         }, // 截止配置（Map）
         "completionType": "ACTION_BASED", // 必填：完成类型
-        "actionExecutionMode": "ALL" // 执行模式
-      }
+        "actionExecutionMode": "ALL", // 执行模式
+        "taskGroupId": null,
+        "completionStandardType": "OBJECT_GROUP", // 基于对象群完成（1.4）；须同时传 completionObjectGroupId/Name + membershipOperator
+        "completionObjectGroupId": "G2001", // 完成判定群，可与下发群 G1001 不同
+        "completionObjectGroupName": "不在此群则视为完成",
+        "membershipOperator": "NOT_IN", // 目标不在 G2001 内则满足完成判定
+        "repeatWindowType": "LEGACY" // 示例：兼容 isRepeat=1 的判重口径
+      },
+      "feedbackEnabled": false, // 可选：是否反馈，默认 false
+      "feedbackClose": false, // 可选：反馈关闭，默认 false
+      "feedbackOtherRemark": true, // 可选：反馈其他说明，默认 true
+      "feedbackReasons": null // 可选：反馈的理由选项；null 或不传时库中为 null
     }
   ]
+}
+```
+
+- **createPackage 响应**示例：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": 10001 // 新建任务包 task_definition.id（task_type=PACKAGE）
+}
+```
+
+- **updatePackage 请求**补充说明：与上表 **`createPackage`** 请求体同构，并增加顶层 **`id`**（任务包 **`task_definition.id`**）；每个 **`tasks[i].taskDefId`** 必填（对应子 TASK 主键）。**`tasks[i]`** 中反馈四字段语义与创建一致。顶层 **`taskGroupId`** 可改绑；服务端同步包规则与子 TASK 规则的 **`task_group_id`**。
+- **独立创建子任务 `POST /sales/task/definition/createTask`**（TGR-007）：挂到已有任务包；过渡期与 **`createPackage` 内嵌 `tasks[]`** 并存。
+
+```json
+{
+  "taskPackageId": 10001, // 必填：所属任务包 task_definition.id（PACKAGE）
+  "taskName": "陈列检查", // 必填：TASK 名称
+  "taskTitle": "陈列检查", // 可选：H5 标题
+  "taskDescription": "检查陈列标准", // 可选
+  "startTime": "2026-03-23 09:00:00", // 可选
+  "endTime": "2026-03-31 23:59:59", // 可选
+  "taskExecutionType": "MANUAL", // hasAction=false 时按请求落库；绑模板时由模板覆盖
+  "taskExecutionTypeName": "手动执行",
+  "hasAction": true, // 必填
+  "templateIds": [9001], // hasAction=true 时须且仅 1 个 TEMPLATE id
+  "conditionRepos": [], // hasAction=true 时至少 1 条（结构同 createPackage）
+  "completionScript": "baseUnitQuantity2>=15", // hasAction=true 时必填
+  "feedbackEnabled": false,
+  "feedbackClose": false,
+  "feedbackOtherRemark": true,
+  "feedbackReasons": null,
+  "taskRule": {
+    "targetObjectType": "STORE",
+    "conditionMode": "FACTOR",
+    "distributionType": "IMMEDIATE",
+    "completionType": "ACTION_BASED",
+    "deadlineType": "RELATIVE",
+    "deadlineConfig": { "days": 3, "time": "18:00" },
+    "distributionObjectGroupId": "G1001", // 可选；空时回填包扩展表下发群
+    "distributionObjectGroupName": "华东门店群",
+    "completionStandardType": "TEMPLATE", // 可选；不传按 hasAction 推断
+    "completionObjectGroupId": null,
+    "completionObjectGroupName": null,
+    "membershipOperator": null,
+    "repeatWindowType": "NONE",
+    "isRepeat": false
+  }
+}
+```
+
+- **createTask 响应**：`data` 为新建 TASK 的 **`task_definition.id`**。
+- **独立更新子任务 `POST /sales/task/definition/updateTask`**：请求体与 createTask 同构，并增加 **`id`**（已有 TASK id）；**`taskPackageId` 须与库中 `parent_id` 一致**（不允许改挂）。
+- **updatePackage 请求**节选（在 createPackage 示例基础上增加 id / taskDefId）：
+
+```json
+{
+  "id": 10001, // 必填：已有任务包 task_definition.id
+  "taskName": "3月门店巡检任务包",
+  "objectCode": "STORE",
+  "objectName": "门店",
+  "distributionObjectGroupId": "G1001",
+  "distributionObjectGroupName": "华东门店群",
+  "distributionTypeCode": "CIRCLE",
+  "distributionTypeName": "圈选下发",
+  "taskRule": { },
+  "tasks": [
+    {
+      "taskDefId": 10002, // 必填：子 TASK task_definition.id
+      "taskName": "陈列检查",
+      "hasAction": true,
+      "feedbackEnabled": true,
+      "feedbackClose": false,
+      "feedbackOtherRemark": true,
+      "feedbackReasons": ["缺货", "门店关闭", "其他"],
+      "taskRule": { },
+      "completionScript": "baseUnitQuantity2>=15",
+      "conditionRepos": [ ]
+    }
+  ]
+}
+```
+
+- **updatePackage 响应**示例：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
 }
 ```
 
 ### 启用/停用任务定义 `POST /sales/task/definition/updateStatus`
 
 - 说明：更新 **`task_definition.status`** 或 **`task_template_definition.status`**（**1=启用，0=停用**）；先按 **`task_definition.id`** 命中更新，否则按 **`task_template_definition.id`**；均不存在则业务异常。
+- **TGR-012**：`enabled=false` 停用 **PACKAGE** 时关闭该包下全部 **IN_PROGRESS** 明细；停用 **TASK** 时仅关闭该 `task_def_id` 进行中明细；启用不改明细。
 - 请求 JSON 示例：
 
 ```json
@@ -225,7 +379,7 @@
 
 ### 停用任务包并关闭下发明细 `POST /sales/task/definition/disablePackageAndCloseDetails`
 
-- 说明：仅 **`task_type=PACKAGE`**。**同步**完成入参校验后**立即返回**；**异步**在 IO 线程池执行：任务包 **`task_definition.status=0`**，并将 **`task_distribution_detail.task_package_id=id`** 且 **`is_deleted=0`** 的明细 **`status=CLOSED`**（写入 **`final_end_time`**）。关闭条数见应用日志 `closedDetailCount`。
+- 说明：仅 **`task_type=PACKAGE`**。**同步**完成入参校验后**立即返回**；**异步**在 IO 线程池执行：任务包 **`task_definition.status=0`**，并将 **`task_distribution_detail.task_package_id=id`**、**`is_deleted=0`** 且 **`status=IN_PROGRESS`** 的明细 **`status=CLOSED`**（写入 **`final_end_time`**）；**已完成(COMPLETED)、已过期(EXPIRED)、已关闭(CLOSED) 等其它状态明细不更新**。关闭条数见应用日志 `closedDetailCount`。
 - 请求 JSON 示例：
 
 ```json
@@ -249,8 +403,54 @@
 ### 任务定义详情（task_definition 表）`POST /sales/task/definition/detail`
 
 - 请求 Body：`{ "id": 1 }`（`id` 为 **`task_definition.id`**）
-- **当 `taskType=PACKAGE`（任务包）时**：`data` 为 **`TaskDefinitionPackageUpdateRequestDTO`**，与 **`POST /sales/task/definition/createPackage`**、**`POST /sales/task/definition/updatePackage`** 请求体同构（含 **`id`**（任务包 **`task_definition.id`**）、顶层下发扩展四字段、**`taskRule`**（**`distributionConfig` / `deadlineConfig` / `taskJudgmentDeadlineConfig`** 为 **Map**，**`isRepeat`** 为 **Boolean**）、**`tasks[]`**（每项含 **`taskDefId`**、**`hasAction`**、**`taskRule`**、**`conditionRepos`**、**`completionScript`** 等））。子任务顺序为 **`start_time` 升序，再 `id` 升序**。任务包或子任务缺失 **`task_rule`** 关联时抛业务异常。
-- **当 `taskType` 非 PACKAGE 时**：`data` 为 **`TaskDefinitionDTO`**：当前行自身含 `conditionDetailList`、`systemDetailList`、`taskRuleList` 等（与既有约定一致）。**`templateFieldIds` / `templateFieldDetailList`**：仅 **`task_template_definition`** 存字段映射；本接口只查 **`task_definition`**，故二者恒为空列表。**`dataTemplateDetailList`**：当前行及 **`childTaskList`** 子行均为 **`null`**（`task_definition.template_ids` 为任务模板定义 ID，非业务模板）；**仅 `linkedTemplateDefinitionList` 内嵌的模板对象**按 `data_template_ids` 填充 `dataTemplateDetailList`。子 **TASK** 行上 **`packageDistributionExt`** 为 `null`；**`childTaskList`**：`parent_id = id` 且未逻辑删除的子 **`task_definition`**；每个子元素同样填充规则/条件/系统选项；**子行上 `templateFieldDetailList` 恒为空**（字段映射见子项 **`linkedTemplateDefinitionList`** 内嵌的模板详情）。
+- **当 `taskType=PACKAGE`（任务包）时**：`data` 为 **`TaskDefinitionPackageUpdateRequestDTO`**，与 **`POST /sales/task/definition/createPackage`**、**`POST /sales/task/definition/updatePackage`** 请求体同构（含 **`id`**（任务包 **`task_definition.id`**）、顶层下发扩展四字段、**`taskRule`**（**`distributionConfig` / `deadlineConfig` / `taskJudgmentDeadlineConfig`** 为 **Map**，**`isRepeat`** 为 **Boolean**）、**`tasks[]`**（每项含 **`taskDefId`**、**`hasAction`**、**`taskRule`**、**`conditionRepos`**、**`completionScript`**、**`feedbackEnabled` / `feedbackClose` / `feedbackOtherRemark` / `feedbackReasons`** 等））。子任务顺序为 **`start_time` 升序，再 `id` 升序**。任务包或子任务缺失 **`task_rule`** 关联时抛业务异常。
+- **当 `taskType` 非 PACKAGE 时**：`data` 为 **`TaskDefinitionDTO`**：当前行自身含 `conditionDetailList`、`systemDetailList`、`taskRuleList` 等（与既有约定一致）。**`taskType=TASK`** 时另含 **`feedbackEnabled` / `feedbackClose` / `feedbackOtherRemark` / `feedbackReasons`**（与库表 **`task_definition.feedback_*`** 对应；**`feedbackReasons`** 为字符串数组）。**`templateFieldIds` / `templateFieldDetailList`**：仅 **`task_template_definition`** 存字段映射；本接口只查 **`task_definition`**，故二者恒为空列表。**`dataTemplateDetailList`**：当前行及 **`childTaskList`** 子行均为 **`null`**（`task_definition.template_ids` 为任务模板定义 ID，非业务模板）；**仅 `linkedTemplateDefinitionList` 内嵌的模板对象**按 `data_template_ids` 填充 `dataTemplateDetailList`。子 **TASK** 行上 **`packageDistributionExt`** 为 `null`；**`childTaskList`**：`parent_id = id` 且未逻辑删除的子 **`task_definition`**；每个子元素同样填充规则/条件/系统选项及反馈四字段；**子行上 `templateFieldDetailList` 恒为空**（字段映射见子项 **`linkedTemplateDefinitionList`** 内嵌的模板详情）。
+- **PACKAGE 详情响应**节选（`tasks[]` 含反馈字段）：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": 10001,
+    "taskName": "3月门店巡检任务包",
+    "objectCode": "STORE",
+    "tasks": [
+      {
+        "taskDefId": 10002,
+        "taskName": "陈列检查",
+        "hasAction": true,
+        "feedbackEnabled": true,
+        "feedbackClose": false,
+        "feedbackOtherRemark": true,
+        "feedbackReasons": ["缺货", "门店关闭", "其他"],
+        "completionScript": "baseUnitQuantity2>=15",
+        "conditionRepos": [ ],
+        "taskRule": { }
+      }
+    ],
+    "taskRule": { }
+  }
+}
+```
+
+- **TASK 详情响应**节选（`TaskDefinitionDTO` 反馈字段）：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": 10002,
+    "taskType": "TASK",
+    "taskName": "陈列检查",
+    "feedbackEnabled": true,
+    "feedbackClose": false,
+    "feedbackOtherRemark": true,
+    "feedbackReasons": ["缺货", "门店关闭", "其他"]
+  }
+}
+```
 - **`linkedTemplateDefinitionList`**：**当前行**为 **`taskType=TASK`** 且 **`templateIds` 非空**时，按 **`templateIds`**（**`task_template_definition.id`**）顺序逐条拉取模板并 enrich，与模板详情一致；**子任务**上同样填在 **`childTaskList`** 各元素上。无绑定或 ID 不存在时对应项跳过，列表可能短于 `templateIds`。
 
 ### 任务模板详情 `POST /sales/task/template/detail`
@@ -268,7 +468,9 @@
 
 ### 二（补充）、任务定义分页 `POST /sales/task/definition/list`
 
-- 请求 Body（可空对象，空则默认 `page=1`、`pageSize=20`）：除分页外可选 **`taskType`**、**`ids`**、**`taskCode`**、**`taskName`**、**`taskTitle`**、**`objectName`**、**`objectCode`**、**`targetEntityName`**、**`packageId`**、**`taskExecutionType`**、**`status`**、**`taskStatus`** 等（与 `TaskDefinitionPageRequest` 一致）。**`ids`**：可选，按 `id IN (...)` 精确过滤（去重去 null）；`taskType=TEMPLATE` 时作用于模板表 id。**`taskExecutionType`**：可选，**精准匹配**（trim 后与库表 `task_execution_type` 相等）；`taskType=TEMPLATE` 时作用于 `task_template_definition.task_execution_type`，否则作用于 `task_definition.task_execution_type`。
+- 请求 Body（可空对象，空则默认 `page=1`、`pageSize=20`）：除分页外可选 **`taskType`**、**`ids`**、**`taskCode`**、**`taskName`**、**`taskTitle`**、**`objectName`**、**`objectCode`**、**`targetEntityName`**、**`packageId`**、**`taskGroupId`**、**`taskExecutionType`**、**`status`**、**`taskStatus`** 等（与 `TaskDefinitionPageRequest` 一致）。**`ids`**：可选，按 `id IN (...)` 精确过滤（去重去 null）；`taskType=TEMPLATE` 时作用于模板表 id。**`taskGroupId`**：可选，精确匹配 **`task_definition.task_group_id`**（TGR-005 任务规则列表「关联任务组」筛选；组 id 来自 `task_group`；`taskType=TEMPLATE` 时不参与）。**`taskExecutionType`**：可选，**精准匹配**（trim）；`taskType=TEMPLATE` 时作用于模板表；**`taskType=PACKAGE`** 时按子 TASK 的 `task_execution_type`（EXISTS）过滤；其余作用于当前行 `task_definition.task_execution_type`。
+- **TGR-005 前端任务规则列表**：删除「关联任务规则 / 已下发任务包 / 已下发任务数」列；操作外显「任务明细」「编辑」，其余（复制/日志/立即下发）折叠到「…」；「任务明细」跳转同原已下发任务数（`/sales-task/task-detail?taskPackageId=`）；筛选顺序为关联任务组 → 任务类型 → 任务名称 → 任务对象；列表回填 **`taskGroupName`**，展示「关联任务组」列并可跳转 `/sales-task/task-groups?taskGroupId=&groupName=`；「任务类型」列取自 **`childTaskList[0].taskExecutionTypeName`**（子 TASK）。
+- **PACKAGE 列表回填 `childTaskList`**：当前页每个任务包批量查询直接子 TASK（轻量字段：id/编码/名称/执行类型/对象/状态等，不含规则/模板明细），按 `parent_id` 分组写入；并兼容将首个子任务的 `taskExecutionType` / `taskExecutionTypeName` 回填到 PACKAGE 顶层（旧前端可读顶层字段）。
 - 返回：`taskType=TASK` 且 `parentId` 有值时 **`taskPackage`** 为所属任务包明细对象（**`TaskDefinitionDTO`**，由服务端 `buildTaskDefinitionDtoSameAsDetailApi` 组装，**含 `childTaskList` 等**；与 **`POST /sales/task/definition/detail` 在 `id` 为任务包 id 时返回的 `TaskDefinitionPackageUpdateRequestDTO` 形态不同**，列表侧仍为扁平 DTO）；同页多条子任务共用同一 `parentId` 时只查任务包一次。
 - 请求 JSON 示例：
 
@@ -288,17 +490,20 @@
 
 ### 二（补充）、任务定义统计 `POST /sales/task/definition/listStats`
 
-- 作用：从列表接口剥离统计后，按 **`taskType + ids`** 批量查询以下字段：`distributionTaskCount`、`distributionIssuedTaskCount`、`issuedTaskPackageCount`、`completedTaskPackageCount`。
+- 作用：从列表接口剥离统计后，按 **`taskType + ids`** 批量查询以下字段：`distributionTaskCount`、`inProgressTaskCount`、`distributionIssuedTaskCount`、`issuedTaskPackageCount`、`completedTaskPackageCount`。
 - **缓存（Redis）**：缓存 key 由**请求中的 `taskType`（服务端 trim 后大写）与单个 `id`** 唯一确定，实现为 **`RedisConstants.taskDefinitionListStatsKey(taskType, id)`** → **`sls:task:definition:listStats:{taskType}:{id}`**；value 为单条统计 DTO 的 JSON。**默认 30 分钟**过期。批量请求时**逐 id** 命中则用缓存、未命中则只查未命中 id 并回写；Redis 读写异常时**降级为直接查库**（不中断接口）。
 - 请求约束：
   - `taskType` 必填，支持：`PACKAGE` / `TASK` / `ACTION`
   - `ids` 必填，Long 数组；服务端会去重、过滤 null
-- 统计口径：**均排除** `task_distribution_detail.status = CLOSED`（已关闭）的明细；`is_deleted=0`。
-  - `distributionTaskCount` / `distributionIssuedTaskCount`：
-    - `TASK`：按 `task_distribution_detail.task_def_id = id` 统计（`completed` 为 `status=COMPLETED`）
+- 统计口径：`is_deleted=0`。
+  - `distributionTaskCount` / `issuedTaskPackageCount`：**已生成下发数**，**不按 status 过滤**（含 `CLOSED`、`IN_PROGRESS`、`COMPLETED` 等全部状态）。
+  - `inProgressTaskCount`：**进行中条数**，仅 `status=IN_PROGRESS`（不含 `EXPIRED`/`COMPLETED`/`CLOSED`）。
+  - `distributionIssuedTaskCount` / `completedTaskPackageCount`：**完成数**，**排除** `status=CLOSED`；其中完成条数/去重数须 `status=COMPLETED`。
+  - `distributionTaskCount` / `inProgressTaskCount` / `distributionIssuedTaskCount`：
+    - `TASK`：按 `task_distribution_detail.task_def_id = id` 统计（`inProgressTaskCount` 为 `IN_PROGRESS`，`distributionIssuedTaskCount` 为 `COMPLETED`）
     - `PACKAGE`：按 `task_distribution_detail.task_package_id = id` 统计（同上）
     - `ACTION`：固定返回 0（无直接下发明细口径）
-  - `issuedTaskPackageCount` / `completedTaskPackageCount`（任务包维度，`task_package_id + target_entity_code` 去重，不含 CLOSED）：
+  - `issuedTaskPackageCount` / `completedTaskPackageCount`（任务包维度，`task_package_id + target_entity_code` 去重）：
     - `PACKAGE`：包 id = 自身 id
     - `TASK`：包 id = `parent_id`
     - `ACTION`：包 id = 父 TASK 的 `parent_id`
@@ -317,7 +522,9 @@
 ```json
 {
   "taskType": "PACKAGE",
-  "ids": [2001, 2002]
+  "//taskType": "任务类型：PACKAGE / TASK / ACTION，服务端 trim 后大写",
+  "ids": [2001, 2002],
+  "//ids": "任务定义主键列表，去重后按 id 返回统计行"
 }
 ```
 
@@ -328,6 +535,7 @@
   {
     "id": 1001,
     "distributionTaskCount": 56,
+    "inProgressTaskCount": 10,
     "distributionIssuedTaskCount": 23,
     "issuedTaskPackageCount": 40,
     "completedTaskPackageCount": 18
@@ -335,6 +543,7 @@
   {
     "id": 1002,
     "distributionTaskCount": 0,
+    "inProgressTaskCount": 0,
     "distributionIssuedTaskCount": 0,
     "issuedTaskPackageCount": 5,
     "completedTaskPackageCount": 1
@@ -345,9 +554,10 @@
 ### 二（补充2）、清除并重建统计缓存 `POST /sales/task/definition/refreshStatsCache`
 
 - 作用：与 XXL **`refreshTaskDistributionDetailStatusStatsCache`** 一致，手动触发 Redis 统计缓存先删后建。
-- **异步**：`TaskDefinitionService#submitRefreshStatsCaches` 经 **`IOAsyncUtil`** 提交后台任务，HTTP **立即返回**；同步执行体为 **`#refreshStatsCaches`**（XXL Job 仍直接调同步方法）。
+- **部门范围（与 `statusStats` / `statusStatsByListByPackage` 一致）**：受理时根据当前登录人 OP 数据权限解析部门列表；仅删除并重建对应 **`objectCode + owningDepartmentCodes`** 后缀的 Redis key（管理员 / `op.config.enable=false` / 无 `opAccountCode` 时 `owningDepartmentCodes=null`，维护无 `:depts:` 后缀的全量 key）。无部门数据权限时跳过明细 statusStats 刷新，`detailStatusStatsRefreshedCount=0`。
+- **异步**：`TaskDefinitionService#submitRefreshStatsCaches` 在解析部门后经 **`IOAsyncUtil`** 提交后台任务，HTTP **立即返回**；同步执行体为 **`#refreshStatsCaches`**（XXL Job 仍直接调同步方法，**不传** `owningDepartmentCodesForCache`，即全量 key）。
 - 步骤：
-  1. 按 `objectCodes`（trim、去空；未传或全空则 **`STORE`**）依次调用 **`refreshDetailStatusStatsCachesBatch`**，刷新下发明细 **`POST .../statusStats`**、**`POST .../statusStatsByListByPackage`** 对应 Redis；
+  1. 按 `objectCodes`（trim、去空；未传或全空则 **`STORE`**）及解析得到的 `owningDepartmentCodesForCache` 依次调用 **`refreshDetailStatusStatsCachesBatch`**，刷新下发明细 **`POST .../statusStats`**、**`POST .../statusStatsByListByPackage`** 对应 Redis；
   2. **`evictListStatsCacheForLatestDefinitions(listStatsWarmLimitPerType)`** 删除 PACKAGE/TASK 各最近 N 条定义的 listStats key；
   3. **`warmListStatsCacheForLatestDefinitions`** 查库写回 listStats 缓存；步骤 2–3 失败时 `listStatsWarmError` 有值，但不影响步骤 1 已完成的明细缓存刷新。
 
@@ -389,21 +599,23 @@
 | --- | --- | --- | --- |
 | LIST-FUZZ-01 | 列表 taskName / targetEntityName | `POST .../list` 传 `taskName`、`targetEntityName` | `taskName` 命中 `task_name`、`task_title` 或 `task_code` 之一；`targetEntityName` 命中存在对应下发明细的任务定义行 |
 | LIST-IDS-01（新增） | 列表 ids 精确过滤 | `POST .../list` 传 `ids=[id1,id2]`（可混入重复/null） | 仅返回命中 id 的记录；重复/null 被忽略；与其它筛选条件为 AND |
-| LIST-ET-01（回归） | 列表 taskExecutionType 精准 | `POST .../list` 传 `taskExecutionType`（如与库中某条 `task_execution_type` 完全一致） | 仅返回该执行类型编码的行；传错大小写/多余空格（未 trim 一致）则不命中 |
+| LIST-ET-01（回归） | 列表 taskExecutionType 精准 | `POST .../list` 传 `taskExecutionType`（如与库中某条 `task_execution_type` 完全一致） | `taskType=PACKAGE` 时按子 TASK 的 execution_type EXISTS 过滤；其余精准匹配当前行；trim 后相等才命中 |
+| LIST-CHILD-01（新增） | PACKAGE 列表回填子任务 | `POST .../list`，`taskType=PACKAGE`，当前页含有子 TASK 的任务包 | 每条 PACKAGE 的 `childTaskList` 含直接子 TASK（至少含 `taskExecutionType`/`taskExecutionTypeName`）；顶层 `taskExecutionTypeName` 可与首个子任务一致；前端「任务类型」列展示子任务类型 |
 | LIST-DIST-01（回归） | 列表接口不做统计聚合 | `POST .../list` | 接口可正常返回分页数据，统计字段不再作为列表实时聚合结果来源 |
-| LIST-STATS-01（新增） | TASK 统计 | `POST .../listStats`，`taskType=TASK`，`ids=[taskId...]` | 返回每个 id 的 `distributionTaskCount`、`distributionIssuedTaskCount`，以及按任务包维度解析后的 `issuedTaskPackageCount`、`completedTaskPackageCount` |
-| LIST-STATS-02（新增） | PACKAGE 统计 | `POST .../listStats`，`taskType=PACKAGE`，`ids=[pkgId...]` | 四个统计字段按任务包维度正确返回（去重逻辑同历史列表统计） |
-| LIST-STATS-03（新增） | ACTION 统计 | `POST .../listStats`，`taskType=ACTION`，`ids=[actionId...]` | `distributionTaskCount` / `distributionIssuedTaskCount` 为 0；任务包维度统计按「父 TASK 的 parent_id」解析返回 |
-| LIST-STATS-04（回归） | 排除已关闭明细 | 某包下存在 `CLOSED` 与其它状态明细，调用 `listStats` | 四个统计字段均不计入 `CLOSED` 行；停用包并关闭明细后重新查库（或缓存过期后）统计下降 |
+| LIST-STATS-01（新增） | TASK 统计 | `POST .../listStats`，`taskType=TASK`，`ids=[taskId...]` | 返回每个 id 的 `distributionTaskCount`、`inProgressTaskCount`、`distributionIssuedTaskCount`，以及按任务包维度解析后的 `issuedTaskPackageCount`、`completedTaskPackageCount` |
+| LIST-STATS-02（新增） | PACKAGE 统计 | `POST .../listStats`，`taskType=PACKAGE`，`ids=[pkgId...]` | 统计字段按任务包维度正确返回（去重逻辑同历史列表统计）；`inProgressTaskCount` 仅为 `IN_PROGRESS` |
+| LIST-STATS-03（新增） | ACTION 统计 | `POST .../listStats`，`taskType=ACTION`，`ids=[actionId...]` | `distributionTaskCount` / `inProgressTaskCount` / `distributionIssuedTaskCount` 为 0；任务包维度统计按「父 TASK 的 parent_id」解析返回 |
+| LIST-STATS-04（回归） | 已生成 vs 完成统计 | 某包下存在 `CLOSED`、进行中、已完成、已过期明细，调用 `listStats` | `distributionTaskCount`、`issuedTaskPackageCount` **计入** `CLOSED` 行（已生成下发数）；`inProgressTaskCount` **仅计** `IN_PROGRESS`（不含 `EXPIRED`/`CLOSED`/`COMPLETED`）；`distributionIssuedTaskCount`、`completedTaskPackageCount` **不计入** `CLOSED`；停用包并关闭明细后前两字段不变、后两字段可能下降 |
 | LIST-STATS-CACHE-01（回归） | listStats Redis 按 id | 连续两次 `POST .../listStats`，相同 `taskType` 与相同 `ids`（可含多个 id） | 第二次仍返回与第一次一致的各 id 统计行；命中缓存时行为与查库一致；等待超过缓存 TTL 或删除对应 key 后再请求应仍正确（以库为准） |
 | LIST-STATS-JOB-01（回归） | XXL 与 listStats 预热 | 执行 **`refreshTaskDistributionDetailStatusStatsCache`**（见 `task_distribution_detail_test_spec` 用例 6.3） | 内部调用 **`refreshStatsCaches`**；PACKAGE/TASK 各至多 50 条最近 id 的 listStats key 先删后建；随后 **`POST .../listStats`** 带相同 id 应命中缓存 |
-| LIST-STATS-REFRESH-01（新增） | 手动刷新统计缓存（异步） | `POST .../refreshStatsCache`，body `{}` 或 `{"objectCodes":["STORE"]}` | 立即 `code=0`；`objectCodes` 非空；计数均为 null；稍后日志可见 **`refreshStatsCaches 完成`** |
+| LIST-STATS-REFRESH-01（新增） | 手动刷新统计缓存（异步） | `POST .../refreshStatsCache`，body `{}` 或 `{"objectCodes":["STORE"]}` | 立即 `code=0`；`objectCodes` 非空；计数均为 null；稍后日志可见 **`refreshStatsCaches 完成`**；Redis 仅刷新当前登录人部门维度 key（管理员为全量 key） |
 | LIST-PARENT-01（回归） | 列表 TASK 行任务包明细 | `POST .../list` 返回至少一条 `taskType=TASK` 且 `parentId` 指向存在任务包 | 该行的 **`taskPackage`** 非空，且 **`taskPackage.id` = `parentId`**，`taskRuleList`/`packageDistributionExt`/`childTaskList` 等与 **`findById(parentId)` 组装的 `TaskDefinitionDTO`** 一致；**注意**：单查 **`POST .../detail`** 且 **`id` 为任务包** 时 **`data`** 为 **`TaskDefinitionPackageUpdateRequestDTO`**，与列表中的 **`taskPackage`** 结构不同 |
 | PKG-REG-01 | `objectCode` 回归 | 请求体省略 `objectCode` 或传 `""` | 参数校验失败（如提示 objectCode 不能为空） |
 | PKG-REG-02 | 已下线字段 | 请求体仍传历史字段名 `packageTaskSource` 等 | 后端忽略或反序列化丢弃（以实际 Jackson 配置为准） |
 | PKG-REG-03 | `objectName` 回归 | 请求体省略 `objectName` 或传 `""` | 参数校验失败（如提示 objectName 不能为空） |
 | PKG-REG-04 | 下发扩展四字段必填 | 省略或空串 `distributionObjectGroupId` / `distributionObjectGroupName` / `distributionTypeCode` / `distributionTypeName` 任一项 | 参数校验失败（@NotBlank 或业务提示四字段均不能为空） |
 | PKG-REG-05（回归） | createPackage 忽略 ruleCode | `createPackage` 在 **`taskRule`** / **`tasks[].taskRule`** 中传入任意 **`ruleCode`** | 新建 **`task_rule.rule_code`** 为 **GZB/GZR+yyMMdd+8位** 服务端生成，与请求体不一致；**task_code** 为 **B/R+yyMMdd+8位**；**updatePackage** 不修改已有编码 |
+| PKG-REG-05A（回归） | @ 指令 endpointId 须存在 | **`createPackage`** / **`updatePackage`**，某子 TASK **`completionScript`** 含 **`@smatBi(999999)`** 且库中无 **`dynamic_http_endpoint.id=999999`** | **`BizException`**，文案含 **`tasks[].completionScript`**、**`dynamic_http_endpoint.id=999999`** 与 **`taskName`**；id 存在时正常保存 |
 | PKG-REG-06 | 周期时间配置校验 | **`b=日`** 且 **`c`** 含 `25:00`；**`b=周`** 且 **`c`** 含 `星期一`；**`b=月`** 且 **`c`** 非 `DD HH:mm` | `BizException` |
 | PKG-REG-07 | 周期转 cron | 传合法 **`distributionTimeConfig`**，`distributionType` 可省略 | 落库 **`distribution_config.cron`** 非空；**`distributionType=CRON`**；**`distribution_time_config`** 保留 UI 结构 |
 | PKG-REG-08 | cron 解析失败兜底 | 构造非法组合导致内部解析异常（或单测直接调 Converter） | **`distribution_config.cron`** 为 **`0 0 4 * * ?`** |
@@ -414,11 +626,26 @@
 | TPL-REG-05 | 模板类型落库 | `createTemplate` 传 `templateType: "TEMPORARY"` 或 `"COMMON"` | `task_template_definition.template_type` 为大写 **TEMPORARY** 或 **COMMON** |
 | EXE-REG-01 | 执行类型字典 | `GET/POST executionTypeOptions` 返回 `records[]` | 单条仅含 `id`、`taskExecutionType`、`taskExecutionTypeName`，无 `taskExecutionEventCode` |
 | DEF-DET-01 | 模板详情与创建同构 | `POST /sales/task/template/detail`，模板含 `systemIds`、`templateFieldIds`、`dataTemplateIds` | `data` 为 **`TaskTemplateUpdateRequestDTO`**：`systemIds` / `templateFieldIds` / `dataTemplateIds` 与库一致；**无** `systemDetailList`、`templateFieldDetailList`、`dataTemplateDetailList` |
-| PKG-DET-01（回归） | PACKAGE 详情同构 update | `POST /sales/task/definition/detail`，`id` 为任务包 PACKAGE id，其下存在子 TASK | `data` 为 **`TaskDefinitionPackageUpdateRequestDTO`**：含 **`id`**、**`tasks[].taskDefId`**；**`taskRule`/`tasks[].taskRule`** 中 Map 字段为对象而非仅 JSON 字符串；**`tasks[].conditionRepos`** 与库中条件一致；可直接作为 **`updatePackage`**  body 基底（提交前仍须满足更新校验） |
+| PKG-DET-01（回归） | PACKAGE 详情同构 update | `POST /sales/task/definition/detail`，`id` 为任务包 PACKAGE id，其下存在子 TASK | `data` 为 **`TaskDefinitionPackageUpdateRequestDTO`**：含 **`id`**、顶层 **`taskGroupId`**、**`tasks[].taskDefId`**；**`updatePackage` 可改绑 `taskGroupId`** 并回写相关 **`task_rule.task_group_id`**；**`taskRule`/`tasks[].taskRule`** 含 **`taskGroupId`、`completionStandardType`、`repeatWindowType`** 等 1.4 字段；**`tasks[].conditionRepos`** 与库中条件一致；可直接作为 **`updatePackage`** body 基底 |
+| PKG-TG-01（回归） | 创建包关联任务组 | `createPackage` 传已存在 **`taskGroupId`** | 包 **`task_definition.task_group_id`** 落库；包规则 + 子 TASK 规则 **`task_rule.task_group_id`** 同值 |
+| PKG-TG-02（回归） | 改绑任务组 | `updatePackage` 更换 **`taskGroupId`** | 包与全部相关规则 **`task_group_id`** 更新为新组；任务组 detail 的 **`linkedPackageIds`** 随之变化 |
+| TASK-API-01 | 独立创建任务 | `POST /createTask`，必填 **`taskPackageId`** + **`taskRule`** | 返回新 TASK id；`parent_id`=包 id；规则 **`task_group_id`** 取自包 |
+| TASK-API-02 | 独立更新任务 | `POST /updateTask`，**`id`+`taskPackageId`** 须匹配库中挂载 | 原地更新 TASK/规则；不允许改挂任务包 |
+| TASK-API-03 | OBJECT_GROUP 校验 | `createTask`/`createPackage` 传 **`completionStandardType=OBJECT_GROUP`** 但缺群或运算符 | **`BizException`** |
+| PKG-FB-01（回归） | 子 TASK 反馈配置落库 | `createPackage`，某 **`tasks[i]`** 传 **`feedbackEnabled=true`**、**`feedbackReasons=["缺货","其他"]`** | 创建成功；对应子 TASK **`task_definition.feedback_enabled=1`**、**`feedback_reasons`** 为 JSON 数组；**`POST .../detail`** 回显同值 |
+| PKG-FB-02（回归） | 反馈字段默认值 | `createPackage`，某 **`tasks[i]`** 不传反馈四字段 | 对应子 TASK **`feedback_enabled=0`**、**`feedback_close=0`**、**`feedback_other_remark=1`**、**`feedback_reasons` 为 null** |
+| PKG-STATUS-01（回归） | status 默认启用 | `createPackage`，不传顶层 **`status`** | 任务包及全部子 TASK **`task_definition.status=1`** |
+| PKG-STATUS-02（回归） | status 创建停用 | `createPackage`，传 **`status=0`** | 任务包及全部子 TASK **`task_definition.status=0`** |
+| PKG-STATUS-03（回归） | status 非法值 | `createPackage`，传 **`status=2`** | **`BizException`**：status 仅支持 1（启用）或 0（停用） |
+| PKG-STATUS-04（回归） | updatePackage 同步 status | `updatePackage`，传 **`status=0`** / **`status=1`** | 任务包及全部子 TASK **`task_definition.status`** 同步为请求值；不传则按默认 **1** |
+| PKG-FB-03（回归） | updatePackage 更新反馈 | `updatePackage`，修改 **`tasks[i].feedbackReasons`** | 子 TASK 库表与详情回显同步更新；已存在下发明细 **`feedback_reason`** 不受影响（用户侧写入字段，非冗余同步字段） |
 | PKG-DET-02 | 详情非 PACKAGE | `POST /sales/task/definition/detail`，`id` 为 TASK/ACTION 等 | `data` 为 **`TaskDefinitionDTO`**；含 `childTaskList`/`taskRuleList` 等既有结构 |
 | DEF-DET-02 | 详情 TASK 绑定模板 | `POST /sales/task/definition/detail`，`id` 为独立 TASK 且 `template_ids` 非空 | 根节点 `linkedTemplateDefinitionList` 按 `templateIds` 顺序含对应 `task_template_definition` enrich 结果（含 `templateFieldDetailList`/`dataTemplateDetailList` 等） |
 | STA-01 | 启用停用 | `POST /sales/task/definition/updateStatus`，`enabled: true/false` | 对应表行 `status` 为 1 或 0；id 不存在时报错 |
-| STA-02 | 停用包并关闭明细（异步） | `POST /sales/task/definition/disablePackageAndCloseDetails`，`id` 为 PACKAGE | 立即返回 `packageId`，`closedDetailCount=null`；稍后任务包 `status=0`、明细 `CLOSED`；日志可见状态统计缓存刷新与 listStats 预热 |
+| STA-02 | 停用包并关闭进行中明细（异步） | `POST /sales/task/definition/disablePackageAndCloseDetails`，`id` 为 PACKAGE | 立即返回 `packageId`，`closedDetailCount=null`；稍后任务包 `status=0`、仅 **IN_PROGRESS** 明细变 `CLOSED`；**COMPLETED/EXPIRED** 等保持不变；日志可见状态统计缓存刷新与 listStats 预热 |
+| STA-03（TGR-012） | 停用子 TASK 关明细 | `updateStatus`，`id`=TASK，`enabled=false` | 仅该 `task_def_id` 的 IN_PROGRESS→CLOSED；同包其他 TASK 明细不变 |
+| STA-04（TGR-012） | 任务组停用关组下包明细 | `POST /sales/task/group/update`，`status=0` | 组下各 PACKAGE 进行中明细关闭；组 id≠包 id |
+| INST-01（TGR-014） | 实例列表按 taskDefId/taskGroupId | `POST .../task/instance/list`，`taskDefId` 或 `taskGroupId`（组 id 来自 task_group） | 解析 rule_id 后分页；多条件取交集；组 id ≠ PACKAGE id |
 | TPL-DET-01 | 模板详情 dataTemplateIds | `id` 为 `task_template_definition.id` 且 `data_template_ids` 含有效 `biz_template_config.id` | 响应 `data.dataTemplateIds` 与库表一致；**无** `dataTemplateDetailList` 字段 |
 
 ### 四、固定类型创建模板接口（TEMPLATE）
@@ -567,7 +794,10 @@
 
 - 用例2b：TASK hasAction=false 可不传 templateIds
   - 入参：`hasAction=false`，不传 `templateIds` 或 `templateIds=[]`
-  - 预期：创建成功，对应 `TASK` 不落库 `template_ids`（或为空）
+  - 预期：创建成功，对应 `TASK` 不落库 `template_ids`（或为空）；若传 `taskExecutionType`/`taskExecutionTypeName` 则 trim 后落库
+- 用例2b-1（回归）：TASK hasAction=false 保存执行类型
+  - 入参：`hasAction=false`，`taskExecutionType="MANUAL"`，`taskExecutionTypeName="手动执行"`（createPackage / updatePackage）
+  - 预期：`task_definition.task_execution_type=MANUAL`，`task_execution_type_name=手动执行`
 
 - 用例2c：TASK 提交 conditionRepos
   - 入参：某 `tasks[i].conditionRepos` 为含 1 条及以上合法 `ConditionRepo` 结构（含 `conditionName`、`operator`（非空）；`operatorName` 可选；`objectType` 可省略）
@@ -644,8 +874,8 @@
   - 预期：创建成功，且该规则的 `distributed_at` 被写入为 cron 下次执行时间（解析结果非空）
 
 - 用例9：PACKAGE 的 distributionType=IMMEDIATE
-  - 入参：`taskRule.distributionType=IMMEDIATE`
-  - 预期：创建成功，且该规则的 `distributed_at` 被写入为当前系统时间
+  - 入参：`taskRule.distributionType=IMMEDIATE`，顶层可带 `endTime`，`taskRule.distributedAt` 可传任意值
+  - 预期：创建成功；任务包 **`task_definition.distributed_at` 为 null**（保存不写当前时间，点击下发时由 `assertTaskPackagesNotBusyForCrowdSync` 写成 now-1 分钟）；任务包 **`end_time` 为 null**（请求体 `endTime` 被忽略）。**`updatePackage`** 为 IMMEDIATE 时不改已有 **`distributed_at`**，并把 **`end_time` 更新为 null**
 
 - 用例9b：PACKAGE 的 distributionType=FIXED 但 distributedAt 缺失
   - 入参：`taskRule.distributionType=FIXED` 且 `taskRule.distributedAt=null`
@@ -714,4 +944,39 @@
   - 前置：存在任务包 id，其 `task_status=IN_PROGRESS`
   - 入参：`POST /sales/task/definition/updatePackage`，携带顶层 **`id`**（任务包 `task_definition.id`）与对应 `tasks[i].taskDefId`（内容可为任意）
   - 预期：接口报错，事务回滚；不更新该任务包及其关联的 `task_rule`、`task_package_distribution_ext`、`condition_repo`、已存在的 `task_distribution_detail` 冗余字段
+
+## childrenList 按任务组展开
+
+- 接口：`POST /sales/task/definition/childrenList`
+- 请求示例：
+
+```json
+{
+  "parentId": 1001, // 父任务包 id；aggregationFilter=TASK_GROUP 时也可传任务组 id
+  "taskType": "TASK", // 任务类型筛选，不传时 TASK_GROUP 分支默认 TASK
+  "isDeleted": 0, // 是否删除：0 未删除；不传则按表逻辑删除默认过滤
+  "taskExecutionType": "VISIT", // 可选，任务执行类型编码精准匹配
+  "aggregationFilter": "TASK_GROUP" // 可选；不传保持按 parentId 查直接子任务；TASK_GROUP 或 PACKAGE 时返回该任务组下全部相关 TASK
+}
+```
+
+- 用例 CL-01：不传 aggregationFilter，行为与改造前一致
+  - 前置：任务包 A、B 同属一个任务组；A 下有 TASK-A1，B 下有 TASK-B1
+  - 入参：`parentId=A.id`，不传 `aggregationFilter`
+  - 预期：仅返回 TASK-A1（`parent_id=A.id`），不含 TASK-B1
+
+- 用例 CL-02：aggregationFilter=TASK_GROUP，parentId 为任务包
+  - 前置：同 CL-01，包 A/B 的 `task_group_id` 均为 G
+  - 入参：`parentId=A.id`，`aggregationFilter=TASK_GROUP`
+  - 预期：返回 TASK-A1 与 TASK-B1（组内全部 PACKAGE 下的 TASK），元素为 `TaskDefinitionDTO`，按 id 倒序
+
+- 用例 CL-03：aggregationFilter=TASK_GROUP，parentId 为任务组 id
+  - 前置：同 CL-01
+  - 入参：`parentId=G`（`task_group.id`），`aggregationFilter=TASK_GROUP`
+  - 预期：同 CL-02
+
+- 用例 CL-04：任务包未关联任务组
+  - 前置：包 A 的 `task_group_id` 为空
+  - 入参：`parentId=A.id`，`aggregationFilter=TASK_GROUP`
+  - 预期：回退现状，仅返回 A 的直接子任务
 

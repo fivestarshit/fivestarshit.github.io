@@ -100,6 +100,13 @@
     "d": "18:00"
   },
   "//completionTimeConfig": "可选：完成周期时间配置，与 taskRule.completionTimeConfig 结构一致（a/b/c/d）；模板侧仅存储与回显，不做 cron 解析",
+  "taskJudgmentDeadlineType": "AFTER_TASK_DEADLINE",
+  "//taskJudgmentDeadlineType": "可选：判断截止类型；空/不传=任务截止时间；AFTER_TASK_DEADLINE=任务截止时间后 N 天；落库 task_template_definition.task_judgment_deadline_type",
+  "taskJudgmentDeadlineConfig": {
+    "days": 3,
+    "time": "18:00"
+  },
+  "//taskJudgmentDeadlineConfig": "可选：判断截止配置；AFTER_TASK_DEADLINE 时须含 days（非负整数）+ time（HH:mm）；落库 task_template_definition.task_judgment_deadline_config；模板侧仅存储回显",
   "templateFieldIds": [
     {
       "id": 4, 
@@ -121,10 +128,10 @@
       "groupName": "销售拜访路线",
       "//groupName": "可选：分组名称（与数据字典维度分组 groupName 对齐），写入 template_field_ids JSON",
       "dataTypeDefinition": "STRING",
-      "//dataTypeDefinition": "可选：数据类型定义（NUMBER/STRING/BOOLEAN/DATE，与 biz_template_field_map.data_type_definition 一致）；创建/更新时服务端在校验通过后以库为准写入 template_field_ids JSON，请求传入值会被覆盖"
+      "//dataTypeDefinition": "可选：数据类型定义（NUMBER/STRING/BOOLEAN/DATE/EX，与 biz_template_field_map.data_type_definition 一致；EX 表示表达式）；创建/更新时服务端在校验通过后以库为准写入 template_field_ids JSON，请求传入值会被覆盖"
     }
   ]
-  ,"//templateFieldIds": "必填：字段映射数组，不能为空；每项 id 须为 dataTemplateIds[0] 对应 biz_template_config 下已绑定的 biz_template_field_map.id，且 mappedCol 与库表 mapped_col 一致；对象整体 JSON 落库 template_field_ids（含 fieldStandardCode/fieldStandardName/groupCode/groupName 等可选扩展字段，及服务端回填的 dataTypeDefinition）"
+  ,"//templateFieldIds": "COMMON/TEMPORARY 必填非空：每项 id 须为 dataTemplateIds[0] 对应 biz_template_config 下已绑定的 biz_template_field_map.id，且 mappedCol 与库表 mapped_col 一致；对象整体 JSON 落库 template_field_ids（含 fieldStandardCode/fieldStandardName/groupCode/groupName 等可选扩展字段，及服务端回填的 dataTypeDefinition）。TARGET 时可空/不传/空数组"
 }
 ```
 
@@ -135,15 +142,21 @@
   - **templateFieldIds**：非空；每项 **`id`** 须存在且未删除，**`template_id`** = **`dataTemplateIds[0]`**，**`mappedCol`** 与库一致。
 - **templateType=TARGET**（目标模板）：
   - **dataTemplateIds**：须为空或不传；若传非空列表则业务错误「TARGET 类型模板不需填写 dataTemplateIds」。
-  - **templateFieldIds**：非空；每项 **dataTypeDefinition 必填**，仅允许 **NUMBER / STRING / BOOLEAN / DATE**（忽略大小写，落库大写）；**id 可空**（无 id 时以请求 JSON 落库）；可选 **operatorCode**（如 `<=`）、**operatorName**（如「小于等于」）原样写入 JSON；若传 **id** 仅校验映射行存在且未删除，**不以库覆盖 dataTypeDefinition**；**不校验** `template_id` 绑定与 **mappedCol**。
+  - **templateFieldIds**：可空/不传/空数组（落库空列表）；若非空则每项 **dataTypeDefinition 必填**，仅允许 **NUMBER / STRING / BOOLEAN / DATE / EX**（忽略大小写，落库大写；EX 表示表达式）；**id 可空**（无 id 时以请求 JSON 落库）；可选 **operatorCode**（如 `<=`）、**operatorName**（如「小于等于」）原样写入 JSON；若传 **id** 仅校验映射行存在且未删除，**不以库覆盖 dataTypeDefinition**；**不校验** `template_id` 绑定与 **mappedCol**。
   - **COMMON/TEMPORARY**：若误传 operatorCode/operatorName，服务端保存前会清空，不落库。
   - **taskExecutionEventCode**：落库取自请求 **taskExecutionType**（可空）。
+  - **用例：TARGET 无字段映射**：`templateType=TARGET` 且不传 / 传 `[]` `templateFieldIds` → 创建/更新成功，`template_field_ids` 为空列表落库。
+  - **用例：COMMON/TEMPORARY 仍强制非空**：`templateType=COMMON` 且 `templateFieldIds` 为空 → 业务错误「templateFieldIds 不能为空」。
 - **templateFieldIds（COMMON/TEMPORARY 补充）**：已逻辑删除（`is_deleted=1`）则拒绝。
 - **fieldStandardCode / fieldStandardName / groupCode / groupName**：可选；由调用方传入时原样写入 **`task_template_definition.template_field_ids`** 的 JSON 对象中，服务端不做与 `biz_template_field_map` 或数据字典的交叉校验。
 - **dataTypeDefinition**：可选；**创建/更新**时服务端在 **`validateTemplateFieldRefsForBizTemplate`** 校验通过后，以 **`biz_template_field_map.data_type_definition`**（与 `BizTemplateFieldMapDTO` 一致）写回每条 ref 并落库 JSON，**请求传入值以库为准覆盖**。**详情**查询时在 **`fillTemplateFieldDetailList`** 后合并到 `templateFieldIds`（含历史纯数字 id 数组落库时，会按 id 顺序补全带 `mappedCol`、`dataTypeDefinition` 的对象列表至领域 DTO，便于与 `templateFieldDetailList` 对齐）。
 - **mappedCol**：请求值与库表 **`mapped_col`** 须一致（null/空白按空串比较，非空则去首尾空格后比较）；不一致时返回业务错误并带出 fieldMapId 与请求/库中值。
 - **completionScript**：可空；非空时调用 **`GroovyScriptSecurityUtils.validateGroovyExpression`**（关键字/高风险片段校验）；通过后落库 **`task_template_definition.completion_script`**。**createTemplate** 与 **updateTemplate** 均相同处理。
 - **completionTimeConfig**：可空；结构与 **`taskRule.completionTimeConfig`** 一致（`a/b/c/d`），模板侧仅做原样存储到 **`task_template_definition.completion_time_config`** 并在 detail/findById 回显，不做 cron 解析或业务计算。
+- **taskJudgmentDeadlineType / taskJudgmentDeadlineConfig**：可空；语义对齐 **`task_rule.task_judgment_deadline_*`**（TGR-010）。
+  - 类型为空/不传：清空两字段落库（前端「任务截止时间」）。
+  - 类型为 **`AFTER_TASK_DEADLINE`**：config 须含 **`days`**（非负整数）+ **`time`**（如 `HH:mm`），落库 **`task_template_definition.task_judgment_deadline_type/config`**；detail/findById/pageList 回显。
+  - 其他类型拒绝。模板侧不做时间点解析，不写 `task_rule`。
 
 ### 2.3 返回结果示例
 
@@ -236,6 +249,13 @@
     "d": "18:00"
   },
   "//completionTimeConfig": "可选：完成周期时间配置，结构与 taskRule.completionTimeConfig 一致，模板侧仅存储回显",
+  "taskJudgmentDeadlineType": "AFTER_TASK_DEADLINE",
+  "//taskJudgmentDeadlineType": "可选：判断截止类型；空=任务截止时间；AFTER_TASK_DEADLINE=任务截止后 N 天",
+  "taskJudgmentDeadlineConfig": {
+    "days": 3,
+    "time": "18:00"
+  },
+  "//taskJudgmentDeadlineConfig": "可选：AFTER_TASK_DEADLINE 时须含 days+time；模板侧仅存储回显",
   "templateFieldIds": [
     {
       "id": 4,
@@ -344,6 +364,13 @@
       "d": "18:00"
     },
     "//completionTimeConfig": "完成周期时间配置（与 taskRule.completionTimeConfig 同结构，模板侧仅存储回显）",
+    "taskJudgmentDeadlineType": "AFTER_TASK_DEADLINE",
+    "//taskJudgmentDeadlineType": "判断截止类型；空=任务截止时间；AFTER_TASK_DEADLINE=任务截止后 N 天",
+    "taskJudgmentDeadlineConfig": {
+      "days": 3,
+      "time": "18:00"
+    },
+    "//taskJudgmentDeadlineConfig": "判断截止配置；AFTER_TASK_DEADLINE 为 {days,time}",
     "templateFieldIds": [
       {
         "id": 101,
@@ -376,15 +403,51 @@
 
 - `id` 不存在或已逻辑删除：`data` 为 `null`。
 - `id` 存在：`data` 中 **`dataTemplateIds` / `conditionIds` / `systemIds` / `templateFieldIds`** 与库表及 **§2.1** 语义一致；**无** `taskCode`、`taskRuleList` 等 create 未包含的字段。
+- **用例：判断截止 AFTER_TASK_DEADLINE 回显**：create/update 写入 `taskJudgmentDeadlineType=AFTER_TASK_DEADLINE` 与 `{days,time}` 后，detail/findById 原样返回；库表 **`task_template_definition.task_judgment_deadline_type/config`** 非空。
+- **用例：判断截止选「任务截止时间」**：type/config 不传或传 null → 库表两字段为 NULL；再次 update 可清空已有 AFTER_TASK_DEADLINE。
 
 ---
 
-## 5. 任务定义详情（detail，任务模板关联回显）
+## 5. 删除任务模板（delete）
+
+- 接口：`POST /sales/task/template/delete`
+- 说明：按 `task_template_definition.id` **逻辑删除**模板（`is_deleted=1`），**不**删除关联 `task_rule`、`task_instance`。**不会**误删同 id 的 `task_definition` 记录（与 `POST /sales/task/definition/delete` 区分）。
+
+### 5.1 请求参数示例
+
+```json
+{
+  "id": 123,
+  "//id": "必填：任务模板主键 task_template_definition.id"
+}
+```
+
+### 5.2 返回结果示例
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+### 5.3 回归校验点
+
+- **用例**：`id` 存在 → 逻辑删除成功，库中 `is_deleted=1`；列表/detail 默认查不到该模板；关联 `task_rule`、`task_instance` **仍保留**。
+- **用例**：`id` 已逻辑删除 → 与不存在相同，业务错误。
+- **用例**：`id` 不存在 → 业务错误：`任务模板定义不存在（task_template_definition），id=xxx`。
+- **用例**：`id` 为空或未传 → 业务错误：`id 不能为空`。
+- **用例**：传入 `task_definition.id`（非模板表记录）→ 业务错误（模板不存在）。
+
+---
+
+## 6. 任务定义详情（detail，任务模板关联回显）
 
 - 接口：`POST /sales/task/definition/detail`
 - 说明：该路由位于 `TaskDefinitionController#detail`，用于查询统一任务定义详情；当记录为 `PACKAGE` 时，响应 `data` 为 `TaskDefinitionPackageUpdateRequestDTO`（与 `createPackage/updatePackage` 同构，便于回显编辑）；非 `PACKAGE` 时返回 `TaskDefinitionDTO`。
 
-### 5.1 请求参数示例
+### 6.1 请求参数示例
 
 ```json
 {
@@ -393,7 +456,7 @@
 }
 ```
 
-### 5.2 响应结果示例（PACKAGE）
+### 6.2 响应结果示例（PACKAGE）
 
 ```json
 {
@@ -429,7 +492,7 @@
 }
 ```
 
-### 5.3 响应结果示例（非 PACKAGE）
+### 6.3 响应结果示例（非 PACKAGE）
 
 ```json
 {
@@ -455,7 +518,7 @@
 }
 ```
 
-### 5.4 回归校验点
+### 6.4 回归校验点
 
 - `id` 为 `PACKAGE` 时：`data` 形态应为 `TaskDefinitionPackageUpdateRequestDTO`（含 `tasks[].taskDefId`、`taskRule`、下发扩展字段）。
 - `id` 为 `TASK/ACTION` 时：`data` 形态应为 `TaskDefinitionDTO`，且模板关联通过 `linkedTemplateDefinitionList` 返回。
