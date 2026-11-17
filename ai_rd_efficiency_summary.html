@@ -506,19 +506,22 @@
     .ops-chip.rule { border-color: rgba(34,211,238,.3); color: var(--accent-2); background: rgba(34,211,238,.06); }
     .ops-flow-wrap { overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
     .ops-flow {
-      display: flex; align-items: stretch; gap: 0; min-width: 720px;
-      position: relative; padding: 8px 0 28px;
+      display: flex; align-items: stretch; gap: 34px; min-width: 0;
+      position: relative; padding: 8px 2px 16px;
     }
     .ops-phase {
       flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center;
       position: relative;
     }
     .ops-phase:not(:last-child)::after {
-      content: '→'; position: absolute; right: -6px; top: 50%; transform: translateY(-50%);
-      color: var(--text-dim); font-size: 1rem; z-index: 2;
+      content: '→';
+      position: absolute; right: -34px; top: 46%;
+      width: 34px; text-align: center; transform: translateY(-50%);
+      color: rgba(148,163,184,.55); font-size: 1.05rem; line-height: 1;
+      z-index: 2; pointer-events: none;
     }
     .ops-phase-box {
-      width: 100%; max-width: 118px; padding: 10px 8px; border-radius: 10px; text-align: center;
+      width: 100%; max-width: none; padding: 12px 8px; border-radius: 10px; text-align: center;
       border: 1px solid var(--border); background: rgba(255,255,255,.02);
     }
     .ops-phase-box.h { border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.06); }
@@ -559,10 +562,51 @@
     }
     .ops-out-item strong { display: block; font-size: 0.78rem; color: var(--accent-4); margin-bottom: 4px; }
     .ops-out-item span { font-size: 0.68rem; color: var(--text-dim); }
-    @media (max-width: 760px) {
-      .ops-flow { min-width: 640px; }
-      .ops-phase-box { max-width: 100px; padding: 8px 6px; }
+    @media (max-width: 900px) {
+      .ops-flow { min-width: 720px; }
       .ops-phase-box strong { font-size: 0.66rem; }
+    }
+    .live-flow.is-playing .ops-phase-box { opacity: 0.38; filter: saturate(0.7); transition: opacity .35s, transform .35s, box-shadow .35s, border-color .35s; }
+    .live-flow .ops-phase-box.is-hot {
+      opacity: 1; filter: none; transform: translateY(-3px);
+      box-shadow: 0 0 0 1px rgba(34,211,238,.45), 0 10px 28px rgba(34,211,238,.18);
+    }
+    .live-flow.is-playing .ops-phase.is-hot:not(:last-child)::after { color: #67e8f9; text-shadow: 0 0 10px rgba(34,211,238,.8); }
+    .live-flow .ops-phase.is-back .ops-phase-box { border-color: rgba(248,113,113,.7); }
+    .live-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin: 0 0 12px; flex-wrap: wrap;
+    }
+    .live-now {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #67e8f9;
+    }
+    .live-controls { display: flex; gap: 8px; }
+    .live-play {
+      border: 1px solid rgba(34,211,238,.45); background: rgba(34,211,238,.14); color: #67e8f9;
+      border-radius: 999px; padding: 7px 16px; font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; letter-spacing: 0.02em;
+    }
+    .live-play:hover { background: rgba(34,211,238,.22); }
+    .live-play:disabled { opacity: 0.65; cursor: default; }
+    .live-track {
+      position: relative; height: 3px; margin: 6px 8px 14px; border-radius: 99px;
+      background: rgba(148,163,184,.15); overflow: hidden;
+    }
+    .live-track i {
+      position: absolute; top: 0; bottom: 0; width: 18%; border-radius: 99px;
+      background: linear-gradient(90deg, transparent, #22d3ee, #a5b4fc);
+      left: 0; transition: left .55s ease;
+    }
+    .live-flow.is-looping .live-track i { background: linear-gradient(90deg, transparent, #fb7185, #fbbf24); }
+    .live-caption {
+      min-height: 3.2em; margin: 0 0 14px; padding: 10px 14px; border-radius: var(--radius-sm);
+      background: rgba(34,211,238,.06); border: 1px solid rgba(34,211,238,.18);
+      font-size: 0.82rem; color: var(--text-muted); line-height: 1.6;
+    }
+    .live-caption strong { color: var(--text); }
+    .live-flow.is-looping .live-caption { background: rgba(248,113,113,.06); border-color: rgba(248,113,113,.28); }
+    @media (prefers-reduced-motion: reduce) {
+      .live-flow.is-playing .ops-phase-box, .live-track i { transition: none; }
     }
     footer { text-align: center; padding: 32px 0; font-size: 0.78rem; color: var(--text-dim); border-top: 1px solid var(--border); margin-top: 40px; }
     .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
@@ -1542,9 +1586,9 @@
 
       <h3 id="ai-ops-diagram">AI Agent 协作运作图</h3>
       <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:14px">
-        一图看清<strong>开发者 ↔ Cursor Agent</strong>如何围绕任务清单运转：上方为输入上下文，中间为<strong>按 TGR/TPS id 的单任务闭环</strong>，下方为每次迭代产出；验证不通过则 pending 回环，不标记 completed。
+        点一次「演示一遍」，高亮会把这条任务走完。联调没过时亮点退回编码，<code>status</code> 保持 pending。
       </p>
-      <div class="card agent-ops">
+      <div class="card agent-ops live-flow" id="liveFlow">
         <div class="agent-ops-title">① 输入 · Context</div>
         <div class="ops-chips">
           <span class="ops-chip doc">PRD / Bug</span>
@@ -1556,56 +1600,57 @@
         </div>
 
         <div class="agent-ops-title">② 协作运作 · 单任务闭环</div>
-        <div class="ops-tracks-legend">
-          <span><i class="ops-legend-dot h"></i>开发者 @武鹏君</span>
-          <span><i class="ops-legend-dot a"></i>Cursor Agent</span>
-          <span><i class="ops-legend-dot b"></i>人机协同</span>
+        <div class="live-bar">
+          <div class="ops-tracks-legend" style="margin:0">
+            <span><i class="ops-legend-dot h"></i>开发者</span>
+            <span><i class="ops-legend-dot a"></i>Cursor Agent</span>
+            <span><i class="ops-legend-dot b"></i>人机协同</span>
+          </div>
+          <span class="live-now" id="liveNow">待演示</span>
+          <button type="button" class="live-play" id="livePlay">演示一遍</button>
         </div>
         <div class="ops-flow-wrap">
-          <div class="ops-flow">
-            <div class="ops-phase">
+          <div class="ops-flow" id="liveNodes">
+            <div class="ops-phase" data-step="0">
               <div class="ops-phase-label">P1</div>
-              <div class="ops-phase-box h"><strong>确认范围</strong><span>PRD · acceptance</span></div>
-              <div class="ops-phase-box a"><strong>读上下文</strong><span>代码 · spec · DDL</span></div>
+              <div class="ops-phase-box h" data-beat="0"><strong>确认范围</strong><span>PRD · acceptance</span></div>
+              <div class="ops-phase-box a" data-beat="1"><strong>读上下文</strong><span>代码 · spec · DDL</span></div>
             </div>
-            <div class="ops-phase">
+            <div class="ops-phase" data-step="1">
               <div class="ops-phase-label">P2</div>
-              <div class="ops-phase-box both"><strong>方案 &amp; YAML</strong><span>TGR-004 等拆分</span></div>
+              <div class="ops-phase-box both" data-beat="2"><strong>方案 &amp; YAML</strong><span>按 id 拆 acceptance</span></div>
             </div>
-            <div class="ops-phase">
+            <div class="ops-phase" data-step="2">
               <div class="ops-phase-label">P3</div>
-              <div class="ops-phase-box h"><strong>Review 清单</strong><span>审批 id 顺序</span></div>
-              <div class="ops-phase-box h"><strong>@ spec + Rules</strong><span>手动注入上下文</span></div>
+              <div class="ops-phase-box h" data-beat="3"><strong>Review 清单</strong><span>确认 id 顺序</span></div>
+              <div class="ops-phase-box h" data-beat="4"><strong>@ spec + Rules</strong><span>手动带上上下文</span></div>
             </div>
-            <div class="ops-phase">
+            <div class="ops-phase" data-step="3">
               <div class="ops-phase-label">P4</div>
-              <div class="ops-phase-box a"><strong>按 id 编码</strong><span>Service · Job · Mapper</span></div>
+              <div class="ops-phase-box a" data-beat="5"><strong>按 id 编码</strong><span>Service · Job · Mapper</span></div>
             </div>
-            <div class="ops-phase">
+            <div class="ops-phase" data-step="4">
               <div class="ops-phase-label">P5</div>
-              <div class="ops-phase-box a"><strong>三件套同步</strong><span>spec · SQL · git add</span></div>
+              <div class="ops-phase-box a" data-beat="6"><strong>三件套同步</strong><span>spec · SQL · git add</span></div>
             </div>
-            <div class="ops-phase">
+            <div class="ops-phase" data-step="5">
               <div class="ops-phase-label">P6</div>
-              <div class="ops-phase-box a"><strong>编译验证</strong><span>mvn · 静态检查</span></div>
-              <div class="ops-phase-box h"><strong>CURL / 联调</strong><span>真实 DB 验收</span></div>
+              <div class="ops-phase-box a" data-beat="7"><strong>编译验证</strong><span>编译 · 静态检查</span></div>
+              <div class="ops-phase-box h" data-beat="8"><strong>CURL / 联调</strong><span>对真实数据验收</span></div>
             </div>
-            <div class="ops-phase">
+            <div class="ops-phase" data-step="6">
               <div class="ops-phase-label">P7</div>
-              <div class="ops-phase-box both"><strong>任务收口</strong><span>completed / pending</span></div>
+              <div class="ops-phase-box both" data-beat="9"><strong>任务收口</strong><span>completed / pending</span></div>
             </div>
-            <div class="ops-phase">
+            <div class="ops-phase" data-step="7">
               <div class="ops-phase-label">P8</div>
-              <div class="ops-phase-box h"><strong>Review · 发布</strong><span>合并 · 生产</span></div>
-              <div class="ops-phase-box a"><strong>沉淀 Rules</strong><span>回归 spec 补全</span></div>
+              <div class="ops-phase-box h" data-beat="10"><strong>Review · 发布</strong><span>合并 · 生产</span></div>
+              <div class="ops-phase-box a" data-beat="11"><strong>沉淀 Rules</strong><span>回归用例写回 spec</span></div>
             </div>
           </div>
         </div>
-
-        <div class="ops-loop">
-          <span class="ops-loop-arrow">↺</span>
-          <span>验证失败 → <code>status: pending</code> → 回到 <strong>P4 按 id 编码</strong>（completed 任务跳过，循环下一 pending id）</span>
-        </div>
+        <div class="live-track" aria-hidden="true"><i id="liveDot"></i></div>
+        <p class="live-caption" id="liveCaption">点右上角「演示一遍」，从确认范围走到发布。中途会演示一次联调失败退回编码。</p>
 
         <div class="agent-ops-title">③ 产出 · Deliverables</div>
         <div class="ops-output">
@@ -2269,6 +2314,73 @@
     });
   }, { rootMargin: '-30% 0px -60% 0px' });
   sections.forEach(s => navObs.observe(s));
+
+  (function initLiveFlow() {
+    const root = document.getElementById('liveFlow');
+    const nowEl = document.getElementById('liveNow');
+    const capEl = document.getElementById('liveCaption');
+    const dot = document.getElementById('liveDot');
+    if (!root || !nowEl || !capEl || !dot) return;
+    const beats = [
+      { step: 0, beat: 0, who: '开发者', title: 'P1 · 确认范围', text: '对照 PRD 和 acceptance，划定这一条任务做什么。' },
+      { step: 0, beat: 1, who: 'Agent', title: 'P1 · 读上下文', text: '读代码、对应 test_spec 和已有 DDL，确认改动落在哪一层。' },
+      { step: 1, beat: 2, who: '协同', title: 'P2 · 方案与清单', text: '先写方案，再把任务拆进 YAML：id、acceptance、spec_target，初始为 pending。' },
+      { step: 2, beat: 3, who: '开发者', title: 'P3 · Review 清单', text: '确认 id 顺序和依赖。completed 的条目本轮直接跳过。' },
+      { step: 2, beat: 4, who: '开发者', title: 'P3 · 带上上下文', text: '手动 @ 对应 spec 和 Rules。当前没有 Hook 自动注入。' },
+      { step: 3, beat: 5, who: 'Agent', title: 'P4 · 按 id 编码', text: '只改这一条：接口在 Service，Job 细节进 JobService，不把逻辑堆在路由层。' },
+      { step: 4, beat: 6, who: 'Agent', title: 'P5 · 三件套同步', text: '同一轮改完代码、test_spec 和 update_tables.sql，并把新文件 git add。' },
+      { step: 5, beat: 7, who: 'Agent', title: 'P6 · 编译', text: '先过编译和静态检查，确认这轮改动能编过。' },
+      { step: 5, beat: 8, who: '开发者', title: 'P6 · 联调', text: '用 spec 里的 JSON 打真实数据。过了才允许收口。' },
+      { step: 3, beat: 5, loop: true, who: '回环', title: '未通过 · 回到 P4', text: '验证失败则 status 保持 pending，亮点退回编码。不标 completed。' },
+      { step: 4, beat: 6, who: 'Agent', title: 'P5 · 再次同步', text: '按联调结果补回归用例，spec 和 SQL 跟代码一起改。' },
+      { step: 5, beat: 8, who: '开发者', title: 'P6 · 复验通过', text: '同一条 id 再次联调通过，才进入收口。' },
+      { step: 6, beat: 9, who: '协同', title: 'P7 · 收口', text: 'acceptance 对齐后把 status 改成 completed，循环下一条 pending。' },
+      { step: 7, beat: 10, who: '开发者', title: 'P8 · Review 与发布', text: '人审关键路径后合并发布。' },
+      { step: 7, beat: 11, who: 'Agent', title: 'P8 · 沉淀', text: '把这次踩坑写回 spec 回归，必要时补进 Rules。' }
+    ];
+    let index = 0;
+    let timer = null;
+    const playBtn = document.getElementById('livePlay');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function render() {
+      const beat = beats[index];
+      root.classList.toggle('is-looping', !!beat.loop);
+      root.querySelectorAll('.ops-phase').forEach(el => {
+        const step = Number(el.dataset.step);
+        el.classList.toggle('is-hot', step === beat.step);
+        el.classList.toggle('is-back', !!beat.loop && step === beat.step);
+      });
+      root.querySelectorAll('.ops-phase-box').forEach(el => {
+        el.classList.toggle('is-hot', Number(el.dataset.beat) === beat.beat);
+      });
+      dot.style.left = ((beat.step + 0.5) / 8 * 100 - 9) + '%';
+      nowEl.textContent = beat.title + ' · ' + beat.who;
+      capEl.innerHTML = '<strong>' + beat.title + '。</strong>' + beat.text;
+    }
+    function finish() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      if (playBtn) {
+        playBtn.disabled = false;
+        playBtn.textContent = '再演示一遍';
+      }
+    }
+    function playOnce() {
+      if (!playBtn || timer) return;
+      index = 0;
+      root.classList.add('is-playing');
+      playBtn.disabled = true;
+      playBtn.textContent = '演示中';
+      render();
+      if (reduced) { finish(); return; }
+      timer = setInterval(() => {
+        if (index >= beats.length - 1) { finish(); return; }
+        index += 1;
+        render();
+      }, 1600);
+    }
+    playBtn.addEventListener('click', playOnce);
+  })();
 
   function animateCounter(el) {
     if (!el.dataset.target) return;
