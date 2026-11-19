@@ -1685,700 +1685,700 @@
             <div class="flow-vbody">
               <strong>生成 / 维护任务清单 YAML</strong>
               <p>写入 <code>doc/*-tasks.md</code>：每条任务含 <code>id</code>、<code>status</code>（pending/completed）、<code>acceptance</code>、<code>spec_target</code>。循环时 completed 跳过，失败保持 pending 重试。</p>
-              <pre class="yaml-snippet">feature: 销售任务系统 1.4（任务包定义调整 → 任务组）
-module: task_group_restructure
-prd: 销售任务系统 1.4 PRD（任务包定义调整）
-design_notes: |
-  【现状评估结论（基于当前代码）】
-  1. 仓库无独立「任务组」表；亦无独立 task_package 业务表：
-     任务包 = task_definition(task_type=PACKAGE) + 1:1 扩展表 task_package_distribution_ext；
-     子任务 = task_definition(task_type=TASK, parent_id=包.id)，各自通过 rule_id 关联 task_rule。
-  2. 「下发对象群 + 下发类型码」落在包层 ext；「下发节奏 distributionType/config、is_repeat、截止/完成判断」落在包规则；
-     子 TASK 侧重执行类型、模板、条件、完成脚本、反馈。同包下所有子任务共享同一门店群 —— 这是 1.4 要打破的核心约束之一。
-  3. 下发 Job（TaskPackageStatusTransitionJobServiceImpl）读包 ext 的 crowd → doLatest → 按子 TASK×目标写明细；
-     去重键：is_repeat=false 时 task_def_id+target_entity_code；=true 时再加 start/end。尚无「对象+下发时间」与「月内不重复」口径。
-  4. 分群完成判定仅支持「在群内则完成」，无「不在门店群」反向完成。
-  5. 快照统计现状强耦合 task_package_id；1.4 主查询维度切任务组（TGR-017：新增 group_perf 等，包维保留）；
-     末级组织表现改为按网点负责人汇总（TGR-019：新增 owner_perf）；同组多 object_code 会使分桶更碎。
+              <pre class="yaml-snippet"><span class="yk">feature:</span><span class="yv"> 销售任务系统 1.4（任务包定义调整 → 任务组）</span>
+<span class="yk">module:</span><span class="yv"> task_group_restructure</span>
+<span class="yk">prd:</span><span class="yv"> 销售任务系统 1.4 PRD（任务包定义调整）</span>
+<span class="yk">design_notes:</span><span class="yv"> |</span>
+<span class="yv">  【现状评估结论（基于当前代码）】</span>
+<span class="yv">  1. 仓库无独立「任务组」表；亦无独立 task_package 业务表：</span>
+<span class="yv">     任务包 = task_definition(task_type=PACKAGE) + 1:1 扩展表 task_package_distribution_ext；</span>
+<span class="yv">     子任务 = task_definition(task_type=TASK, parent_id=包.id)，各自通过 rule_id 关联 task_rule。</span>
+<span class="yv">  2. 「下发对象群 + 下发类型码」落在包层 ext；「下发节奏 distributionType/config、is_repeat、截止/完成判断」落在包规则；</span>
+<span class="yv">     子 TASK 侧重执行类型、模板、条件、完成脚本、反馈。同包下所有子任务共享同一门店群 —— 这是 1.4 要打破的核心约束之一。</span>
+<span class="yv">  3. 下发 Job（TaskPackageStatusTransitionJobServiceImpl）读包 ext 的 crowd → doLatest → 按子 TASK×目标写明细；</span>
+<span class="yv">     去重键：is_repeat=false 时 task_def_id+target_entity_code；=true 时再加 start/end。尚无「对象+下发时间」与「月内不重复」口径。</span>
+<span class="yv">  4. 分群完成判定仅支持「在群内则完成」，无「不在门店群」反向完成。</span>
+<span class="yv">  5. 快照统计现状强耦合 task_package_id；1.4 主查询维度切任务组（TGR-017：新增 group_perf 等，包维保留）；</span>
+<span class="yv">     末级组织表现改为按网点负责人汇总（TGR-019：新增 owner_perf）；同组多 object_code 会使分桶更碎。</span>
 
-  【已实现、本期不单列任务】
-  - 读快照 + 部门权限过滤（cards/overview/trend/options、DeptScopeService 等，原 TPS-011~019）
-  - 名称模糊搜索 + taskCode/taskName 分字段：definition/list 已支持 taskName 模糊（含 task_code），DTO 已分字段返回
-  - 包层 PERSON 人员群下发：Job/DataCrowd 已支持 objectCode=PERSON；任务层下沉后做回归即可
-  - 任务定义列表基础字段：distributedAt、updatedBy、taskPackage 关联等已在 TaskDefinitionDTO
+<span class="yv">  【已实现、本期不单列任务】</span>
+<span class="yv">  - 读快照 + 部门权限过滤（cards/overview/trend/options、DeptScopeService 等，原 TPS-011~019）</span>
+<span class="yv">  - 名称模糊搜索 + taskCode/taskName 分字段：definition/list 已支持 taskName 模糊（含 task_code），DTO 已分字段返回</span>
+<span class="yv">  - 包层 PERSON 人员群下发：Job/DataCrowd 已支持 objectCode=PERSON；任务层下沉后做回归即可</span>
+<span class="yv">  - 任务定义列表基础字段：distributedAt、updatedBy、taskPackage 关联等已在 TaskDefinitionDTO</span>
 
-  【纠正说明（重要）】
-  - 错误理解（已废弃）：把 PACKAGE 语义重命名为「任务组」、不建新表、task_package_id 冒充任务组 id。
-  - 正确口径：新建独立「任务组」表；任务组关联对应的任务包（PACKAGE）；PACKAGE 仍是任务包，不是任务组。
+<span class="yv">  【纠正说明（重要）】</span>
+<span class="yv">  - 错误理解（已废弃）：把 PACKAGE 语义重命名为「任务组」、不建新表、task_package_id 冒充任务组 id。</span>
+<span class="yv">  - 正确口径：新建独立「任务组」表；任务组关联对应的任务包（PACKAGE）；PACKAGE 仍是任务包，不是任务组。</span>
 
-  【1.4 目标层级（目标态）】
-  任务组 task_group（新建表；可先创建、允许 0 个关联任务包；本身不下发）
-    └─ 任务包 PACKAGE[]（可选关联：创建/编辑任务包时选择已存在的任务组；task_definition.task_group_id）
-         └─ TASK[]（各自：下发对象群、下发节奏、去重窗口、完成 IN/NOT_IN、截止与判断截止）
-              └─ task_rule（须冗余存储 task_group_id；完成标准等任务层规则）
-  明细：task_package_id 仍指向任务包 id；不冗余 task_group_id（组可改绑，经包关联解析）。
+<span class="yv">  【1.4 目标层级（目标态）】</span>
+<span class="yv">  任务组 task_group（新建表；可先创建、允许 0 个关联任务包；本身不下发）</span>
+<span class="yv">    └─ 任务包 PACKAGE[]（可选关联：创建/编辑任务包时选择已存在的任务组；task_definition.task_group_id）</span>
+<span class="yv">         └─ TASK[]（各自：下发对象群、下发节奏、去重窗口、完成 IN/NOT_IN、截止与判断截止）</span>
+<span class="yv">              └─ task_rule（须冗余存储 task_group_id；完成标准等任务层规则）</span>
+<span class="yv">  明细：task_package_id 仍指向任务包 id；不冗余 task_group_id（组可改绑，经包关联解析）。</span>
 
-  【任务组字段与关联口径（TGR-001 定稿要点）】
-  - 落库至少：任务组名称、任务组编码、任务组备注、策略标签
-  - 任务组编码：生成规则同任务包 task_code（前缀 + yyMMdd + 当日不重复随机段），前缀固定为 RWZ
-    （对照：PACKAGE 前缀 B、TASK 前缀 R；见 CodeGenerateUtils / generateTaskCode）
-  - 关联侧（非任务组表内嵌包列表必填）：关联由任务包持有 task_group_id；列表/详情需返回
-    · 关联任务包 id 列表（可空数组）
-    · 关联任务包下的规则数量（组下各包及其子 TASK 对应 task_rule 条数汇总，口径在方案写清）
-  - 生命周期：任务组可提前创建且不关联任何任务包 → 后续在任务包创建/编辑中选择关联已有任务组
-  - task_rule 必须增加并维护 task_group_id（与所属包的任务组一致；创建/改绑任务组时同步回写包规则与子任务规则）
+<span class="yv">  【任务组字段与关联口径（TGR-001 定稿要点）】</span>
+<span class="yv">  - 落库至少：任务组名称、任务组编码、任务组备注、策略标签</span>
+<span class="yv">  - 任务组编码：生成规则同任务包 task_code（前缀 + yyMMdd + 当日不重复随机段），前缀固定为 RWZ</span>
+<span class="yv">    （对照：PACKAGE 前缀 B、TASK 前缀 R；见 CodeGenerateUtils / generateTaskCode）</span>
+<span class="yv">  - 关联侧（非任务组表内嵌包列表必填）：关联由任务包持有 task_group_id；列表/详情需返回</span>
+<span class="yv">    · 关联任务包 id 列表（可空数组）</span>
+<span class="yv">    · 关联任务包下的规则数量（组下各包及其子 TASK 对应 task_rule 条数汇总，口径在方案写清）</span>
+<span class="yv">  - 生命周期：任务组可提前创建且不关联任何任务包 → 后续在任务包创建/编辑中选择关联已有任务组</span>
+<span class="yv">  - task_rule 必须增加并维护 task_group_id（与所属包的任务组一致；创建/改绑任务组时同步回写包规则与子任务规则）</span>
 
-  【兼容策略建议】
-  - 保留 task_type=PACKAGE 与现有任务包能力；新增 task_group 表；包/规则写 task_group_id
-  - **TGR-028 起**：`createPackage`/`updatePackage` 顶层 **`taskGroupId` 必填**（存量未关联包仍可为空，靠迁移回填；新写路径禁止空）
-  - 历史迁移：① 为存量 PACKAGE 建任务组并建立关联（口径在方案中定：默认 1 包 1 组）；
-    ② 回写 task_definition.task_group_id 与相关 task_rule.task_group_id；
-    ③ 包 ext + 包规则 distribution*/is_repeat/deadline* 回填到各子 TASK 规则
-  - API：createTaskGroup（可不带包）/ updateTaskGroup / listTaskGroup；
-    createPackage/updatePackage **必填**关联已有 taskGroupId（TGR-028）；独立 createTask/updateTask 挂任务包并承载任务层下发配置
+<span class="yv">  【兼容策略建议】</span>
+<span class="yv">  - 保留 task_type=PACKAGE 与现有任务包能力；新增 task_group 表；包/规则写 task_group_id</span>
+<span class="yv">  - **TGR-028 起**：`createPackage`/`updatePackage` 顶层 **`taskGroupId` 必填**（存量未关联包仍可为空，靠迁移回填；新写路径禁止空）</span>
+<span class="yv">  - 历史迁移：① 为存量 PACKAGE 建任务组并建立关联（口径在方案中定：默认 1 包 1 组）；</span>
+<span class="yv">    ② 回写 task_definition.task_group_id 与相关 task_rule.task_group_id；</span>
+<span class="yv">    ③ 包 ext + 包规则 distribution*/is_repeat/deadline* 回填到各子 TASK 规则</span>
+<span class="yv">  - API：createTaskGroup（可不带包）/ updateTaskGroup / listTaskGroup；</span>
+<span class="yv">    createPackage/updatePackage **必填**关联已有 taskGroupId（TGR-028）；独立 createTask/updateTask 挂任务包并承载任务层下发配置</span>
 
-  【仓库分工】
-  - 后端（本仓库）：sls-sales-task — API / Job / DDL / 迁移 / 测试文档
-  - 前端：/Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service
-    （菜单文案、任务组/任务配置页、列表操作搬迁、统计筛选文案、功能权限资源等均在该仓库落地；
-     涉及前端的任务：TGR-005（任务规则列表 UI）、TGR-027、TGR-028、TGR-015；改动时切换到该项目执行）
+<span class="yv">  【仓库分工】</span>
+<span class="yv">  - 后端（本仓库）：sls-sales-task — API / Job / DDL / 迁移 / 测试文档</span>
+<span class="yv">  - 前端：/Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service</span>
+<span class="yv">    （菜单文案、任务组/任务配置页、列表操作搬迁、统计筛选文案、功能权限资源等均在该仓库落地；</span>
+<span class="yv">     涉及前端的任务：TGR-005（任务规则列表 UI）、TGR-027、TGR-028、TGR-015；改动时切换到该项目执行）</span>
 
-  【实施优先级（按此顺序推进）】
-  - 原则：先落地「任务组新表 + 关联任务包」，再打通「任务层独立对象群下发」；统计与前端靠后；低成本项可插空。
-  - 迭代 A 地基：TGR-001 → 002 → 003；TGR-016 可与迁移并行插空
-  - 迭代 B 主链路：TGR-004（任务组实体 API，P0）→ TGR-007（任务层配置）→ 008+011 → 009/012/014/010
-  - 迭代 C 统计与体验：TGR-017 → 019/020/021；005/023 插空；025 → 026
-  - 迭代 D 前端收尾（Comm-Divisor-Service）：TGR-027 → TGR-028 → 015
-  - 依赖说明：createTask / 包关联任务组依赖任务组表与 TGR-004；不可再用 PACKAGE 冒充 taskGroupId
-  - 【前端文案口径（TGR-028 · 详）】后端仍为 PACKAGE/TASK/task_rule，禁止为改名改表结构。
-    用户侧「任务规则配置」页 = 原任务包创建/编辑页；左栏「下发标准」= PACKAGE 层配置；右栏「完成标准」= 原「具体任务」/子 TASK 完成配置。
-    菜单只保留一套「任务规则管理」（承接 package-rules）；去掉旧独立 task-rules 菜单。
+<span class="yv">  【实施优先级（按此顺序推进）】</span>
+<span class="yv">  - 原则：先落地「任务组新表 + 关联任务包」，再打通「任务层独立对象群下发」；统计与前端靠后；低成本项可插空。</span>
+<span class="yv">  - 迭代 A 地基：TGR-001 → 002 → 003；TGR-016 可与迁移并行插空</span>
+<span class="yv">  - 迭代 B 主链路：TGR-004（任务组实体 API，P0）→ TGR-007（任务层配置）→ 008+011 → 009/012/014/010</span>
+<span class="yv">  - 迭代 C 统计与体验：TGR-017 → 019/020/021；005/023 插空；025 → 026</span>
+<span class="yv">  - 迭代 D 前端收尾（Comm-Divisor-Service）：TGR-027 → TGR-028 → 015</span>
+<span class="yv">  - 依赖说明：createTask / 包关联任务组依赖任务组表与 TGR-004；不可再用 PACKAGE 冒充 taskGroupId</span>
+<span class="yv">  - 【前端文案口径（TGR-028 · 详）】后端仍为 PACKAGE/TASK/task_rule，禁止为改名改表结构。</span>
+<span class="yv">    用户侧「任务规则配置」页 = 原任务包创建/编辑页；左栏「下发标准」= PACKAGE 层配置；右栏「完成标准」= 原「具体任务」/子 TASK 完成配置。</span>
+<span class="yv">    菜单只保留一套「任务规则管理」（承接 package-rules）；去掉旧独立 task-rules 菜单。</span>
 
-  【测试文档命名（spec_target）】
-  - 统一：doc/[功能模块中文名]_test_spec.md
-  - 任务组结构改造_test_spec.md（结构总览 / 迁移 / 前后端对接）
-  - 任务组_test_spec.md（新建任务组表及 CRUD）
-  - 任务定义_test_spec.md（任务包 / 任务）
-  - 任务下发明细_test_spec.md
-  - 条件动作任务规则_test_spec.md
-  - 任务组统计_test_spec.md
-  - 功能权限同步_test_spec.md
-  - 本期新增/增量写入以上中文文件名；若仓库仍存英文旧文件，以中文名为准迁移/合并内容
+<span class="yv">  【测试文档命名（spec_target）】</span>
+<span class="yv">  - 统一：doc/[功能模块中文名]_test_spec.md</span>
+<span class="yv">  - 任务组结构改造_test_spec.md（结构总览 / 迁移 / 前后端对接）</span>
+<span class="yv">  - 任务组_test_spec.md（新建任务组表及 CRUD）</span>
+<span class="yv">  - 任务定义_test_spec.md（任务包 / 任务）</span>
+<span class="yv">  - 任务下发明细_test_spec.md</span>
+<span class="yv">  - 条件动作任务规则_test_spec.md</span>
+<span class="yv">  - 任务组统计_test_spec.md</span>
+<span class="yv">  - 功能权限同步_test_spec.md</span>
+<span class="yv">  - 本期新增/增量写入以上中文文件名；若仓库仍存英文旧文件，以中文名为准迁移/合并内容</span>
 
-tasks:
-# ============================================================
-# 阶段一（迭代 A）：方案对齐、表结构、迁移 + 可插空性能
-# ============================================================
+<span class="yk">tasks:</span><span class="yv"></span>
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段一（迭代 A）：方案对齐、表结构、迁移 + 可插空性能</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-001
-  title: 输出 1.4 任务组/任务层结构变更技术方案与口径文档
-  priority: P0
-  spec_target: doc/任务组结构改造_test_spec.md
-  note: |
-    【任务组模型补充（方案文档必须写清）】
-    1) 新建独立任务组表，禁止「PACKAGE 改名=任务组」。
-    2) 任务组可提前创建，创建时允许不关联任何任务包；关联发生在后续「任务包创建/编辑」中选择已有任务组。
-    3) 任务组字段至少包含（落库或列表聚合需在方案标注）：
-       - 任务组名称（必填）
-       - 任务组编码（系统生成，唯一；规则同任务包编码：前缀+yyMMdd+随机段，前缀=RWZ，例 RWZ260803xxxxxxxx）
-       - 任务组备注
-       - 策略标签 strategy_tags
-       - 关联任务包的 id（列表/详情返回；数据源为 PACKAGE.task_group_id，可为空列表）
-       - 关联任务包下的规则数量（列表/详情返回；统计组下关联包及其子任务对应的 task_rule 数量，口径写清含不含包级 rule）
-    4) task_rule 必须存储 task_group_id：包规则与子任务规则在创建/改绑任务组时同步写入；用于按组筛规则/统计/Job。
-  acceptance:
-    - 文档明确：新建 task_group 表 + 上述字段/编码/可先建组后挂包；禁止「PACKAGE 改名=任务组」
-    - 对比现状 vs 目标态：任务组→（可选）任务包→TASK→rule；下发对象/节奏下沉到 TASK；完成标准三枚举（含基于对象群+在/不在）；去重
-    - 明确字段落库位置：
-      · task_group：名称、编码(RWZ)、备注、策略标签、状态/审计等
-      · task_definition(PACKAGE)：task_group_id（可空）
-      · task_rule：task_group_id（可空，与所属包一致）+ 完成标准新字段
-      · 明细不冗余 task_group_id（经 task_package_id JOIN 包取组）
-    - 关联任务包 id / 规则数量：标明为查询聚合字段还是冗余列，以及统计 SQL 口径
-    - 历史迁移与 API 兼容策略；对下发 Job / 明细 / 快照写侧的影响矩阵；变更说明写入 spec 顶部
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-001</span>
+  <span class="yk">title:</span><span class="yv"> 输出 1.4 任务组/任务层结构变更技术方案与口径文档</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组结构改造_test_spec.md</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    【任务组模型补充（方案文档必须写清）】</span>
+<span class="yv">    1) 新建独立任务组表，禁止「PACKAGE 改名=任务组」。</span>
+<span class="yv">    2) 任务组可提前创建，创建时允许不关联任何任务包；关联发生在后续「任务包创建/编辑」中选择已有任务组。</span>
+<span class="yv">    3) 任务组字段至少包含（落库或列表聚合需在方案标注）：</span>
+<span class="yv">       - 任务组名称（必填）</span>
+<span class="yv">       - 任务组编码（系统生成，唯一；规则同任务包编码：前缀+yyMMdd+随机段，前缀=RWZ，例 RWZ260803xxxxxxxx）</span>
+<span class="yv">       - 任务组备注</span>
+<span class="yv">       - 策略标签 strategy_tags</span>
+<span class="yv">       - 关联任务包的 id（列表/详情返回；数据源为 PACKAGE.task_group_id，可为空列表）</span>
+<span class="yv">       - 关联任务包下的规则数量（列表/详情返回；统计组下关联包及其子任务对应的 task_rule 数量，口径写清含不含包级 rule）</span>
+<span class="yv">    4) task_rule 必须存储 task_group_id：包规则与子任务规则在创建/改绑任务组时同步写入；用于按组筛规则/统计/Job。</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 文档明确：新建 task_group 表 + 上述字段/编码/可先建组后挂包；禁止「PACKAGE 改名=任务组」</span>
+<span class="yv">    - 对比现状 vs 目标态：任务组→（可选）任务包→TASK→rule；下发对象/节奏下沉到 TASK；完成标准三枚举（含基于对象群+在/不在）；去重</span>
+<span class="yv">    - 明确字段落库位置：</span>
+<span class="yv">      · task_group：名称、编码(RWZ)、备注、策略标签、状态/审计等</span>
+<span class="yv">      · task_definition(PACKAGE)：task_group_id（可空）</span>
+<span class="yv">      · task_rule：task_group_id（可空，与所属包一致）+ 完成标准新字段</span>
+<span class="yv">      · 明细不冗余 task_group_id（经 task_package_id JOIN 包取组）</span>
+<span class="yv">    - 关联任务包 id / 规则数量：标明为查询聚合字段还是冗余列，以及统计 SQL 口径</span>
+<span class="yv">    - 历史迁移与 API 兼容策略；对下发 Job / 明细 / 快照写侧的影响矩阵；变更说明写入 spec 顶部</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-002
-  title: 设计并落地任务组新表及任务层 DDL（完成标准三枚举、完成对象群在/不在、截止后N天等）
-  priority: P0
-  depends_on: [TGR-001]
-  spec_target: doc/任务组结构改造_test_spec.md
-  note: |
-    【任务完成标准 UI 变更（必须落库 task_rule，不可继续用 hasAction 布尔区分）】
-    原需求仅两项：「基于标准模板」「自定义标准」，故用 hasAction(true/false) 区分。
-    现需求改为三项枚举（见 PRD/设计稿「任务完成标准」）：
-      1) 基于标准模板
-      2) 自定义标准
-      3) 基于对象群（新增）——选中后可配置：运算符「在/不在」+ 独立对象群（完成判定用，与下发对象群可不同）
-    设计稿要点：判断截止时间支持「任务截止时间」或「任务截止时间后 N 天 HH:mm」；
-    任务截止时间仍支持按天延后/按月指定/固定时间等（既有能力 + 判断截止扩展）。
-  acceptance:
-    - dpc/sql/update_tables.sql 累计追加 DDL；Entity/DTO 字段均加中文注释；改动文件 git add
-    - 新建任务组表（建议表名 task_group），落库至少：
-      · group_name 任务组名称
-      · group_code 任务组编码（唯一；生成规则对齐任务包 task_code，前缀 RWZ + yyMMdd + 随机段；CodeGenerateUtils 增补前缀常量）
-      · remark 任务组备注
-      · strategy_tags 策略标签
-      · 状态、审计字段等
-    - 关联（可空，支持先建组后挂包）：
-      · PACKAGE（task_definition）增加 task_group_id
-      · task_rule 增加 task_group_id（包规则 + 子任务规则均维护；与包上任务组保持一致）
-      · 列表/详情聚合返回：关联任务包 id 列表、关联任务包下的规则数量（口径按 TGR-001）
-    - 【完成标准类型 — 替代 hasAction】
-      · task_rule 新增字段（建议名 completion_standard_type，VARCHAR）：枚举值建议
-        TEMPLATE（基于标准模板）/ CUSTOM（自定义标准）/ OBJECT_GROUP（基于对象群）
-      · hasAction 布尔已无法表达第三项，禁止继续用 hasAction 作为完成标准主口径；
-        兼容策略在方案中写清（如：存量 hasAction=true→TEMPLATE，false→CUSTOM；读接口可短期双写/映射，写接口以新枚举为准）
-      · 评估 hasAction 列保留只读兼容或后续废弃，不得再扩展其语义
-    - 【基于对象群完成 — 每条任务规则可独立配置】
-      · task_rule 新增完成对象群字段（与下发对象群 distribution_object_group_* 分离）：
-        建议：completion_object_group_id、completion_object_group_name
-      · task_rule 新增成员关系运算符：建议 membership_operator（或 completion_membership_operator），取值 IN|NOT_IN
-        对应 UI：「在」= 目标在该对象群内则满足完成判定；「不在」= 目标不在该对象群内则满足完成判定
-      · 仅当 completion_standard_type=OBJECT_GROUP 时，完成对象群 id/name 与 membership_operator 必填；
-        其他类型下上述字段可空，校验在 Service 层完成
-      · 说明：完成对象群是「该任务规则自己的完成标准数据源」，可与下发对象群不同；Job 完成判定（TGR-009）读本字段，不读包层 ext
-    - 任务层下发对象群归属明确（优先 task_rule.distribution_object_group_*；评估改造/废弃 task_package_distribution_ext）
-    - 去重：repeat_window_type=MONTH|DAYS 等（与 is_repeat 兼容策略写入方案）
-    - 任务判断截止：支持「任务截止时间」以及「任务截止后 N 天 + 时刻」（区别于现有 RELATIVE=下发后 N 天）；
-      对应 task_judgment_deadline_type/config 扩展，解析路径见 TGR-010
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-002</span>
+  <span class="yk">title:</span><span class="yv"> 设计并落地任务组新表及任务层 DDL（完成标准三枚举、完成对象群在/不在、截止后N天等）</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-001]</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组结构改造_test_spec.md</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    【任务完成标准 UI 变更（必须落库 task_rule，不可继续用 hasAction 布尔区分）】</span>
+<span class="yv">    原需求仅两项：「基于标准模板」「自定义标准」，故用 hasAction(true/false) 区分。</span>
+<span class="yv">    现需求改为三项枚举（见 PRD/设计稿「任务完成标准」）：</span>
+<span class="yv">      1) 基于标准模板</span>
+<span class="yv">      2) 自定义标准</span>
+<span class="yv">      3) 基于对象群（新增）——选中后可配置：运算符「在/不在」+ 独立对象群（完成判定用，与下发对象群可不同）</span>
+<span class="yv">    设计稿要点：判断截止时间支持「任务截止时间」或「任务截止时间后 N 天 HH:mm」；</span>
+<span class="yv">    任务截止时间仍支持按天延后/按月指定/固定时间等（既有能力 + 判断截止扩展）。</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - dpc/sql/update_tables.sql 累计追加 DDL；Entity/DTO 字段均加中文注释；改动文件 git add</span>
+<span class="yv">    - 新建任务组表（建议表名 task_group），落库至少：</span>
+<span class="yv">      · group_name 任务组名称</span>
+<span class="yv">      · group_code 任务组编码（唯一；生成规则对齐任务包 task_code，前缀 RWZ + yyMMdd + 随机段；CodeGenerateUtils 增补前缀常量）</span>
+<span class="yv">      · remark 任务组备注</span>
+<span class="yv">      · strategy_tags 策略标签</span>
+<span class="yv">      · 状态、审计字段等</span>
+<span class="yv">    - 关联（可空，支持先建组后挂包）：</span>
+<span class="yv">      · PACKAGE（task_definition）增加 task_group_id</span>
+<span class="yv">      · task_rule 增加 task_group_id（包规则 + 子任务规则均维护；与包上任务组保持一致）</span>
+<span class="yv">      · 列表/详情聚合返回：关联任务包 id 列表、关联任务包下的规则数量（口径按 TGR-001）</span>
+<span class="yv">    - 【完成标准类型 — 替代 hasAction】</span>
+<span class="yv">      · task_rule 新增字段（建议名 completion_standard_type，VARCHAR）：枚举值建议</span>
+<span class="yv">        TEMPLATE（基于标准模板）/ CUSTOM（自定义标准）/ OBJECT_GROUP（基于对象群）</span>
+<span class="yv">      · hasAction 布尔已无法表达第三项，禁止继续用 hasAction 作为完成标准主口径；</span>
+<span class="yv">        兼容策略在方案中写清（如：存量 hasAction=true→TEMPLATE，false→CUSTOM；读接口可短期双写/映射，写接口以新枚举为准）</span>
+<span class="yv">      · 评估 hasAction 列保留只读兼容或后续废弃，不得再扩展其语义</span>
+<span class="yv">    - 【基于对象群完成 — 每条任务规则可独立配置】</span>
+<span class="yv">      · task_rule 新增完成对象群字段（与下发对象群 distribution_object_group_* 分离）：</span>
+<span class="yv">        建议：completion_object_group_id、completion_object_group_name</span>
+<span class="yv">      · task_rule 新增成员关系运算符：建议 membership_operator（或 completion_membership_operator），取值 IN|NOT_IN</span>
+<span class="yv">        对应 UI：「在」= 目标在该对象群内则满足完成判定；「不在」= 目标不在该对象群内则满足完成判定</span>
+<span class="yv">      · 仅当 completion_standard_type=OBJECT_GROUP 时，完成对象群 id/name 与 membership_operator 必填；</span>
+<span class="yv">        其他类型下上述字段可空，校验在 Service 层完成</span>
+<span class="yv">      · 说明：完成对象群是「该任务规则自己的完成标准数据源」，可与下发对象群不同；Job 完成判定（TGR-009）读本字段，不读包层 ext</span>
+<span class="yv">    - 任务层下发对象群归属明确（优先 task_rule.distribution_object_group_*；评估改造/废弃 task_package_distribution_ext）</span>
+<span class="yv">    - 去重：repeat_window_type=MONTH|DAYS 等（与 is_repeat 兼容策略写入方案）</span>
+<span class="yv">    - 任务判断截止：支持「任务截止时间」以及「任务截止后 N 天 + 时刻」（区别于现有 RELATIVE=下发后 N 天）；</span>
+<span class="yv">      对应 task_judgment_deadline_type/config 扩展，解析路径见 TGR-010</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-003
-  title: 历史数据迁移（建任务组并关联存量包 + 对象群/节奏下沉到子 TASK）
-  priority: P0
-  depends_on: [TGR-002]
-  spec_target: doc/任务组结构改造_test_spec.md
-  acceptance:
-    - 为存量 PACKAGE 创建任务组（编码前缀 RWZ）并写回 PACKAGE.task_group_id（关联口径按 TGR-001：默认 1 包对应 1 组，除非方案另定）
-    - 同步回写相关 task_rule.task_group_id（包规则 + 子任务规则）
-    - 将 ext + 包规则 distribution*/is_repeat/deadline* 回填到各子 TASK 规则
-    - 幂等可重跑；抽检 SQL；迁移后可按任务组查包、按任务层对象群下发
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-003</span>
+  <span class="yk">title:</span><span class="yv"> 历史数据迁移（建任务组并关联存量包 + 对象群/节奏下沉到子 TASK）</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-002]</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组结构改造_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 为存量 PACKAGE 创建任务组（编码前缀 RWZ）并写回 PACKAGE.task_group_id（关联口径按 TGR-001：默认 1 包对应 1 组，除非方案另定）</span>
+<span class="yv">    - 同步回写相关 task_rule.task_group_id（包规则 + 子任务规则）</span>
+<span class="yv">    - 将 ext + 包规则 distribution*/is_repeat/deadline* 回填到各子 TASK 规则</span>
+<span class="yv">    - 幂等可重跑；抽检 SQL；迁移后可按任务组查包、按任务层对象群下发</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-016
-  title: 明细列表宽泛浏览上限改为 1000（去掉首屏强依赖统计）
-  priority: P2
-  depends_on: [TGR-001]
-  note: |
-    低成本可插空，不必等结构主链路完成。
-    落地：LIST_BROAD_BROWSE_ROW_LIMIT / DEPT_FILTER 均为 1000；/list、/listByPackage 宽泛浏览窗口收紧；statusStats* 标注非首屏必调；export 全量不变。
-    测试文档以 doc/task_distribution_detail_test_spec.md（中文标题「任务下发明细」）为准。
-  spec_target: doc/任务下发明细_test_spec.md
-  acceptance:
-    - LIST_BROAD_BROWSE_ROW_LIMIT：10000 → 1000（精准等值策略不变）
-    - statusStats 接口可保留，spec 标明非列表首屏必调；export 全量不变
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-016</span>
+  <span class="yk">title:</span><span class="yv"> 明细列表宽泛浏览上限改为 1000（去掉首屏强依赖统计）</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-001]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    低成本可插空，不必等结构主链路完成。</span>
+<span class="yv">    落地：LIST_BROAD_BROWSE_ROW_LIMIT / DEPT_FILTER 均为 1000；/list、/listByPackage 宽泛浏览窗口收紧；statusStats* 标注非首屏必调；export 全量不变。</span>
+<span class="yv">    测试文档以 doc/task_distribution_detail_test_spec.md（中文标题「任务下发明细」）为准。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务下发明细_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - LIST_BROAD_BROWSE_ROW_LIMIT：10000 → 1000（精准等值策略不变）</span>
+<span class="yv">    - statusStats 接口可保留，spec 标明非列表首屏必调；export 全量不变</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-# ============================================================
-# 阶段二（迭代 B-1）：任务组实体 API + 任务层配置
-# ============================================================
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段二（迭代 B-1）：任务组实体 API + 任务层配置</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-004
-  title: 任务组创建/编辑/列表 API（新表 CRUD；可先建组不挂包）
-  priority: P0
-  depends_on: [TGR-002]
-  note: 任务组为独立实体；搜任务组必须走本 API，禁止复用 definition/list + taskType=PACKAGE
-  spec_target: doc/任务组_test_spec.md
-  acceptance:
-    - 新增 createTaskGroup / updateTaskGroup / detail / list（分页默认 page=1、pageSize=20，返回 records/total/page/pageSize/totalPage）
-    - create 允许不传任何任务包：仅落名称/备注/策略标签等，系统生成 group_code（前缀 RWZ）
-    - 返回字段至少：名称、编码、备注、策略标签、关联任务包 id 列表、关联任务包下的规则数量
-    - 任务组本身不承载下发对象群/下发节奏；Service 接口+Impl；判空规范；DTO 注释完整；改动文件 git add
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-004</span>
+  <span class="yk">title:</span><span class="yv"> 任务组创建/编辑/列表 API（新表 CRUD；可先建组不挂包）</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-002]</span>
+  <span class="yk">note:</span><span class="yv"> 任务组为独立实体；搜任务组必须走本 API，禁止复用 definition/list + taskType=PACKAGE</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 新增 createTaskGroup / updateTaskGroup / detail / list（分页默认 page=1、pageSize=20，返回 records/total/page/pageSize/totalPage）</span>
+<span class="yv">    - create 允许不传任何任务包：仅落名称/备注/策略标签等，系统生成 group_code（前缀 RWZ）</span>
+<span class="yv">    - 返回字段至少：名称、编码、备注、策略标签、关联任务包 id 列表、关联任务包下的规则数量</span>
+<span class="yv">    - 任务组本身不承载下发对象群/下发节奏；Service 接口+Impl；判空规范；DTO 注释完整；改动文件 git add</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-007
-  title: 独立任务创建/编辑 API（挂任务包 + 任务层下发配置；包关联已有任务组）
-  priority: P0
-  depends_on: [TGR-002, TGR-004]
-  note: |
-    任务组先建；任务包创建/编辑时选择已有任务组；同步写 PACKAGE.task_group_id 与相关 task_rule.task_group_id。
-    【受 TGR-028 影响 · 实现注意（口径修订）】
-    - 本任务落地时 `taskGroupId` 曾为可选；**TGR-028 已加严为 createPackage/updatePackage 必填**。后续依赖本任务的 Job/文档勿再写「可空关联」。
-    - 完成标准主口径已切 `completionStandardType`（TEMPLATE/CUSTOM/OBJECT_GROUP）；`hasAction` 仅兼容，禁止扩展语义。
-  spec_target: doc/任务定义_test_spec.md
-  acceptance:
-    - 新增 createTask / updateTask：必填任务包 id（或等价）；所属任务组由包关联带出/校验
-    - 创建/更新任务包须关联已创建的 taskGroupId（TGR-028 起必填；改绑时回写包规则与子任务规则的 task_group_id）
-    - 下发对象群、节奏、截止、完成判断、去重窗口、IN/NOT_IN 在任务层
-    - 同组/同包多 TASK 可配不同门店群/人员群；detail 同构回显
-    - 明确旧 createPackage 内嵌 tasks[] 的废弃/过渡策略（过渡期 createPackage 支持写入/变更 task_group_id）
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-007</span>
+  <span class="yk">title:</span><span class="yv"> 独立任务创建/编辑 API（挂任务包 + 任务层下发配置；包关联已有任务组）</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-002, TGR-004]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    任务组先建；任务包创建/编辑时选择已有任务组；同步写 PACKAGE.task_group_id 与相关 task_rule.task_group_id。</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意（口径修订）】</span>
+<span class="yv">    - 本任务落地时 `taskGroupId` 曾为可选；**TGR-028 已加严为 createPackage/updatePackage 必填**。后续依赖本任务的 Job/文档勿再写「可空关联」。</span>
+<span class="yv">    - 完成标准主口径已切 `completionStandardType`（TEMPLATE/CUSTOM/OBJECT_GROUP）；`hasAction` 仅兼容，禁止扩展语义。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务定义_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 新增 createTask / updateTask：必填任务包 id（或等价）；所属任务组由包关联带出/校验</span>
+<span class="yv">    - 创建/更新任务包须关联已创建的 taskGroupId（TGR-028 起必填；改绑时回写包规则与子任务规则的 task_group_id）</span>
+<span class="yv">    - 下发对象群、节奏、截止、完成判断、去重窗口、IN/NOT_IN 在任务层</span>
+<span class="yv">    - 同组/同包多 TASK 可配不同门店群/人员群；detail 同构回显</span>
+<span class="yv">    - 明确旧 createPackage 内嵌 tasks[] 的废弃/过渡策略（过渡期 createPackage 支持写入/变更 task_group_id）</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-# ============================================================
-# 阶段三（迭代 B-2）：去重 + 按任务层下发（建议同批灰度）
-# ============================================================
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段三（迭代 B-2）：去重 + 按任务层下发（建议同批灰度）</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-008
-  title: 任务去重逻辑改造（对象+下发时间 / 周期内不重复）
-  priority: P0
-  depends_on: [TGR-002, TGR-007]
-  note: |
-    与 TGR-011 同批推进，避免 Job 切任务层后去重口径不一致。
-    【受 TGR-028 影响 · 实现注意】
-    - 前端「任务规则配置」去重仅 3 项：**单月 MONTH（默认）/ 单日 DAYS / 全局 GLOBAL**；历史 NONE/LEGACY 归一 GLOBAL。
-    - Job 去重以包 **`repeat_window_type` 为主口径**，`is_repeat` 仅兼容；勿只读布尔。
-    - UI 与 Job **均只依赖 PACKAGE 包规则**（左栏下发信息）；**不读**子 TASK 规则上的去重窗口。
-  spec_target: doc/任务下发明细_test_spec.md
-  acceptance:
-    - 改造 detailDedupKey / 唯一键；支持月内或不重复窗口
-    - 兼容旧 is_repeat；DDL 与用例写入 update_tables.sql / spec
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-008</span>
+  <span class="yk">title:</span><span class="yv"> 任务去重逻辑改造（对象+下发时间 / 周期内不重复）</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-002, TGR-007]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    与 TGR-011 同批推进，避免 Job 切任务层后去重口径不一致。</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - 前端「任务规则配置」去重仅 3 项：**单月 MONTH（默认）/ 单日 DAYS / 全局 GLOBAL**；历史 NONE/LEGACY 归一 GLOBAL。</span>
+<span class="yv">    - Job 去重以包 **`repeat_window_type` 为主口径**，`is_repeat` 仅兼容；勿只读布尔。</span>
+<span class="yv">    - UI 与 Job **均只依赖 PACKAGE 包规则**（左栏下发信息）；**不读**子 TASK 规则上的去重窗口。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务下发明细_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 改造 detailDedupKey / 唯一键；支持月内或不重复窗口</span>
+<span class="yv">    - 兼容旧 is_repeat；DDL 与用例写入 update_tables.sql / spec</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-011
-  title: 下发同步改为按任务层对象群拉取（打破包层单一门店群）
-  priority: P0
-  depends_on: [TGR-003, TGR-007, TGR-008]
-  note: |
-    1.4 核心价值与最高风险点；建议单独灰度。
-    【受 TGR-028 影响 · 实现注意】
-    - TGR-028 前端左栏「下发标准」仍主要配置 **PACKAGE 层**下发对象群/节奏；右栏「完成标准」配置的是完成判定群（`completion_object_group_*`），**≠ 下发群**。
-    - 实现任务层多群下发时：勿把完成群当门店下发群；子 TASK 下发群 UI/写路径若尚未搬迁，本任务需补前端或明确仍读包层 ext 的过渡策略。
-    - 文案「任务规则」= PACKAGE；日志/灰度沟通勿与旧 task-rules（子 TASK 列表页）混淆。
-    【落地说明 · 2026-08-10 · 口径修订】
-    - **下发明细对象群仅任务包层** `task_package_distribution_ext`；子 TASK 规则**不绑定** `distribution_object_group_*`（写路径清空、Job 不读）。
-    - 同包全部子 TASK 共用包层一次 `doLatest`；完成群仍属 TGR-009，与下发群分离。
-  spec_target: doc/任务下发明细_test_spec.md
-  acceptance:
-    - 下发只读包层对象群；子 TASK 不配置/不落库下发群
-    - 明细 task_package_id 仍指向任务包（明细不冗余 task_group_id）
-    - 回归 STORE/PERSON（包层已通）
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-011</span>
+  <span class="yk">title:</span><span class="yv"> 下发同步改为按任务层对象群拉取（打破包层单一门店群）</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-003, TGR-007, TGR-008]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    1.4 核心价值与最高风险点；建议单独灰度。</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - TGR-028 前端左栏「下发标准」仍主要配置 **PACKAGE 层**下发对象群/节奏；右栏「完成标准」配置的是完成判定群（`completion_object_group_*`），**≠ 下发群**。</span>
+<span class="yv">    - 实现任务层多群下发时：勿把完成群当门店下发群；子 TASK 下发群 UI/写路径若尚未搬迁，本任务需补前端或明确仍读包层 ext 的过渡策略。</span>
+<span class="yv">    - 文案「任务规则」= PACKAGE；日志/灰度沟通勿与旧 task-rules（子 TASK 列表页）混淆。</span>
+<span class="yv">    【落地说明 · 2026-08-10 · 口径修订】</span>
+<span class="yv">    - **下发明细对象群仅任务包层** `task_package_distribution_ext`；子 TASK 规则**不绑定** `distribution_object_group_*`（写路径清空、Job 不读）。</span>
+<span class="yv">    - 同包全部子 TASK 共用包层一次 `doLatest`；完成群仍属 TGR-009，与下发群分离。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务下发明细_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 下发只读包层对象群；子 TASK 不配置/不落库下发群</span>
+<span class="yv">    - 明细 task_package_id 仍指向任务包（明细不冗余 task_group_id）</span>
+<span class="yv">    - 回归 STORE/PERSON（包层已通）</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-# ============================================================
-# 阶段四（迭代 B-3）：主链路闭环（完成判定 / 状态 / 立即下发 / 截止）
-# ============================================================
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段四（迭代 B-3）：主链路闭环（完成判定 / 状态 / 立即下发 / 截止）</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-009
-  title: 完成条件支持「基于对象群」及「在 / 不在」反向判定
-  priority: P1
-  depends_on: [TGR-002, TGR-007, TGR-011]
-  note: |
-    字段以 TGR-002 为准（completion_standard_type=OBJECT_GROUP + completion_object_group_* + membership_operator）。
-    【受 TGR-028 影响 · 实现注意】
-    - **配置写路径已就绪**：前端 createPackage/updatePackage 可保存 OBJECT_GROUP + 完成群 + IN/NOT_IN；后端写校验已加严。本任务聚焦 **Job 判定执行**，勿再重复造配置字段。
-    - 判定入口必须以 **`completion_standard_type=OBJECT_GROUP`** 为准；**禁止**再用 `has_action`/`hasAction` 推断第三态（SQL 已按 has_action 刷 TEMPLATE/CUSTOM，OBJECT_GROUP 仅新配置写入）。
-    - 完成群读 `completion_object_group_*`，与下发 `distribution_object_group_*` 严格分离。
-    - detail 回显与 Job 读侧字段名对齐前端提交：`completionStandardType` / `membershipOperator` / `completionObjectGroupId|Name`。
-  spec_target: doc/任务下发明细_test_spec.md
-  acceptance:
-    - 仅当完成标准=基于对象群时走本链路；读 task_rule 完成对象群与 membership_operator（IN/NOT_IN），完成群可与下发群分离
-    - Job：IN=在群完成；NOT_IN=不在群完成（PRD：ABC→BCD 后 A 完成、D 新下发）
-    - 实现类中文注释；spec 含时间线用例
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-009</span>
+  <span class="yk">title:</span><span class="yv"> 完成条件支持「基于对象群」及「在 / 不在」反向判定</span>
+  <span class="yk">priority:</span><span class="yv"> P1</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-002, TGR-007, TGR-011]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    字段以 TGR-002 为准（completion_standard_type=OBJECT_GROUP + completion_object_group_* + membership_operator）。</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - **配置写路径已就绪**：前端 createPackage/updatePackage 可保存 OBJECT_GROUP + 完成群 + IN/NOT_IN；后端写校验已加严。本任务聚焦 **Job 判定执行**，勿再重复造配置字段。</span>
+<span class="yv">    - 判定入口必须以 **`completion_standard_type=OBJECT_GROUP`** 为准；**禁止**再用 `has_action`/`hasAction` 推断第三态（SQL 已按 has_action 刷 TEMPLATE/CUSTOM，OBJECT_GROUP 仅新配置写入）。</span>
+<span class="yv">    - 完成群读 `completion_object_group_*`，与下发 `distribution_object_group_*` 严格分离。</span>
+<span class="yv">    - detail 回显与 Job 读侧字段名对齐前端提交：`completionStandardType` / `membershipOperator` / `completionObjectGroupId|Name`。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务下发明细_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 仅当完成标准=基于对象群时走本链路；读 task_rule 完成对象群与 membership_operator（IN/NOT_IN），完成群可与下发群分离</span>
+<span class="yv">    - Job：IN=在群完成；NOT_IN=不在群完成（PRD：ABC→BCD 后 A 完成、D 新下发）</span>
+<span class="yv">    - 实现类中文注释；spec 含时间线用例</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-012
-  title: 状态流转与停用关闭链路适配任务组/任务包/任务层
-  priority: P1
-  depends_on: [TGR-011, TGR-004]
-  note: |
-    【受 TGR-028 影响 · 实现注意】
-    - 前端「仅保存」(status=0) /「保存并启用」(默认启用) 已对接 PACKAGE；停用/启用入口在「任务规则管理」= package-rules 列表，勿接到旧 task-rules。
-    - 新创建 PACKAGE 必有 `task_group_id`；组停用关包明细时，可按 `task_definition.task_group_id` 查组下包（勿把 PACKAGE.id 当 taskGroupId）。
-  spec_target: doc/任务定义_test_spec.md
-  acceptance:
-    - CRON distributed_at、就绪→进行中按任务层节奏驱动
-    - 任务组停用：关闭组下各任务包进行中明细；任务包停用：仅该包；单任务停用：仅该任务
-    - Job 薄、逻辑在 JobService Impl
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-012</span>
+  <span class="yk">title:</span><span class="yv"> 状态流转与停用关闭链路适配任务组/任务包/任务层</span>
+  <span class="yk">priority:</span><span class="yv"> P1</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-011, TGR-004]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - 前端「仅保存」(status=0) /「保存并启用」(默认启用) 已对接 PACKAGE；停用/启用入口在「任务规则管理」= package-rules 列表，勿接到旧 task-rules。</span>
+<span class="yv">    - 新创建 PACKAGE 必有 `task_group_id`；组停用关包明细时，可按 `task_definition.task_group_id` 查组下包（勿把 PACKAGE.id 当 taskGroupId）。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务定义_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - CRON distributed_at、就绪→进行中按任务层节奏驱动</span>
+<span class="yv">    - 任务组停用：关闭组下各任务包进行中明细；任务包停用：仅该包；单任务停用：仅该任务</span>
+<span class="yv">    - Job 薄、逻辑在 JobService Impl</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-014
-  title: 立即下发 / 日志筛选迁移到任务维度
-  priority: P1
-  depends_on: [TGR-011]
-  note: |
-    【受 TGR-028 影响 · 实现注意】
-    - 列表「立即下发」目前仍在 **PACKAGE「任务规则管理」**页（原任务包规则列表）；按 taskDefId 下沉时需新增任务维入口，勿复活旧 task-rules 菜单作主入口。
-    - 列表「关联任务规则」仍可能跳转 `/sales-task/task-rules`（路由暂留）；本任务若改筛选/跳转，统一文案与 id 口径（包 id ≠ 组 id ≠ 子任务 id）。
-    - 复制走 createPackage（已剥 id）且 **必填 taskGroupId**；复制回显须带关联任务组。
-  spec_target: doc/任务定义_test_spec.md
-  acceptance:
-    - 立即下发保持包维 `ids`（不改任务维触发）
-    - 日志/实例查询支持按 taskDefId、taskGroupId 筛选（组 id 来自新表，不是 PACKAGE id）
-    - 复制：以 detail 回显 + createTask 契约说明即可（无强制 copyTask API）；前端搬迁按钮见对接清单
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-014</span>
+  <span class="yk">title:</span><span class="yv"> 立即下发 / 日志筛选迁移到任务维度</span>
+  <span class="yk">priority:</span><span class="yv"> P1</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-011]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - 列表「立即下发」目前仍在 **PACKAGE「任务规则管理」**页（原任务包规则列表）；按 taskDefId 下沉时需新增任务维入口，勿复活旧 task-rules 菜单作主入口。</span>
+<span class="yv">    - 列表「关联任务规则」仍可能跳转 `/sales-task/task-rules`（路由暂留）；本任务若改筛选/跳转，统一文案与 id 口径（包 id ≠ 组 id ≠ 子任务 id）。</span>
+<span class="yv">    - 复制走 createPackage（已剥 id）且 **必填 taskGroupId**；复制回显须带关联任务组。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务定义_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 立即下发保持包维 `ids`（不改任务维触发）</span>
+<span class="yv">    - 日志/实例查询支持按 taskDefId、taskGroupId 筛选（组 id 来自新表，不是 PACKAGE id）</span>
+<span class="yv">    - 复制：以 detail 回显 + createTask 契约说明即可（无强制 copyTask API）；前端搬迁按钮见对接清单</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-010
-  title: 任务判断截止增加「任务截止后 N 天」选项
-  priority: P1
-  depends_on: [TGR-002]
-  note: |
-    相对独立，可与本阶段其他项并行。
-    【受 TGR-028 影响 · 实现注意】
-    - 前端 CUSTOM / OBJECT_GROUP 完成标准共用 `EditCompletionModalComm`（含判断截止 / 任务截止）；本任务新增「任务截止后 N 天」须挂到该组件与 createPackage `tasks[].taskRule.taskJudgmentDeadline*` 写路径。
-    - TEMPLATE（标准模板弹窗）路径若也需该选项，需同步 `EditCompletionCriteriaModal`，避免只改一端。
-  spec_target: doc/条件动作任务规则_test_spec.md
-  acceptance:
-    - 新增相对「任务 end_time/deadline 之后 N 天」类型（区别现有 RELATIVE=下发后）
-    - TaskRuleTimeResolver 等路径补齐解析与校验；回归 RELATIVE/ABSOLUTE/MONTH
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-010</span>
+  <span class="yk">title:</span><span class="yv"> 任务判断截止增加「任务截止后 N 天」选项</span>
+  <span class="yk">priority:</span><span class="yv"> P1</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-002]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    相对独立，可与本阶段其他项并行。</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - 前端 CUSTOM / OBJECT_GROUP 完成标准共用 `EditCompletionModalComm`（含判断截止 / 任务截止）；本任务新增「任务截止后 N 天」须挂到该组件与 createPackage `tasks[].taskRule.taskJudgmentDeadline*` 写路径。</span>
+<span class="yv">    - TEMPLATE（标准模板弹窗）路径若也需该选项，需同步 `EditCompletionCriteriaModal`，避免只改一端。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/条件动作任务规则_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 新增相对「任务 end_time/deadline 之后 N 天」类型（区别现有 RELATIVE=下发后）</span>
+<span class="yv">    - TaskRuleTimeResolver 等路径补齐解析与校验；回归 RELATIVE/ABSOLUTE/MONTH</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-# ============================================================
-# 阶段五（迭代 C-1）：快照写侧适配 + 历史缺口
-# ============================================================
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段五（迭代 C-1）：快照写侧适配 + 历史缺口</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-017
-  title: 快照 Job 维度适配「任务组新表 + 任务包 + 任务层多对象群」（写侧）
-  priority: P2
-  depends_on: [TGR-011, TGR-004]
-  note: |
-    须等任务层下发与任务组关联稳定后再做；读侧已有，不阻塞主链路。
-    【受 TGR-028 影响 · 实现注意】
-    - 新写 PACKAGE **必有** `task_group_id`；快照组维度可更依赖包上组 id，但仍须兼容迁移前空值（TGR-003）。
-    - 统计筛选文案「任务规则」若指 PACKAGE，与「任务组」分栏；勿把旧 task-rules（子 TASK）筛选项与 PACKAGE 混用。
+- <span class="yk">id:</span><span class="yv"> TGR-017</span>
+  <span class="yk">title:</span><span class="yv"> 快照 Job 维度适配「任务组新表 + 任务包 + 任务层多对象群」（写侧）</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-011, TGR-004]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    须等任务层下发与任务组关联稳定后再做；读侧已有，不阻塞主链路。</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - 新写 PACKAGE **必有** `task_group_id`；快照组维度可更依赖包上组 id，但仍须兼容迁移前空值（TGR-003）。</span>
+<span class="yv">    - 统计筛选文案「任务规则」若指 PACKAGE，与「任务组」分栏；勿把旧 task-rules（子 TASK）筛选项与 PACKAGE 混用。</span>
 
-    ============================================================
-    【口径补充 · 2026-08-10 · 快照主维度切任务组】
-    ============================================================
-    1) 快照查询主维度改为「任务组」，不再以任务包作为 overview 主筛选维度。
-       - `/sales/task/statistics/overview`（及同源 cards/trend/org/package 等读快照接口）的请求参数
-         **`taskPackageId` 不再作为本维度必填/主查询条件**（可保留字段兼容，但组维度查询不依赖它）。
-       - **任务包维度逻辑保留**：现有 `task_stats_snapshot_package_perf`（按 task_package_id 聚合/筛选）
-         继续可用（如 packagePerformance、taskPackageOptions）；本任务是**新增任务组维度**，不是删包维。
-    2) 新增表关联（DDL 写入 dpc/sql/update_tables.sql）：
-       - 建议新增组表现快照表（如 `task_stats_snapshot_group_perf`），维度字段对齐 package_perf：
-         stat_date / task_month / parent_department_code / owning_department_code / department_path_json /
-         object_code / task_execution_type / **task_group_id** / **task_group_name** /
-         total_count / completed_count / timeliness_numerator / timeliness_denominator 等。
-       - 写侧：明细经 `task_package_id → PACKAGE.task_group_id → task_group` 解析组 id/名称后落组快照；
-         无组 id 的存量包按方案兜底（跳过或归「未关联组」桶，须在 spec 写死）。
-       - summary / trend / feedback / org_perf 等其它快照表：增加或对齐 **task_group_id** 分桶维度
-        （与现有 task_package_id / task_rule_id / object_code 共存；读侧按组筛选时用组 id）。
-    3) 聚合读侧改造：
-       - 按入参 **taskGroupId**（任务组 id，来自新表 task_group，≠ PACKAGE.id）查询/合并相关快照行；
-       - 同组多包、多 object_code：读侧按 task_group_id（+ 其它筛选）合并分子分母后重算完成率/反馈率；
-       - overview 内「任务组表现」列表语义 = 组维快照（类比现 packagePerformance，但 key 为 taskGroupId）。
-    4) 筛选 Options：新增/对齐任务组下拉（listTaskGroup 或组快照去重），与任务包 Options 分栏，禁止用 PACKAGE list 冒充组。
-  spec_target: doc/任务组统计_test_spec.md
-  acceptance:
-    - DDL：新增任务组维度快照表（及必要关联/索引）；现有 package_perf 包维表与逻辑保留
-    - Job 写侧：按 task_group_id 落组快照；明细不冗余 task_group_id，经包关联解析；同组多 object_code 分桶正确
-    - 读侧：overview 等支持按 **taskGroupId** 聚合查询相关快照；**不再依赖 taskPackageId 作为组维度主查询**
-    - taskPackageId 包维筛选/packagePerformance 等能力不回退；组 id ≠ 包 id
-    - package_perf / group_perf 语义与筛选字段在 spec 写清；改动文件 git add
-  status: completed
+<span class="yv">    ============================================================</span>
+<span class="yv">    【口径补充 · 2026-08-10 · 快照主维度切任务组】</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    1) 快照查询主维度改为「任务组」，不再以任务包作为 overview 主筛选维度。</span>
+<span class="yv">       - `/sales/task/statistics/overview`（及同源 cards/trend/org/package 等读快照接口）的请求参数</span>
+<span class="yv">         **`taskPackageId` 不再作为本维度必填/主查询条件**（可保留字段兼容，但组维度查询不依赖它）。</span>
+<span class="yv">       - **任务包维度逻辑保留**：现有 `task_stats_snapshot_package_perf`（按 task_package_id 聚合/筛选）</span>
+<span class="yv">         继续可用（如 packagePerformance、taskPackageOptions）；本任务是**新增任务组维度**，不是删包维。</span>
+<span class="yv">    2) 新增表关联（DDL 写入 dpc/sql/update_tables.sql）：</span>
+<span class="yv">       - 建议新增组表现快照表（如 `task_stats_snapshot_group_perf`），维度字段对齐 package_perf：</span>
+<span class="yv">         stat_date / task_month / parent_department_code / owning_department_code / department_path_json /</span>
+<span class="yv">         object_code / task_execution_type / **task_group_id** / **task_group_name** /</span>
+<span class="yv">         total_count / completed_count / timeliness_numerator / timeliness_denominator 等。</span>
+<span class="yv">       - 写侧：明细经 `task_package_id → PACKAGE.task_group_id → task_group` 解析组 id/名称后落组快照；</span>
+<span class="yv">         无组 id 的存量包按方案兜底（跳过或归「未关联组」桶，须在 spec 写死）。</span>
+<span class="yv">       - summary / trend / feedback / org_perf 等其它快照表：增加或对齐 **task_group_id** 分桶维度</span>
+<span class="yv">        （与现有 task_package_id / task_rule_id / object_code 共存；读侧按组筛选时用组 id）。</span>
+<span class="yv">    3) 聚合读侧改造：</span>
+<span class="yv">       - 按入参 **taskGroupId**（任务组 id，来自新表 task_group，≠ PACKAGE.id）查询/合并相关快照行；</span>
+<span class="yv">       - 同组多包、多 object_code：读侧按 task_group_id（+ 其它筛选）合并分子分母后重算完成率/反馈率；</span>
+<span class="yv">       - overview 内「任务组表现」列表语义 = 组维快照（类比现 packagePerformance，但 key 为 taskGroupId）。</span>
+<span class="yv">    4) 筛选 Options：新增/对齐任务组下拉（listTaskGroup 或组快照去重），与任务包 Options 分栏，禁止用 PACKAGE list 冒充组。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组统计_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - DDL：新增任务组维度快照表（及必要关联/索引）；现有 package_perf 包维表与逻辑保留</span>
+<span class="yv">    - Job 写侧：按 task_group_id 落组快照；明细不冗余 task_group_id，经包关联解析；同组多 object_code 分桶正确</span>
+<span class="yv">    - 读侧：overview 等支持按 **taskGroupId** 聚合查询相关快照；**不再依赖 taskPackageId 作为组维度主查询**</span>
+<span class="yv">    - taskPackageId 包维筛选/packagePerformance 等能力不回退；组 id ≠ 包 id</span>
+<span class="yv">    - package_perf / group_perf 语义与筛选字段在 spec 写清；改动文件 git add</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-019
-  title: 组织执行表现按网点负责人汇总（销售组层级）
-  priority: P2
-  depends_on: [TGR-017]
-  note: |
-    ============================================================
-    【口径补充 · 2026-08-10 · 末级部门按负责人汇总】
-    ============================================================
-    背景：现 `orgPerformance` 在末级部门（`isLeafDepartment`，参考
-    `TaskPackageStatisticsServiceImpl` 约 537–540 行：`deptLevel=6`）走
-    `orgPerformanceFromDetailsRealtime`，按 **targetEntityCode（门店/网点）** 实时聚合。
-    本任务改为：末级部门触发「网点负责人」维度汇总，并新增落库表承载负责人完成率快照（Job 写 / 读可复用）。
+- <span class="yk">id:</span><span class="yv"> TGR-019</span>
+  <span class="yk">title:</span><span class="yv"> 组织执行表现按网点负责人汇总（销售组层级）</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-017]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    【口径补充 · 2026-08-10 · 末级部门按负责人汇总】</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    背景：现 `orgPerformance` 在末级部门（`isLeafDepartment`，参考</span>
+<span class="yv">    `TaskPackageStatisticsServiceImpl` 约 537–540 行：`deptLevel=6`）走</span>
+<span class="yv">    `orgPerformanceFromDetailsRealtime`，按 **targetEntityCode（门店/网点）** 实时聚合。</span>
+<span class="yv">    本任务改为：末级部门触发「网点负责人」维度汇总，并新增落库表承载负责人完成率快照（Job 写 / 读可复用）。</span>
 
-    1) 触发条件
-       - 与现逻辑一致：先 `applyDeptScope` + 必有 deptCode；
-       - **仅当 `isLeafDepartment(deptCode)` 为 true** 时进入负责人汇总链路
-         （入口对齐现 `orgPerformance` → `orgPerformanceFromDetailsRealtime` 分支）；
-       - 非末级：仍读 org_perf 快照按直属下级部门汇总（本任务不改上级部门链路）。
+<span class="yv">    1) 触发条件</span>
+<span class="yv">       - 与现逻辑一致：先 `applyDeptScope` + 必有 deptCode；</span>
+<span class="yv">       - **仅当 `isLeafDepartment(deptCode)` 为 true** 时进入负责人汇总链路</span>
+<span class="yv">         （入口对齐现 `orgPerformance` → `orgPerformanceFromDetailsRealtime` 分支）；</span>
+<span class="yv">       - 非末级：仍读 org_perf 快照按直属下级部门汇总（本任务不改上级部门链路）。</span>
 
-    2) 明细底座
-       - 复用末级实时扫描结果（与 `orgPerformanceFromDetailsRealtime` 同口径的明细集合 /
-         或按 targetEntityCode 已聚合的桶），得到各 **targetEntityCode** 的 total/completed/反馈分子分母。
+<span class="yv">    2) 明细底座</span>
+<span class="yv">       - 复用末级实时扫描结果（与 `orgPerformanceFromDetailsRealtime` 同口径的明细集合 /</span>
+<span class="yv">         或按 targetEntityCode 已聚合的桶），得到各 **targetEntityCode** 的 total/completed/反馈分子分母。</span>
 
-    3) 反向查客户（account_obj）
-       - 用明细桶的 targetEntityCode 批量查 DTS `account_obj`（按 `account_no`）；
-       - 在 `DtsAccountObjService` **新增批量方法**（现仅有 `getByAccountNo` / `mapLastVisitClosedTimeByAccountNos`，
-         需补如 `mapByAccountNos` 返回 AccountObjEntity 或至少 account_no→owner 映射）；
-       - 取客户上的 **owner** 字段作为负责人关联键。
+<span class="yv">    3) 反向查客户（account_obj）</span>
+<span class="yv">       - 用明细桶的 targetEntityCode 批量查 DTS `account_obj`（按 `account_no`）；</span>
+<span class="yv">       - 在 `DtsAccountObjService` **新增批量方法**（现仅有 `getByAccountNo` / `mapLastVisitClosedTimeByAccountNos`，</span>
+<span class="yv">         需补如 `mapByAccountNos` 返回 AccountObjEntity 或至少 account_no→owner 映射）；</span>
+<span class="yv">       - 取客户上的 **owner** 字段作为负责人关联键。</span>
 
-    4) 按负责人聚合 → 查人员（personnel_obj）
-       - 将步骤 2 的指标按 **owner** 汇总（同一 owner 下多门店指标相加，完成率/反馈率用合并后分子分母重算）；
-       - **owner = personnel_obj.id**（用户明确：owner 就是人员表主键 id）；
-       - 用汇总后的 owner 集合批量查 `DtsPersonnelObjService`（可新增 batch by id；现有接口多按
-         `user_master_id__c`，本任务以 **id** 为准抽选人员，再取展示字段）。
+<span class="yv">    4) 按负责人聚合 → 查人员（personnel_obj）</span>
+<span class="yv">       - 将步骤 2 的指标按 **owner** 汇总（同一 owner 下多门店指标相加，完成率/反馈率用合并后分子分母重算）；</span>
+<span class="yv">       - **owner = personnel_obj.id**（用户明确：owner 就是人员表主键 id）；</span>
+<span class="yv">       - 用汇总后的 owner 集合批量查 `DtsPersonnelObjService`（可新增 batch by id；现有接口多按</span>
+<span class="yv">         `user_master_id__c`，本任务以 **id** 为准抽选人员，再取展示字段）。</span>
 
-    5) 返回结构（保持现有 orgPerformance 行结构不变）
-       - 完成率、反馈率（及时率）口径与现 Org 行一致（completionRate / timelinessRate）；
-       - **orgCode = userMasterId**（`personnel_obj.user_master_id__c`）；
-       - **orgName = full_name**（`personnel_obj.full_name`）；
-       - orgType 建议区分负责人类型（如 OWNER / PERSON，与现 ENTITY/DEPT 区分，spec 写死）；
-       - 无 owner / 人员查不到：兜底策略写入 spec（跳过或归「未分配负责人」桶）。
+<span class="yv">    5) 返回结构（保持现有 orgPerformance 行结构不变）</span>
+<span class="yv">       - 完成率、反馈率（及时率）口径与现 Org 行一致（completionRate / timelinessRate）；</span>
+<span class="yv">       - **orgCode = userMasterId**（`personnel_obj.user_master_id__c`）；</span>
+<span class="yv">       - **orgName = full_name**（`personnel_obj.full_name`）；</span>
+<span class="yv">       - orgType 建议区分负责人类型（如 OWNER / PERSON，与现 ENTITY/DEPT 区分，spec 写死）；</span>
+<span class="yv">       - 无 owner / 人员查不到：兜底策略写入 spec（跳过或归「未分配负责人」桶）。</span>
 
-    6) 新增表（负责人完成率汇总快照）
-       - 建议表名如 `task_stats_snapshot_owner_perf`（名称以方案为准）；
-       - 维度建议：stat_date、task_month、parent/ owning 部门、object_code、task_group_id（对齐 TGR-017）、
-         owner_id（=personnel.id）、user_master_id、owner_name（full_name）、
-         total/completed/timeliness 分子分母等；
-       - Job 写侧与末级实时路径口径一致；读侧末级可优先读该表，实时路径作刷新/兜底（实现时二选一写清）。
-  spec_target: doc/任务组统计_test_spec.md
-  acceptance:
-    - DDL：新增负责人完成率汇总快照表；Entity/DTO 字段中文注释；update_tables.sql 累计；改动 git add
-    - 末级部门（isLeafDepartment）才走负责人汇总；非末级仍按下级部门读 org_perf
-    - 基于末级明细/targetEntityCode → 批量 account_obj（DtsAccountObjService 新增批量）→ 按 owner 汇总
-    - owner=personnel_obj.id → 批量查人员 → orgCode=userMasterId、orgName=full_name；完成率/反馈率结构不变
-    - overview.orgPerformance 末级展示切换为负责人行；用例与兜底写入任务组统计_test_spec
-  status: completed
+<span class="yv">    6) 新增表（负责人完成率汇总快照）</span>
+<span class="yv">       - 建议表名如 `task_stats_snapshot_owner_perf`（名称以方案为准）；</span>
+<span class="yv">       - 维度建议：stat_date、task_month、parent/ owning 部门、object_code、task_group_id（对齐 TGR-017）、</span>
+<span class="yv">         owner_id（=personnel.id）、user_master_id、owner_name（full_name）、</span>
+<span class="yv">         total/completed/timeliness 分子分母等；</span>
+<span class="yv">       - Job 写侧与末级实时路径口径一致；读侧末级可优先读该表，实时路径作刷新/兜底（实现时二选一写清）。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组统计_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - DDL：新增负责人完成率汇总快照表；Entity/DTO 字段中文注释；update_tables.sql 累计；改动 git add</span>
+<span class="yv">    - 末级部门（isLeafDepartment）才走负责人汇总；非末级仍按下级部门读 org_perf</span>
+<span class="yv">    - 基于末级明细/targetEntityCode → 批量 account_obj（DtsAccountObjService 新增批量）→ 按 owner 汇总</span>
+<span class="yv">    - owner=personnel_obj.id → 批量查人员 → orgCode=userMasterId、orgName=full_name；完成率/反馈率结构不变</span>
+<span class="yv">    - overview.orgPerformance 末级展示切换为负责人行；用例与兜底写入任务组统计_test_spec</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-020
-  title: 反馈「其他原因」按具体描述文字统计
-  priority: P2
-  depends_on: [TGR-017]
-  spec_target: doc/任务组统计_test_spec.md
-  acceptance:
-    - Job：原因按 feedback_reason_content 优先分桶，空则回退 feedback_reason；皆空不计入分布（与原口径一致）
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-020</span>
+  <span class="yk">title:</span><span class="yv"> 反馈「其他原因」按具体描述文字统计</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-017]</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组统计_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - Job：原因按 feedback_reason_content 优先分桶，空则回退 feedback_reason；皆空不计入分布（与原口径一致）</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-# ============================================================
-# 阶段六（迭代 C-2）：列表体验 / 排序（可插空）
-# ============================================================
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段六（迭代 C-2）：列表体验 / 排序（可插空）</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-005
-  title: 任务规则列表改造（列精简 / 操作折叠 / 筛选布局）
-  priority: P2
-  depends_on: [TGR-004, TGR-028]
-  note: |
-    改动仓库：Comm-Divisor-Service `task-package-rules/task-package-rules-list.tsx`（前端「任务规则列表」= 后端 PACKAGE 列表）。
-    后端：`definition/list` 已支持 `taskGroupId`、`taskExecutionType` 精确筛选，联调即可。
-    1) 删除列：关联任务规则、已下发任务包、已下发任务数
-    2) 操作列新增「任务明细」：跳转逻辑同原「已下发任务数」点击（`/sales-task/task-detail?taskPackageId=`）
-    3) 操作列仅外显「任务明细」「编辑」；复制 / 日志 / 立即下发折叠到「…」下拉（对齐原型）
-    4) 筛选顺序：关联任务组 → 任务类型 → 任务名称（原「规则」改名）→ 任务对象；支持搜索选择任务组、选择任务类型
-  frontend_repo: /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service
-  spec_target: doc/任务定义_test_spec.md
-  acceptance:
-    - 任务规则列表不再展示「关联任务规则 / 已下发任务包 / 已下发任务数」三列
-    - 操作列：外显任务明细、编辑；… 内含复制、日志、立即下发
-    - 任务明细跳转与原已下发任务数一致（task-detail + taskPackageId + objectCode）
-    - 筛选：关联任务组、任务类型、任务名称、任务对象（顺序与原型一致）；请求带 taskGroupId / taskExecutionType / taskName / objectCode
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-005</span>
+  <span class="yk">title:</span><span class="yv"> 任务规则列表改造（列精简 / 操作折叠 / 筛选布局）</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-004, TGR-028]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    改动仓库：Comm-Divisor-Service `task-package-rules/task-package-rules-list.tsx`（前端「任务规则列表」= 后端 PACKAGE 列表）。</span>
+<span class="yv">    后端：`definition/list` 已支持 `taskGroupId`、`taskExecutionType` 精确筛选，联调即可。</span>
+<span class="yv">    1) 删除列：关联任务规则、已下发任务包、已下发任务数</span>
+<span class="yv">    2) 操作列新增「任务明细」：跳转逻辑同原「已下发任务数」点击（`/sales-task/task-detail?taskPackageId=`）</span>
+<span class="yv">    3) 操作列仅外显「任务明细」「编辑」；复制 / 日志 / 立即下发折叠到「…」下拉（对齐原型）</span>
+<span class="yv">    4) 筛选顺序：关联任务组 → 任务类型 → 任务名称（原「规则」改名）→ 任务对象；支持搜索选择任务组、选择任务类型</span>
+  <span class="yk">frontend_repo:</span><span class="yv"> /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务定义_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 任务规则列表不再展示「关联任务规则 / 已下发任务包 / 已下发任务数」三列</span>
+<span class="yv">    - 操作列：外显任务明细、编辑；… 内含复制、日志、立即下发</span>
+<span class="yv">    - 任务明细跳转与原已下发任务数一致（task-detail + taskPackageId + objectCode）</span>
+<span class="yv">    - 筛选：关联任务组、任务类型、任务名称、任务对象（顺序与原型一致）；请求带 taskGroupId / taskExecutionType / taskName / objectCode</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-023
-  title: 任务排序逻辑（参照 1.3 / PRD 历史问题）
-  priority: P2
-  depends_on: [TGR-007]
-  note: 独立口径，可随时插空
-  spec_target: doc/任务定义_test_spec.md
-  acceptance:
-    - 先补齐排序口径再改 list（当前仅 orderByDesc id）；写入 spec
-  status: pending
+- <span class="yk">id:</span><span class="yv"> TGR-023</span>
+  <span class="yk">title:</span><span class="yv"> 任务排序逻辑（参照 1.3 / PRD 历史问题）</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-007]</span>
+  <span class="yk">note:</span><span class="yv"> 独立口径，可随时插空</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务定义_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 先补齐排序口径再改 list（当前仅 orderByDesc id）；写入 spec</span>
+  <span class="yk">status:</span><span class="yv"> pending</span>
 
-# ============================================================
-# 阶段七（迭代 C-3）：测试文档、对账与验收
-# ============================================================
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段七（迭代 C-3）：测试文档、对账与验收</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-025
-  title: 补全「任务组结构改造」与关联 spec 回归用例
-  priority: P2
-  depends_on: [TGR-009, TGR-012, TGR-016, TGR-017, TGR-021]
-  note: |
-    【受 TGR-028 影响 · 实现注意】
-    - 回归须覆盖：createPackage **缺 taskGroupId 失败**；OBJECT_GROUP 配置保存/回显；`has_action→completion_standard_type` SQL 刷数后 TEMPLATE/CUSTOM 正确且不覆盖 OBJECT_GROUP。
-    - 用例文案映射：前端「任务规则配置/下发标准/完成标准」= 后端 PACKAGE + 子 TASK，避免与旧 task-rules、task_rule 表名串义。
-  spec_target: doc/任务组结构改造_test_spec.md
-  acceptance:
-    - 覆盖：任务组新表 CRUD、组关联包、任务层配置、多门店群、IN/NOT_IN、去重窗口、截止后N天
-    - 覆盖 TGR-028：taskGroupId 必填、完成标准三选一（含 OBJECT_GROUP）、前后端文案对照
-    - 不重复写读快照基建与已实现的模糊搜索用例；仅补结构变更与历史缺口
-  status: pending
+- <span class="yk">id:</span><span class="yv"> TGR-025</span>
+  <span class="yk">title:</span><span class="yv"> 补全「任务组结构改造」与关联 spec 回归用例</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-009, TGR-012, TGR-016, TGR-017, TGR-021]</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - 回归须覆盖：createPackage **缺 taskGroupId 失败**；OBJECT_GROUP 配置保存/回显；`has_action→completion_standard_type` SQL 刷数后 TEMPLATE/CUSTOM 正确且不覆盖 OBJECT_GROUP。</span>
+<span class="yv">    - 用例文案映射：前端「任务规则配置/下发标准/完成标准」= 后端 PACKAGE + 子 TASK，避免与旧 task-rules、task_rule 表名串义。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组结构改造_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 覆盖：任务组新表 CRUD、组关联包、任务层配置、多门店群、IN/NOT_IN、去重窗口、截止后N天</span>
+<span class="yv">    - 覆盖 TGR-028：taskGroupId 必填、完成标准三选一（含 OBJECT_GROUP）、前后端文案对照</span>
+<span class="yv">    - 不重复写读快照基建与已实现的模糊搜索用例；仅补结构变更与历史缺口</span>
+  <span class="yk">status:</span><span class="yv"> pending</span>
 
-- id: TGR-026
-  title: 结构变更后快照与明细口径对账
-  priority: P2
-  depends_on: [TGR-017, TGR-025]
-  spec_target: doc/任务组统计_test_spec.md
-  acceptance:
-    - 同组多包/多任务不同门店群：明细 COUNT vs summary 刷新后误差为 0
-    - 任务组维度与任务包维度指标一致、不串 id（组 id ≠ 包 id）
-  status: pending
+- <span class="yk">id:</span><span class="yv"> TGR-026</span>
+  <span class="yk">title:</span><span class="yv"> 结构变更后快照与明细口径对账</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-017, TGR-025]</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组统计_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 同组多包/多任务不同门店群：明细 COUNT vs summary 刷新后误差为 0</span>
+<span class="yv">    - 任务组维度与任务包维度指标一致、不串 id（组 id ≠ 包 id）</span>
+  <span class="yk">status:</span><span class="yv"> pending</span>
 
-# ============================================================
-# 阶段八（迭代 D）：前端对接与权限（最后）
-# 前端仓库：/Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service
-# ============================================================
+<span class="yc"># ============================================================</span>
+<span class="yc"># 阶段八（迭代 D）：前端对接与权限（最后）</span>
+<span class="yc"># 前端仓库：/Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service</span>
+<span class="yc"># ============================================================</span>
 
-- id: TGR-027
-  title: 前端对接清单（任务组新表 / 任务包关联 / 任务配置 / 统计文案）
-  priority: P2
-  depends_on: [TGR-025]
-  frontend_repo: /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service
-  note: |
-    本任务在 Comm-Divisor-Service 落地页面/路由/接口调用；API 契约建议在迭代 B 末提前冻结，联调放本阶段。
-    【受 TGR-028 影响 · 口径修订】
-    - 任务配置页信息架构/文案/任务组必填/完成标准三选一已由 **TGR-028** 承接完成；本任务剩余关注：统计筛选文案区分组/包、遗漏页面文案统一。
-    - 「创建任务包关联任务组」已从可选升级为 **必填**（见 TGR-028）。
-  spec_target: doc/任务组结构改造_test_spec.md
-  acceptance:
-    - 改动仓库：Comm-Divisor-Service（非本后端仓）
-    - 任务组独立菜单/页面（新表 API）；创建任务包时选择/关联任务组；任务配置页字段搬迁；统计筛选区分组/包
-    - 接口映射：createTaskGroup（新）+ createPackage（关联 taskGroupId）+ createTask；任务组搜索走 listTaskGroup，禁止用 PACKAGE list 冒充
-    - 遵循前端规范：src/config.url.*.ts 接口常量、src/config.route.tsx 懒加载路由、src/pages/ 页面、必要时 src/model/
-    - Figma和及图片：
-      - /Users/wupengjun/Desktop/1.4/img_v3_02147_bf8f19dd-5a8d-4d41-b3af-913a7a02109g.png
-      - https://www.figma.com/design/2ipoyIhwH3zX3G0p8oDFWX/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1?node-id=5-4&amp;p=f&amp;t=qxWdPEUjN3AeEJmH-0  其中1.3.1的 任务组管理 任务规则管理
-  status: completed
+- <span class="yk">id:</span><span class="yv"> TGR-027</span>
+  <span class="yk">title:</span><span class="yv"> 前端对接清单（任务组新表 / 任务包关联 / 任务配置 / 统计文案）</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-025]</span>
+  <span class="yk">frontend_repo:</span><span class="yv"> /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    本任务在 Comm-Divisor-Service 落地页面/路由/接口调用；API 契约建议在迭代 B 末提前冻结，联调放本阶段。</span>
+<span class="yv">    【受 TGR-028 影响 · 口径修订】</span>
+<span class="yv">    - 任务配置页信息架构/文案/任务组必填/完成标准三选一已由 **TGR-028** 承接完成；本任务剩余关注：统计筛选文案区分组/包、遗漏页面文案统一。</span>
+<span class="yv">    - 「创建任务包关联任务组」已从可选升级为 **必填**（见 TGR-028）。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组结构改造_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 改动仓库：Comm-Divisor-Service（非本后端仓）</span>
+<span class="yv">    - 任务组独立菜单/页面（新表 API）；创建任务包时选择/关联任务组；任务配置页字段搬迁；统计筛选区分组/包</span>
+<span class="yv">    - 接口映射：createTaskGroup（新）+ createPackage（关联 taskGroupId）+ createTask；任务组搜索走 listTaskGroup，禁止用 PACKAGE list 冒充</span>
+<span class="yv">    - 遵循前端规范：src/config.url.*.ts 接口常量、src/config.route.tsx 懒加载路由、src/pages/ 页面、必要时 src/model/</span>
+<span class="yv">    - Figma和及图片：</span>
+<span class="yv">      - /Users/wupengjun/Desktop/1.4/img_v3_02147_bf8f19dd-5a8d-4d41-b3af-913a7a02109g.png</span>
+      - <span class="yk">https:</span><span class="yv">//www.figma.com/design/2ipoyIhwH3zX3G0p8oDFWX/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1?node-id=5-4&amp;p=f&amp;t=qxWdPEUjN3AeEJmH-0  其中1.3.1的 任务组管理 任务规则管理</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-028
-  title: 前端「任务规则配置」信息架构与交互改造（下发标准/完成标准文案与布局；任务组必填；基于对象群完成）
-  priority: P0
-  depends_on: [TGR-004, TGR-007, TGR-027]
-  frontend_repo: /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service
-  note: |
-    ============================================================
-    一、定位（本次最复杂前端改造点）
-    ============================================================
-    - 目标：在「后端 PACKAGE + TASK + task_rule 结构完全不变」前提下，把原「任务包规则」创建/编辑页改造成业务可理解的「任务规则配置」。
-    - 主改文件（前端）：sales-task/task-package-rules/createOrEdit.tsx + 列表文案/菜单；旧 task-rules 菜单下线。
-    - 后端：不改层级模型；需补强「关联任务组必填」校验，并保证包规则 task_rule.task_group_id 同步写入（与 PACKAGE.task_group_id 一致）。
+- <span class="yk">id:</span><span class="yv"> TGR-028</span>
+  <span class="yk">title:</span><span class="yv"> 前端「任务规则配置」信息架构与交互改造（下发标准/完成标准文案与布局；任务组必填；基于对象群完成）</span>
+  <span class="yk">priority:</span><span class="yv"> P0</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-004, TGR-007, TGR-027]</span>
+  <span class="yk">frontend_repo:</span><span class="yv"> /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    一、定位（本次最复杂前端改造点）</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    - 目标：在「后端 PACKAGE + TASK + task_rule 结构完全不变」前提下，把原「任务包规则」创建/编辑页改造成业务可理解的「任务规则配置」。</span>
+<span class="yv">    - 主改文件（前端）：sales-task/task-package-rules/createOrEdit.tsx + 列表文案/菜单；旧 task-rules 菜单下线。</span>
+<span class="yv">    - 后端：不改层级模型；需补强「关联任务组必填」校验，并保证包规则 task_rule.task_group_id 同步写入（与 PACKAGE.task_group_id 一致）。</span>
 
-    ============================================================
-    二、前后端概念对照（禁止串义）
-    ============================================================
-    | 前端展示（1.4） | 现状前端文案 | 后端真实对象 | 主要落库 |
-    |----------------|-------------|-------------|---------|
-    | 任务规则管理（菜单） | 任务包规则管理 | PACKAGE 列表页 | task_definition(task_type=PACKAGE) |
-    | 任务规则配置（页标题） | 新建/编辑任务包 | createPackage/updatePackage 页 | 同上 + tasks[] |
-    | 下发标准（左栏模块） | 任务包下发 | PACKAGE 层配置 | PACKAGE + 包级 task_rule + ext |
-    | 任务名称 | 任务包名称 | PACKAGE.task_name / task_title | task_definition |
-    | 任务说明 | 备注 | PACKAGE.task_description | task_definition |
-    | 关联任务组* | 任务组（已有可选） | PACKAGE.task_group_id + 包规则 task_rule.task_group_id | task_definition + task_rule |
-    | 下发信息 | （散落在基本信息/下发区） | 下发人/对象/时间/去重 | ext + 包规则 distribution*/is_repeat/repeat_window |
-    | 完成标准（右栏模块） | 具体任务 | 子 TASK + 其子 task_rule | task_definition(TASK) + task_rule |
-    | 任务完成标准三选一 | hasAction 真假 + 弹窗 | completion_standard_type | task_rule |
-    | 基于标准模板 | hasAction=true | TEMPLATE | task_rule + template/condition |
-    | 自定义标准 | hasAction=false | CUSTOM | task_rule |
-    | 基于对象群 | （现状缺失/未完） | OBJECT_GROUP | completion_object_group_* + membership_operator |
+<span class="yv">    ============================================================</span>
+<span class="yv">    二、前后端概念对照（禁止串义）</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    | 前端展示（1.4） | 现状前端文案 | 后端真实对象 | 主要落库 |</span>
+<span class="yv">    |----------------|-------------|-------------|---------|</span>
+<span class="yv">    | 任务规则管理（菜单） | 任务包规则管理 | PACKAGE 列表页 | task_definition(task_type=PACKAGE) |</span>
+<span class="yv">    | 任务规则配置（页标题） | 新建/编辑任务包 | createPackage/updatePackage 页 | 同上 + tasks[] |</span>
+<span class="yv">    | 下发标准（左栏模块） | 任务包下发 | PACKAGE 层配置 | PACKAGE + 包级 task_rule + ext |</span>
+<span class="yv">    | 任务名称 | 任务包名称 | PACKAGE.task_name / task_title | task_definition |</span>
+<span class="yv">    | 任务说明 | 备注 | PACKAGE.task_description | task_definition |</span>
+<span class="yv">    | 关联任务组* | 任务组（已有可选） | PACKAGE.task_group_id + 包规则 task_rule.task_group_id | task_definition + task_rule |</span>
+<span class="yv">    | 下发信息 | （散落在基本信息/下发区） | 下发人/对象/时间/去重 | ext + 包规则 distribution*/is_repeat/repeat_window |</span>
+<span class="yv">    | 完成标准（右栏模块） | 具体任务 | 子 TASK + 其子 task_rule | task_definition(TASK) + task_rule |</span>
+<span class="yv">    | 任务完成标准三选一 | hasAction 真假 + 弹窗 | completion_standard_type | task_rule |</span>
+<span class="yv">    | 基于标准模板 | hasAction=true | TEMPLATE | task_rule + template/condition |</span>
+<span class="yv">    | 自定义标准 | hasAction=false | CUSTOM | task_rule |</span>
+<span class="yv">    | 基于对象群 | （现状缺失/未完） | OBJECT_GROUP | completion_object_group_* + membership_operator |</span>
 
-    ============================================================
-    三、文案改造清单（必须全量替换用户可见文案）
-    ============================================================
-    1) 左栏模块：「任务包下发」→「下发标准」（该模块语义仍=后端任务包 PACKAGE）
-    2) 「任务包名称」→「任务名称」
-    3) 「备注」→「任务说明」
-    4) 右栏模块：「具体任务」→「完成标准」
-    5) 菜单/列表/面包屑/按钮：「任务包规则管理」→「任务规则管理」；去掉旧独立「任务规则管理」(task-rules)
-    6) 页头建议对齐原型：「任务规则配置」；操作按钮对齐原型「仅保存」「保存并启用」（若现状仅「保存」，按原型拆分：仅保存=status 停用/草稿口径与现网约定对齐，保存并启用=status=1；口径在实现时写进页面注释与 spec）
-    7) 校验文案同步改：「请填写任务包名称」→「请填写任务名称」等
+<span class="yv">    ============================================================</span>
+<span class="yv">    三、文案改造清单（必须全量替换用户可见文案）</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    1) 左栏模块：「任务包下发」→「下发标准」（该模块语义仍=后端任务包 PACKAGE）</span>
+<span class="yv">    2) 「任务包名称」→「任务名称」</span>
+<span class="yv">    3) 「备注」→「任务说明」</span>
+<span class="yv">    4) 右栏模块：「具体任务」→「完成标准」</span>
+<span class="yv">    5) 菜单/列表/面包屑/按钮：「任务包规则管理」→「任务规则管理」；去掉旧独立「任务规则管理」(task-rules)</span>
+<span class="yv">    6) 页头建议对齐原型：「任务规则配置」；操作按钮对齐原型「仅保存」「保存并启用」（若现状仅「保存」，按原型拆分：仅保存=status 停用/草稿口径与现网约定对齐，保存并启用=status=1；口径在实现时写进页面注释与 spec）</span>
+<span class="yv">    7) 校验文案同步改：「请填写任务包名称」→「请填写任务名称」等</span>
 
-    ============================================================
-    四、页面信息架构（对齐原型 · 创建/编辑）
-    ============================================================
-    【页头】任务规则配置 | 仅保存 | 保存并启用
+<span class="yv">    ============================================================</span>
+<span class="yv">    四、页面信息架构（对齐原型 · 创建/编辑）</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    【页头】任务规则配置 | 仅保存 | 保存并启用</span>
 
-    【左栏 · 下发标准】—— 对应后端 PACKAGE
-      A. 基本信息
-         - 任务名称（必填）→ taskName
-         - 任务说明 → taskDescription
-         - 关联任务组（必填*）→ taskGroupId（选已有 task_group；list/detail）
-      B. 下发信息
-         - 下发人（总部下发 / 区域下发 / 自定义下发）→ 现有 distributionTypeCode/Name 等口径
-         - 下发对象（门店/人员 Tab + 对象群选择/刷新/详情）→ distributionObjectGroup* + objectCode/objectName
-         - 下发时间（立即运行 / 定时开始）→ taskRule.distributionType/config/timeConfig/distributedAt
-         - 重复下发去重（单日去重 / 单月去重 / 全期去重 等，按原型选项）→ is_repeat + repeat_window_type（与 TGR-008 字段对齐；前端先落枚举，Job 去重可后续）
+<span class="yv">    【左栏 · 下发标准】—— 对应后端 PACKAGE</span>
+<span class="yv">      A. 基本信息</span>
+<span class="yv">         - 任务名称（必填）→ taskName</span>
+<span class="yv">         - 任务说明 → taskDescription</span>
+<span class="yv">         - 关联任务组（必填*）→ taskGroupId（选已有 task_group；list/detail）</span>
+<span class="yv">      B. 下发信息</span>
+<span class="yv">         - 下发人（总部下发 / 区域下发 / 自定义下发）→ 现有 distributionTypeCode/Name 等口径</span>
+<span class="yv">         - 下发对象（门店/人员 Tab + 对象群选择/刷新/详情）→ distributionObjectGroup* + objectCode/objectName</span>
+<span class="yv">         - 下发时间（立即运行 / 定时开始）→ taskRule.distributionType/config/timeConfig/distributedAt</span>
+<span class="yv">         - 重复下发去重（单日去重 / 单月去重 / 全期去重 等，按原型选项）→ is_repeat + repeat_window_type（与 TGR-008 字段对齐；前端先落枚举，Job 去重可后续）</span>
 
-    【右栏 · 完成标准】—— 对应后端子 TASK（原「具体任务」）
-      - 任务完成标准（三选一 Tab/Segmented）：
-        1) 基于标准模板 → completionStandardType=TEMPLATE（兼容 hasAction=true）
-        2) 自定义标准 → CUSTOM（兼容 hasAction=false）
-        3) 基于对象群 → OBJECT_GROUP（新增主路径）
-      - 选择「基于对象群」后的交互（与自定义标准共享部分时间配置能力）：
-        · 成员关系：在 / 不在 → membershipOperator = IN / NOT_IN
-        · 对象群选择（完成判定群，可与下发对象群不同）→ completionObjectGroupId/Name
-        · 任务类型 → 沿用现自定义标准的任务类型选择
-        · 判断时间 → completionJudgmentType/Config/TimeConfig
-        · 判断截止时间 → taskJudgmentDeadlineType/Config（含「任务截止时间」或「任务截止后 N 天 HH:mm」）
-        · 任务截止时间 → deadlineType/Config（按下发后 N 天 / 按月 / 固定时间等现有能力）
-      - 「基于标准模板」仍走编辑标准弹窗（模板+条件+完成脚本等现有链路）
-      - detail 同构回显三选一及对象群配置
+<span class="yv">    【右栏 · 完成标准】—— 对应后端子 TASK（原「具体任务」）</span>
+<span class="yv">      - 任务完成标准（三选一 Tab/Segmented）：</span>
+<span class="yv">        1) 基于标准模板 → completionStandardType=TEMPLATE（兼容 hasAction=true）</span>
+<span class="yv">        2) 自定义标准 → CUSTOM（兼容 hasAction=false）</span>
+<span class="yv">        3) 基于对象群 → OBJECT_GROUP（新增主路径）</span>
+<span class="yv">      - 选择「基于对象群」后的交互（与自定义标准共享部分时间配置能力）：</span>
+<span class="yv">        · 成员关系：在 / 不在 → membershipOperator = IN / NOT_IN</span>
+<span class="yv">        · 对象群选择（完成判定群，可与下发对象群不同）→ completionObjectGroupId/Name</span>
+<span class="yv">        · 任务类型 → 沿用现自定义标准的任务类型选择</span>
+<span class="yv">        · 判断时间 → completionJudgmentType/Config/TimeConfig</span>
+<span class="yv">        · 判断截止时间 → taskJudgmentDeadlineType/Config（含「任务截止时间」或「任务截止后 N 天 HH:mm」）</span>
+<span class="yv">        · 任务截止时间 → deadlineType/Config（按下发后 N 天 / 按月 / 固定时间等现有能力）</span>
+<span class="yv">      - 「基于标准模板」仍走编辑标准弹窗（模板+条件+完成脚本等现有链路）</span>
+<span class="yv">      - detail 同构回显三选一及对象群配置</span>
 
-    ============================================================
-    五、关联任务组（必填）—— 前后端影响
-    ============================================================
-    【前端】
-    - 基本信息「关联任务组」必填校验；未选禁止提交
-    - 选项来源 TASK_GROUP_LIST/DETAIL；禁止用 PACKAGE list 冒充
-    - 提交 createPackage/updatePackage 顶层 taskGroupId 必传
-    【后端】（结构不变，校验加严）
-    - 现状 taskGroupId 为可选 → 本任务改为 createPackage/updatePackage 必填（DTO @NotNull + Service 校验）
-    - 落库：PACKAGE.task_definition.task_group_id = taskGroupId
-    - 同步：包级 task_rule.task_group_id（及改绑时子 TASK 规则）与包一致（TGR-007 已有同步能力，本任务验收「必填+落规则表」）
-    - 说明：业务关联主键在 PACKAGE；规则表冗余 task_group_id 供筛规则/Job；两者必须一致
+<span class="yv">    ============================================================</span>
+<span class="yv">    五、关联任务组（必填）—— 前后端影响</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    【前端】</span>
+<span class="yv">    - 基本信息「关联任务组」必填校验；未选禁止提交</span>
+<span class="yv">    - 选项来源 TASK_GROUP_LIST/DETAIL；禁止用 PACKAGE list 冒充</span>
+<span class="yv">    - 提交 createPackage/updatePackage 顶层 taskGroupId 必传</span>
+<span class="yv">    【后端】（结构不变，校验加严）</span>
+<span class="yv">    - 现状 taskGroupId 为可选 → 本任务改为 createPackage/updatePackage 必填（DTO @NotNull + Service 校验）</span>
+<span class="yv">    - 落库：PACKAGE.task_definition.task_group_id = taskGroupId</span>
+<span class="yv">    - 同步：包级 task_rule.task_group_id（及改绑时子 TASK 规则）与包一致（TGR-007 已有同步能力，本任务验收「必填+落规则表」）</span>
+<span class="yv">    - 说明：业务关联主键在 PACKAGE；规则表冗余 task_group_id 供筛规则/Job；两者必须一致</span>
 
-    ============================================================
-    六、完成标准 · 基于对象群 —— 前后端影响
-    ============================================================
-    【前端】
-    - 完成标准区增加第三态「基于对象群」及原型交互（在/不在、完成群、任务类型、判断时间、判断截止、任务截止）
-    - 与「下发对象」字段分离，禁止把下发群直接当成完成群（可默认回填但允许改）
-    - 提交写入 tasks[].taskRule：completionStandardType/completionObjectGroup*/membershipOperator/时间字段
-    - hasAction 过渡：TEMPLATE→true，CUSTOM/OBJECT_GROUP→false（或按后端约定并存）
-    【后端】
-    - 字段已在 TGR-002/007；本任务确保 createPackage/updatePackage 写路径校验 OBJECT_GROUP 必填项
-    - Job 真正按 IN/NOT_IN 完成判定属 TGR-009；本任务至少保证配置可保存/回显
+<span class="yv">    ============================================================</span>
+<span class="yv">    六、完成标准 · 基于对象群 —— 前后端影响</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    【前端】</span>
+<span class="yv">    - 完成标准区增加第三态「基于对象群」及原型交互（在/不在、完成群、任务类型、判断时间、判断截止、任务截止）</span>
+<span class="yv">    - 与「下发对象」字段分离，禁止把下发群直接当成完成群（可默认回填但允许改）</span>
+<span class="yv">    - 提交写入 tasks[].taskRule：completionStandardType/completionObjectGroup*/membershipOperator/时间字段</span>
+<span class="yv">    - hasAction 过渡：TEMPLATE→true，CUSTOM/OBJECT_GROUP→false（或按后端约定并存）</span>
+<span class="yv">    【后端】</span>
+<span class="yv">    - 字段已在 TGR-002/007；本任务确保 createPackage/updatePackage 写路径校验 OBJECT_GROUP 必填项</span>
+<span class="yv">    - Job 真正按 IN/NOT_IN 完成判定属 TGR-009；本任务至少保证配置可保存/回显</span>
 
-    ============================================================
-    七、菜单与路由影响
-    ============================================================
-    - 保留并改名：SALES_TASK_PACKAGE_RULES（/sales-task/package-rules）→ 对外「任务规则管理」
-    - 下线：SALES_TASK_RULES（/sales-task/task-rules）菜单与主入口（页面可暂留防 404，但不可再作为配置入口）
-    - OP 菜单 path/资源名同步；权限明细收口 TGR-015
-    - 列表页按钮/空态/停用/复制等文案随改名，能力不回退
+<span class="yv">    ============================================================</span>
+<span class="yv">    七、菜单与路由影响</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    - 保留并改名：SALES_TASK_PACKAGE_RULES（/sales-task/package-rules）→ 对外「任务规则管理」</span>
+<span class="yv">    - 下线：SALES_TASK_RULES（/sales-task/task-rules）菜单与主入口（页面可暂留防 404，但不可再作为配置入口）</span>
+<span class="yv">    - OP 菜单 path/资源名同步；权限明细收口 TGR-015</span>
+<span class="yv">    - 列表页按钮/空态/停用/复制等文案随改名，能力不回退</span>
 
-    ============================================================
-    八、影响面与回归范围
-    ============================================================
-    - 前端：createOrEdit 布局重构（左下发标准 / 右完成标准）、校验、提交组装、detail 回显、列表/菜单文案
-    - 后端：taskGroupId 必填；包规则 task_group_id 写入/改绑同步；OBJECT_GROUP 配置校验（写路径）
-    - 文档：更新 task_definition_test_spec / 任务组结构改造_test_spec 文案映射与必填说明
-    - 不在本任务：去重 Job（TGR-008）、对象群完成 Job（TGR-009）、统计快照（TGR-017）、权限资源细拆（TGR-015）
-    - 风险：文案「任务规则」易与旧 task-rules、task_rule 表混淆——代码注释必须标注「前端任务规则=PACKAGE」
+<span class="yv">    ============================================================</span>
+<span class="yv">    八、影响面与回归范围</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    - 前端：createOrEdit 布局重构（左下发标准 / 右完成标准）、校验、提交组装、detail 回显、列表/菜单文案</span>
+<span class="yv">    - 后端：taskGroupId 必填；包规则 task_group_id 写入/改绑同步；OBJECT_GROUP 配置校验（写路径）</span>
+<span class="yv">    - 文档：更新 task_definition_test_spec / 任务组结构改造_test_spec 文案映射与必填说明</span>
+<span class="yv">    - 不在本任务：去重 Job（TGR-008）、对象群完成 Job（TGR-009）、统计快照（TGR-017）、权限资源细拆（TGR-015）</span>
+<span class="yv">    - 风险：文案「任务规则」易与旧 task-rules、task_rule 表混淆——代码注释必须标注「前端任务规则=PACKAGE」</span>
 
-    ============================================================
-    九、已波及后续任务（实现注意已写入各任务 note）
-    ============================================================
-    | 任务 | 影响要点 |
-    |------|----------|
-    | TGR-007（口径修订） | taskGroupId 由可选→必填；完成标准主口径 completionStandardType |
-    | TGR-008 | 前端已落 repeatWindowType；Job 须以枚举为主、is_repeat 兼容 |
-    | TGR-009 | 配置写路径已通；Job 禁读 hasAction 推断 OBJECT_GROUP；完成群≠下发群 |
-    | TGR-010 | AFTER_TASK_DEADLINE 挂 EditCompletionModalComm（及模板弹窗） |
-    | TGR-011 | 028 仍偏 PACKAGE 层下发；勿把完成群当下发群；任务层多群需补 UI/过渡 |
-    | TGR-012 | 启停入口=package-rules；组停用按 task_group_id 查包 |
-    | TGR-014 | 立即下发仍包维；复制必带 taskGroupId；勿复活旧 task-rules 主入口 |
-    | TGR-015 | OP 菜单改名/下线旧入口；资源绑 PACKAGE 配置页 |
-    | TGR-005 | 任务规则列表：删三列统计跳转；操作折叠；筛关联任务组/任务类型/任务名称 |
-    | TGR-017 | 新包必有组 id；筛选项文案组/包/规则勿串 |
-    | TGR-025 | 补必填组、OBJECT_GROUP、has_action 刷数回归 |
-    | TGR-027（口径修订） | 配置页主体已由 028 完成；关联组必填 |
-  spec_target: doc/任务组结构改造_test_spec.md
-  acceptance:
-    - 改动仓库以 Comm-Divisor-Service 为主；后端仅加严校验/写路径，不改 PACKAGE/TASK/rule 层级
-    - 文案：任务包下发→下发标准；任务包名称→任务名称；备注→任务说明；具体任务→完成标准；菜单任务规则管理仅保留一套
-    - 布局：左「下发标准」=基本信息+下发信息；右「完成标准」=任务完成标准三选一；对齐原型
-    - 关联任务组：前端必填 + 后端 createPackage/updatePackage 必填；PACKAGE.task_group_id 与包规则 task_rule.task_group_id 一致
-    - 基于对象群：可配置完成群 + 在/不在，并配置任务类型/判断时间/判断截止时间/任务截止时间；保存与 detail 回显正确
-    - 下发信息保留并理顺：下发人、下发对象、下发时间、重复下发去重
-    - 旧 task-rules 菜单下线；列表原任务包能力（新建/编辑/复制/停用）不回退
-    - 同步更新测试文档字段注释与用例；改动文件 git add
-    - 原型：
-      - https://www.figma.com/design/2ipoyIhwH3zX3G0p8oDFWX/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1?node-id=5-4&amp;p=f&amp;t=qxWdPEUjN3AeEJmH-0
-      - /Users/wupengjun/Desktop/1.4/img_v3_02147_bf8f19dd-5a8d-4d41-b3af-913a7a02109g.png
-      - 对话内「任务规则配置」原型截图（下发标准/完成标准/基于对象群）
-  status: completed
+<span class="yv">    ============================================================</span>
+<span class="yv">    九、已波及后续任务（实现注意已写入各任务 note）</span>
+<span class="yv">    ============================================================</span>
+<span class="yv">    | 任务 | 影响要点 |</span>
+<span class="yv">    |------|----------|</span>
+<span class="yv">    | TGR-007（口径修订） | taskGroupId 由可选→必填；完成标准主口径 completionStandardType |</span>
+<span class="yv">    | TGR-008 | 前端已落 repeatWindowType；Job 须以枚举为主、is_repeat 兼容 |</span>
+<span class="yv">    | TGR-009 | 配置写路径已通；Job 禁读 hasAction 推断 OBJECT_GROUP；完成群≠下发群 |</span>
+<span class="yv">    | TGR-010 | AFTER_TASK_DEADLINE 挂 EditCompletionModalComm（及模板弹窗） |</span>
+<span class="yv">    | TGR-011 | 028 仍偏 PACKAGE 层下发；勿把完成群当下发群；任务层多群需补 UI/过渡 |</span>
+<span class="yv">    | TGR-012 | 启停入口=package-rules；组停用按 task_group_id 查包 |</span>
+<span class="yv">    | TGR-014 | 立即下发仍包维；复制必带 taskGroupId；勿复活旧 task-rules 主入口 |</span>
+<span class="yv">    | TGR-015 | OP 菜单改名/下线旧入口；资源绑 PACKAGE 配置页 |</span>
+<span class="yv">    | TGR-005 | 任务规则列表：删三列统计跳转；操作折叠；筛关联任务组/任务类型/任务名称 |</span>
+<span class="yv">    | TGR-017 | 新包必有组 id；筛选项文案组/包/规则勿串 |</span>
+<span class="yv">    | TGR-025 | 补必填组、OBJECT_GROUP、has_action 刷数回归 |</span>
+<span class="yv">    | TGR-027（口径修订） | 配置页主体已由 028 完成；关联组必填 |</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/任务组结构改造_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 改动仓库以 Comm-Divisor-Service 为主；后端仅加严校验/写路径，不改 PACKAGE/TASK/rule 层级</span>
+<span class="yv">    - 文案：任务包下发→下发标准；任务包名称→任务名称；备注→任务说明；具体任务→完成标准；菜单任务规则管理仅保留一套</span>
+<span class="yv">    - 布局：左「下发标准」=基本信息+下发信息；右「完成标准」=任务完成标准三选一；对齐原型</span>
+<span class="yv">    - 关联任务组：前端必填 + 后端 createPackage/updatePackage 必填；PACKAGE.task_group_id 与包规则 task_rule.task_group_id 一致</span>
+<span class="yv">    - 基于对象群：可配置完成群 + 在/不在，并配置任务类型/判断时间/判断截止时间/任务截止时间；保存与 detail 回显正确</span>
+<span class="yv">    - 下发信息保留并理顺：下发人、下发对象、下发时间、重复下发去重</span>
+<span class="yv">    - 旧 task-rules 菜单下线；列表原任务包能力（新建/编辑/复制/停用）不回退</span>
+<span class="yv">    - 同步更新测试文档字段注释与用例；改动文件 git add</span>
+<span class="yv">    - 原型：</span>
+      - <span class="yk">https:</span><span class="yv">//www.figma.com/design/2ipoyIhwH3zX3G0p8oDFWX/%E9%94%80%E5%94%AE%E4%BB%BB%E5%8A%A1?node-id=5-4&amp;p=f&amp;t=qxWdPEUjN3AeEJmH-0</span>
+<span class="yv">      - /Users/wupengjun/Desktop/1.4/img_v3_02147_bf8f19dd-5a8d-4d41-b3af-913a7a02109g.png</span>
+<span class="yv">      - 对话内「任务规则配置」原型截图（下发标准/完成标准/基于对象群）</span>
+  <span class="yk">status:</span><span class="yv"> completed</span>
 
-- id: TGR-015
-  title: 功能权限资源对齐（任务组/任务规则添加编辑；去掉错误明细入口；更新统计资源）
-  priority: P2
-  depends_on: [TGR-005, TGR-027, TGR-028]
-  frontend_repo: /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service
-  note: |
-    权限资源与按钮显隐在 Comm-Divisor-Service / OP 侧落地；菜单文案以 TGR-028「任务规则管理」为准。
-    【受 TGR-028 影响 · 实现注意】
-    - OP 菜单：`/sales-task/package-rules` 对外名改为「任务规则管理」；**下线** `/sales-task/task-rules` 主菜单（路由可留防 404）。
-    - 资源码/按钮：添加编辑绑定 **PACKAGE 配置页**（create-or-edit），勿绑旧 task-rules；「更新统计」按钮已在 package-rules 列表，做成管理员功能资源。
-    - 注释必须写清：**前端「任务规则」= 后端 PACKAGE**，避免权限文档与 task_rule 表、旧子任务列表串义。
-  spec_target: doc/功能权限同步_test_spec.md
-  acceptance:
-    - 改动仓库：Comm-Divisor-Service（非本后端仓）
-    - 前端/OP：添加编辑任务组（新表）/任务规则（原任务包页）资源；明细查看不加权限；旧独立 task-rules 资源下线或合并
-    - 未勾选则隐藏对应按钮；去掉错误「任务组明细」菜单；规则页补添加编辑资源
-    - 「更新统计」做成功能资源给管理员
-  status: pending</pre>
+- <span class="yk">id:</span><span class="yv"> TGR-015</span>
+  <span class="yk">title:</span><span class="yv"> 功能权限资源对齐（任务组/任务规则添加编辑；去掉错误明细入口；更新统计资源）</span>
+  <span class="yk">priority:</span><span class="yv"> P2</span>
+  <span class="yk">depends_on:</span><span class="yv"> [TGR-005, TGR-027, TGR-028]</span>
+  <span class="yk">frontend_repo:</span><span class="yv"> /Users/wupengjun/Desktop/yqproducts/Comm-Divisor-Service</span>
+  <span class="yk">note:</span><span class="yv"> |</span>
+<span class="yv">    权限资源与按钮显隐在 Comm-Divisor-Service / OP 侧落地；菜单文案以 TGR-028「任务规则管理」为准。</span>
+<span class="yv">    【受 TGR-028 影响 · 实现注意】</span>
+<span class="yv">    - OP 菜单：`/sales-task/package-rules` 对外名改为「任务规则管理」；**下线** `/sales-task/task-rules` 主菜单（路由可留防 404）。</span>
+<span class="yv">    - 资源码/按钮：添加编辑绑定 **PACKAGE 配置页**（create-or-edit），勿绑旧 task-rules；「更新统计」按钮已在 package-rules 列表，做成管理员功能资源。</span>
+<span class="yv">    - 注释必须写清：**前端「任务规则」= 后端 PACKAGE**，避免权限文档与 task_rule 表、旧子任务列表串义。</span>
+  <span class="yk">spec_target:</span><span class="yv"> doc/功能权限同步_test_spec.md</span>
+  <span class="yk">acceptance:</span><span class="yv"></span>
+<span class="yv">    - 改动仓库：Comm-Divisor-Service（非本后端仓）</span>
+<span class="yv">    - 前端/OP：添加编辑任务组（新表）/任务规则（原任务包页）资源；明细查看不加权限；旧独立 task-rules 资源下线或合并</span>
+<span class="yv">    - 未勾选则隐藏对应按钮；去掉错误「任务组明细」菜单；规则页补添加编辑资源</span>
+<span class="yv">    - 「更新统计」做成功能资源给管理员</span>
+  <span class="yk">status:</span><span class="yv"> pending</span></pre>
               <p class="yaml-ref">以下为 <code>doc/202607-1.4-task-group-restructure-tasks.md</code> 全文（TGR-001~028，18 completed / 4 pending）。框内可滚动。统计迭代参考 <code>doc/202606-task-package-statistics-tasks.md</code>（TPS-001~019）</p>
               <div class="flow-vtags"><span class="flow-vtag agent">TGR-001~028 · TPS-001~019</span></div>
             </div>
